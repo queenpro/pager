@@ -1,0 +1,332 @@
+ 
+#date-pick {
+    font-size:12px;
+}
+.datetimepickerclass {
+    font-size:13px;
+    dateFormat: 'yyyy-MM-dd';
+    background:lightYellow;
+}
+.datepickerclass {
+    font-size:13px;
+    //dateFormat: 'yyyy-MM-dd';
+    dateFormat: 'dd-MM-yyyy';
+    background:lightYellow;
+}
+body{
+
+    font-size: 13px;
+    font-family: 'Sansation', Arial, sans-serif;
+    font-weight: normal;
+    font-style: normal;
+    margin: 5px;
+    overflow-y: scroll;
+}
+
+input{
+-webkit-border-radius: 25px;
+-moz-border-radius: 25px;
+border-radius: 25px;
+height: 20px;
+padding: 10px;
+}
+.myButton {width:150px;  
+          display:block;   
+          background-color:lightGrey;  
+          color:black;   padding:10px;   
+          text-align:center;  
+          border-radius: 25px; 
+}
+.myAreaButton {width:250px;  
+              display:block; 
+              color:white;  
+              background-color:Grey;  
+              color:black;   
+              padding:5px;   
+              text-align:center;  
+              border-radius: 5px; 
+}
+.mydiv  { font-family: 'Sansation', Arial, sans-serif; }
+
+.tabAddRow {
+    font-family: 'Sansation', Arial, sans-serif;
+    background-color: lightsteelblue;
+    color: black;
+} 
+.unselectedRow {
+    font-family: 'Sansation', Arial, sans-serif;
+    background-color: white;
+    color: darkGrey;
+} 
+.selectedRow {
+    font-family: 'Sansation', Arial, sans-serif;
+    background-color: darkgray;
+    color: black;
+}
+
+.rowUpdating{
+    font-family: 'Sansation', Arial, sans-serif;
+    background-color: lightgrey;
+    color: grey;
+}
+
+.SensibleLABELOLD {
+    font-family: 'Sansation', Arial, sans-serif;
+    border-radius: 5px;
+    color: black;
+    text-align: center ;
+    vertical-align:middle;
+    margin: 2px 0 2px 0;
+    padding: 3px;
+      
+} 
+.SensibleLABEL {
+    font-family: 'Sansation', Arial, sans-serif;
+    
+    margin: 2px 0 2px 0;
+    padding: 3px;
+      display:block;   
+          background-color:lightGrey;  
+          color:black;   padding:10px;   
+          text-align:center;  
+          border-radius: 8px; 
+} 
+.SensibleLABEL:hover {
+    font-family: 'Sansation', Arial, sans-serif;
+    border-radius: 8px;
+    color: yellow;    
+    margin: 2px 0 2px 0;
+    padding: 3px;
+} 
+* { padding: 2; margin: 2; }
+
+.tabHeader {
+    font-family: 'Sansation', Arial, sans-serif;
+  // font-family: verdana, arial, helvetica, sans-serif;
+    font-size: 11px;
+    cellspacing: 0; 
+    border-collapse: collapse; 
+    border-right: 1px solid #999; 
+    border-bottom: 1px solid #999; 
+    border-top: 1px solid #999; 
+    border-left: 1px solid #999; 
+    overflow-wrap: break-word; 
+    background: lightGrey;
+    overflow: hidden; 
+}  
+.tabBody {
+   
+    font-family: 'Sansation', Arial, sans-serif;
+    // font-family: verdana, arial, helvetica, sans-serif;
+    font-size: 11px;
+    cellspacing: 1; 
+    border-collapse: collapse; 
+    border-right: 1px solid #999; 
+    border-bottom: 1px solid #0; 
+    border-top: 1px solid #0; 
+    border-left: 1px solid #999; 
+    background: lightGrey;
+    position: relative; 
+    overflow: scroll; 
+}
+.lineField {
+}
+
+.newlineField {
+}
+.headerSelector {
+    display:block;  width: 50px;
+    background: lightGrey;
+    border-collapse: collapse; 
+    border-right: 2px solid #9; 
+    border-bottom: 2px solid #9; 
+    border-top: 1px solid #999; 
+    border-left: 1px solid #999; 
+}
+.lineSelector {
+    display:block;  width: 40px;
+    background: inherit;
+    border-collapse: collapse; 
+    border-right: 2px solid #9; 
+    border-bottom: 2px solid #9; 
+    border-top: 1px solid #999; 
+    border-left: 1px solid #999; 
+}
+.lineSelector:hover{
+    background: Grey;
+    border-collapse: collapse; 
+    border-right: 1px solid #999; 
+    border-bottom: 1px solid #999; 
+    border-top: 2px solid #9; 
+    border-left: 2px solid #9; 
+}
+.lineDeleter {
+    width: 50px;
+    text-align:center;}
+.topTab {
+    background: yellow;
+}
+.bottomTab {
+    background: lightGrey;
+}
+.cellContent {
+    width: 95%; 
+    height: 100%; 
+}
+.contentNumber {
+    width:100%; display:block;      text-align: right !important;
+}
+.negativeNumber {
+    color: #BE0000;
+}
+.positiveNumber {
+    color: #004405;
+}
+.selectedRadio {
+    background: lightYellow;
+    display:block;    }
+.unselectedRadio {
+    background: lightGrey;
+    display:block;    }
+.totalContent {
+    width: 100%; 
+    font-family: verdana, arial, helvetica, sans-serif;
+    font-size: 12px !important;
+    font-weight: bold !important;     cellspacing: 0; 
+    border-collapse: collapse; 
+    border-right: 2px solid #99 !important; 
+    border-bottom: 2px solid #99 !important; 
+    border-top: 2px solid #99 !important; 
+    border-left: 2px solid #99 !important; 
+    background: #D9FFFF;
+    box-sizing: border-box;
+    -webkit-box-sizing:border-box;
+    -moz-box-sizing: border-box;     width:100%; display:block;      text-align: right ;
+}
+
+.modalDialog {
+    position: fixed;
+    font-family: Arial, Helvetica, sans-serif;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 99999;
+    opacity:0;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+    pointer-events: none;
+}
+.modalDialog:target {
+    opacity:1;
+    pointer-events: auto;
+}
+
+.modalDialog > div {
+    width: 800px;
+    height: 600px;
+    overflow:scroll;
+    position: relative;
+    margin: 5% auto;
+    padding: 5px 20px 13px 20px;
+    border-radius: 10px;
+    background: #fff;
+    background: -moz-linear-gradient(#fff, #999);
+    background: -webkit-linear-gradient(#fff, #999);
+    background: -o-linear-gradient(#fff, #999);
+}
+.close {
+    background: #606061;
+    color: #FFFFFF;
+    line-height: 25px;
+    position: absolute;
+    right: -1px;
+    text-align: center;
+    top: -10px;
+    width: 24px;
+    text-decoration: none;
+    font-weight: bold;
+    -webkit-border-radius: 12px;
+    -moz-border-radius: 12px;
+    border-radius: 12px;
+    -moz-box-shadow: 1px 1px 3px #000;
+    -webkit-box-shadow: 1px 1px 3px #000;
+    box-shadow: 1px 1px 3px #000;
+}
+
+
+.suggester {
+    position: fixed;
+    font-family: Arial, Helvetica, sans-serif;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 99999;
+    opacity:0;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+    pointer-events: none;
+}
+.suggester:target {
+    opacity:1;
+    pointer-events: auto;
+}
+
+.suggester > div {
+    width: 800px;
+    height: 600px;
+    overflow:scroll;
+    position: relative;
+    margin: 5% auto;
+    padding: 5px 20px 13px 20px;
+    border-radius: 10px;
+    background: #fff;
+    background: -moz-linear-gradient(#fff, #999);
+    background: -webkit-linear-gradient(#fff, #999);
+    background: -o-linear-gradient(#fff, #999);
+}
+.suggesterclose {
+    background: #606061;
+    color: #FFFFFF;
+    line-height: 25px;
+    position: absolute;
+    right: -1px;
+    text-align: center;
+    top: -10px;
+    width: 24px;
+    text-decoration: none;
+    font-weight: bold;
+    -webkit-border-radius: 12px;
+    -moz-border-radius: 12px;
+    border-radius: 12px;
+    -moz-box-shadow: 1px 1px 3px #000;
+    -webkit-box-shadow: 1px 1px 3px #000;
+    box-shadow: 1px 1px 3px #000;
+}
+.menu {
+  width: 120px;
+  box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: none;
+
+  .menu-options {
+    list-style: none;
+    padding: 10px 0;
+
+    .menu-option {
+      font-weight: 500;
+      font-size: 14px;
+      padding: 10px 40px 10px 20px;
+      cursor: pointer;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+}
