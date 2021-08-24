@@ -58,8 +58,8 @@ public class EmailSender {
     private EmailProtocol protocol = EmailProtocol.SMTP;
     private boolean debug = true;
 
-    String textPart;
-    String htmlPart;
+    private String textPart;
+    private String htmlPart;
 
     public EmailSender() {
 
@@ -253,7 +253,9 @@ public class EmailSender {
         return esito;
     }
 
-    public int getPort() {
+   
+
+ public int getPort() {
         return port;
     }
 
@@ -308,5 +310,4 @@ public class EmailSender {
     public void setPassword(String password) {
         this.password = password;
     }
-
 }
