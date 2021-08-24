@@ -22,7 +22,6 @@
 
 package showIt;
 
-
 import REVOdbManager.EVOpagerDirectivesManager;
 import models.ShowItObject;
 import REVOdbManager.EVOpagerParams;
