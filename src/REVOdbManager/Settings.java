@@ -141,7 +141,7 @@ public class Settings {
             }
         }
 
-//        System.out.println("@@@@@chargeHost>>>" + this.getData_DATABASE_USER() + " - QPserver:"  + this.getQP_centralManagerURL() + " - ");
+        System.out.println("@@@@@chargeHost>>>" + this.getData_DATABASE_USER() + " - QPserver:"  + this.getQP_centralManagerURL() + " - ");
     }
 
     public void printSettings(String mittente) {
