@@ -133,4 +133,17 @@ public class HTTPsender {
         }
         return resp;
     }
+     public String sendHTTP(String Address, String Port,String page, String Message) {
+        
+        
+//        System.out.println("\n\nINVIO HTTP SU " + Address + ":" + Port);
+        HTTPsender httpSender = new HTTPsender();
+        String resp = "";
+        try {
+            resp = httpSender.send(Address + ":" + Port+"/"+page, Message);
+        } catch (MalformedURLException ex) {
+            System.out.println("\n\nERRORE INVIO HTTP SU" + Address + " : " + Message);
+        }
+        return resp;
+    }
 }
