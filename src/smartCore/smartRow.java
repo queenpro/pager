@@ -309,6 +309,311 @@ public class smartRow {
 
         return htmlCode;
     }
+    
+    
+      public String SMRTpaintBranch(String rowType) {
+
+        String htmlCode = "";
+
+        if (rowType.equalsIgnoreCase("adding")) {
+// <editor-fold defaultstate="collapsed" desc="CASO ADDING ROW.">
+//                System.out.println("CASO ADDING ROW->formRightsRules.canCreate: " + formRightsRules.canCreate);
+//                System.out.println("CASO ADDING ROW->actualRowRights.canCreate: " + actualRowRights.canCreate);
+            if (formRightsRules.canCreate > 0) {
+// caso Pattern
+                if (myForm.getHtmlPattern() != null && myForm.getHtmlPattern().length() > 0) {
+                    htmlCode += "<li><span class=\"folder\"> ";
+                    htmlCode += "<table><tr id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-NEW-ROW\"  class=\"tabAddRow\" >";
+                    htmlCode += "<td  class=\"lineSelector\" > ";
+                    int flag = 0;
+                    int presentAddingFields = 0;
+                    for (int obj = 0; obj < myForm.objects.size(); obj++) {
+                        if (myForm.objects.get(obj).Content.isPrimaryFieldAutocompiled()) {
+                            flag++;
+                        }
+                        if (myForm.objects.get(obj).AddingRow_enabled > 0) {
+                            presentAddingFields++;
+                        }
+                    }
+                    if (flag > 0 && presentAddingFields == 0) { // asterisco per nuova riga senza inserimento di un particolare field
+                        htmlCode += "<a";
+                        String jsonArgs = "{";
+                        jsonArgs += "\"formID\":\"" + myForm.getID() + "\",";
+                        jsonArgs += "\"copyTag\":\"" + myForm.getCopyTag() + "\",";
+                        jsonArgs += "\"objName\":\"INSERT_AI\",";
+                        jsonArgs += "\"KEYvalue\":\"INSERT_AI\",";
+                        jsonArgs += "\"operation\":\"NEW\",";
+                        jsonArgs += "\"cellType\":\"AI\",";
+                        jsonArgs += "\"valueType\":\"INT\",";
+                        jsonArgs += "\"filterField\":\"\",";
+                        jsonArgs += "\"exitRoutine\":\"\"}";
+                        htmlCode += " onClick='javascript:smartCellChanged(" + jsonArgs + ")'  style=\"block\">";
+                        htmlCode += " <img src=\"./media/iconADD.png\" alt=\"NEW\" "
+                                + "style=\"margin-left: auto; margin-right: auto;width:12px;height:12px;border:0\">";
+                        htmlCode += "</a>";
+                    }
+                    //-------------
+                    htmlCode += " </td>";
+
+                    if (formRightsRules.canDelete > 0) {
+                        htmlCode += "<td  class=\"lineDeleter\"  > </td>";
+                    }
+                    try {
+                        htmlCode += encodeAddingPatternRow();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(smartRow.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    htmlCode += " </tr>";
+                    
+                    htmlCode += " </table></span></li>";
+                    
+                } else // caso gridTable               
+                {
+                    htmlCode += "<li><span class=\"folder\"> ";
+                    htmlCode += "<table><tr id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-NEW-ROW\"  class=\"tabAddRow\" >";
+                    htmlCode += "<td  class=\"lineSelector\" > ";
+                    int flag = 0;
+                    int presentAddingFields = 0;
+                    for (int obj = 0; obj < myForm.objects.size(); obj++) {
+                        if (myForm.objects.get(obj).Content.isPrimaryFieldAutocompiled()) {
+                            flag++;
+                        }
+                        if (myForm.objects.get(obj).AddingRow_enabled > 0) {
+                            presentAddingFields++;
+                        }
+                    }
+                    if (flag > 0 && presentAddingFields == 0) { // asterisco per nuova riga senza inserimento di un particolare field
+                        htmlCode += "<a";
+                        String jsonArgs = "{";
+                        jsonArgs += "\"formID\":\"" + myForm.getID() + "\",";
+                        jsonArgs += "\"copyTag\":\"" + myForm.getCopyTag() + "\",";
+                        jsonArgs += "\"objName\":\"INSERT_AI\",";
+                        jsonArgs += "\"KEYvalue\":\"INSERT_AI\",";
+                        jsonArgs += "\"operation\":\"NEW\",";
+                        jsonArgs += "\"cellType\":\"AI\",";
+                        jsonArgs += "\"valueType\":\"INT\",";
+                        jsonArgs += "\"filterField\":\"\",";
+                        jsonArgs += "\"exitRoutine\":\"\"}";
+                        htmlCode += " onClick='javascript:smartCellChanged(" + jsonArgs + ")'  style=\"block\">";
+                        htmlCode += " <img src=\"./media/iconADD.png\" alt=\"NEW\" "
+                                + "style=\"margin-left: auto; margin-right: auto;width:12px;height:12px;border:0\">";
+                        htmlCode += "</a>";
+                    }
+                    //-------------
+                    htmlCode += " </td>";
+
+                    if (formRightsRules.canDelete > 0) {
+                        htmlCode += "<td  class=\"lineDeleter\"  > </td>";
+                    }
+//                    System.out.println("COMPILO " + myForm.objects.size() + " CAMPI IN ADDING ROW");
+                    for (int obj = 0; obj < myForm.objects.size(); obj++) {
+                        if (!myForm.objects.get(obj).CG.getType().equalsIgnoreCase("FORMBUTTON")) {
+                            myForm.objects.get(obj).setValueToWrite("");
+
+                            htmlCode += "<td  class=\"newlineField\" ";
+                            if (myForm.objects.get(obj).getActuallyVisible() < 1) {
+                                htmlCode += " style=\"width:0px; display:none;\" ";
+                            } else {
+                                if (myForm.objects.get(obj).C.getWidth() != null && myForm.objects.get(obj).C.getWidth() != "null" && myForm.objects.get(obj).C.getWidth() != "") {
+                                    htmlCode += " style=\"width:" + myForm.objects.get(obj).C.getWidth() + ";\" ";
+                                }
+                            }
+
+                            htmlCode += ">";
+
+                            htmlCode += "<div id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + myForm.objects.get(obj).name + "-" + "NEW" + "-PLACE\"  ";
+
+                            htmlCode += ">";
+                            if (myForm.objects.get(obj).defaultValue == null) {
+
+                            } else {
+                                if (myForm.objects.get(obj).defaultValue.length() > 0) {
+                                    myForm.objects.get(obj).setAddingRow_enabled(0);
+                                }
+                            }
+                            if (myForm.objects.get(obj).getAddingRow_enabled() > 0) {
+                                //------------------------------------------------- 
+////////                            htmlCode += paintObject("NEW", myForm.objects.get(obj));
+
+                                htmlCode += paintObject("NEW", myForm.objects.get(obj), formRightsRules);
+                                //------------------------------------------------- 
+                            } else {
+
+                            }
+                            htmlCode += "</div></td>";
+                            htmlCode += "</td>";
+                        }
+                    }
+                    //    htmlCode += "</div> ";     
+                    htmlCode += " </tr>";
+                    
+                    htmlCode += " </table></span></li>";
+                }
+            }
+
+            //</editor-fold> 
+        } else if (rowType.equalsIgnoreCase("total")) {
+// <editor-fold defaultstate="collapsed" desc="TOTALS ROW.">
+
+            if (formRightsRules.canView > 0) {
+                String totLabel = "";
+                for (int obj = 0; obj < myForm.objects.size(); obj++) {
+                    if (myForm.objects.get(obj).Content.getHasSum() > 0) {
+                        totLabel = "TOT:";
+                        break;
+                    }
+                }
+                htmlCode += "<tr class=\"tabTotalsRow\" >";
+                if (myForm.getShowCounter() != null && myForm.getShowCounter().equalsIgnoreCase("FALSE")) {
+                    htmlCode += "<td></td>";
+                } else {
+                    htmlCode += "<td  class=\"lineSelector\" >" + totLabel + "</td>";
+
+                }
+
+                if (formRightsRules.canDelete > 0) {
+                    htmlCode += "<td  class=\"lineDeleter\"  > </td>";
+                }
+
+                for (int obj = 0; obj < myForm.objects.size(); obj++) {
+
+                    if (!myForm.objects.get(obj).CG.getType().equalsIgnoreCase("FORMBUTTON")) {
+                        myForm.objects.get(obj).setValueToWrite("");
+
+                        htmlCode += "<td  class=\"lineField\" ";
+                        if (myForm.objects.get(obj).getActuallyVisible() == 0) {
+                            htmlCode += " style=\"width:0px;\" ";
+                        } else {
+                            if (myForm.objects.get(obj).C.getWidth() != null && myForm.objects.get(obj).C.getWidth() != "null" && myForm.objects.get(obj).C.getWidth() != "") {
+                                htmlCode += " style=\"width:" + myForm.objects.get(obj).C.getWidth() + ";\" ";
+                            }
+                        }
+                        htmlCode += ">";
+                        htmlCode += "<div id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + myForm.objects.get(obj).name + "-" + "TOT" + "-PLACE\"  ";
+                        htmlCode += "class =\"totalContent ";
+                        if (myForm.objects.get(obj).Content.getActualSum() < 0) {
+                            htmlCode += " negativeNumber  ";
+                        } else {
+                            htmlCode += " positiveNumber  ";
+                        }
+                        htmlCode += "\" >";
+
+//                        System.out.println("++oggetto " + myForm.objects.get(obj).getName() + " - HAS SUM =" + myForm.objects.get(obj).Content.getHasSum() + " -  SUM =" + myForm.objects.get(obj).Content.getActualSum());
+                        if (myForm.objects.get(obj).Content.getHasSum() > 0) {
+                            //------------------------------------------------- 
+                            int no = myForm.objects.get(obj).Content.getActualSum();
+                            Locale.setDefault(Locale.ITALY);
+                            String str = String.format("%,d", no);
+                            htmlCode += str;
+                            //------------------------------------------------- 
+                        } else {
+                            htmlCode += "";
+                        }
+                        htmlCode += "</div></td>";
+                        htmlCode += "</td>";
+                    }
+                }
+                //  htmlCode += "</div> ";
+                htmlCode += " </tr>";
+
+            }
+
+            //</editor-fold> 
+        } else {
+            // <editor-fold defaultstate="collapsed" desc="CASO NORMAL ROW."> 
+            htmlCode += encodeNormalBranch();
+//</editor-fold> 
+        }
+
+        return htmlCode;
+    }
+    
+   public String encodeNormalBranch() { //per TREEVIEW
+        String htmlCode = "";
+
+        if (myForm.getKEYfieldName() != null) {
+            if (myForm.getKEYfieldType() != null && myForm.getKEYfieldType().equalsIgnoreCase("INT")) {
+                int myKEYvalue;
+                try {
+                    myKEYvalue = rs.getInt(myForm.getKEYfieldName());
+                    KEYvalue = "" + myKEYvalue;
+
+                } catch (SQLException ex) {
+                    Logger.getLogger(smartRow.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                //System.out.println("Prendo numerico: KEYfieldName :" + myForm.getKEYfieldName() + " KEYfieldType :" + myForm.getKEYfieldType());
+            } else {
+                KEYvalue = "" + rowNumber;
+                try {
+                    KEYvalue = rs.getString(myForm.getKEYfieldName());
+                    //System.out.println("Prendo stringa: KEYfieldName :" + myForm.getKEYfieldName() + " KEYfieldType :" + myForm.getKEYfieldType());
+                } catch (SQLException ex) {
+//                    Logger.getLogger(smartRow.class.getName()).log(Level.SEVERE, null, ex);
+
+                }
+            }
+        } else {
+            KEYvalue = "" + rowNumber;
+//                    System.out.println("-------------");
+//                    System.out.println(myForm.query);
+//                    System.out.println("paintRow:AUTO INDICIZZAZIONE ATTIVATA !!!");
+//                    System.out.println("-------------");
+        }
+        String ValueAssigned = getBGcolor(myForm.getRowBGcolor(), rs);
+        //stabilisco il colore di background 
+        htmlCode += "<li><span class=\"folder\"> ";
+        //----------------------------------------------------------------------
+        htmlCode += "<table><tr id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-"
+                + KEYvalue + "-ROW\" class=\"unselectedRow\" >";
+
+//                System.out.println("-------->paintRowSelector() ");
+        htmlCode += paintBranchSelector(rowNumber, KEYvalue);
+        
+        // delete button-------------
+        if (formRightsRules.canDelete > 0) {//per il FORM
+            htmlCode += "<td class=\"lineDeleter\"   >"
+                    + "<a id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-DEL\"   ";
+            if (actualRowRights.canDelete > 0) {// PER LA SINGOLA RIGA
+                String jsonArgs = "{";
+                jsonArgs += "\"formID\":\"" + myForm.getID() + "\",";
+                jsonArgs += "\"copyTag\":\"" + myForm.getCopyTag() + "\",";
+                jsonArgs += "\"objName\":\"\",";
+                jsonArgs += "\"KEYvalue\":\"" + KEYvalue + "\",";
+                jsonArgs += "\"operation\":\"DEL\",";
+                jsonArgs += "\"cellType\":\"X\",";
+                jsonArgs += "\"filterField\":\"\",";
+                jsonArgs += "\"exitRoutine\":\"dummy()\"}";
+                htmlCode += " onClick='javascript:smartCellChanged(" + jsonArgs + ")' >";
+                htmlCode += " <img  height=\"15\" width=\"15\" align=\"middle\" src='./media/icons/IconDELETE.gif' alt='ELIMINA' ";
+
+                htmlCode += " ></img>";
+                htmlCode += "</a> ";
+            }
+
+            htmlCode += "</td>";
+        }
+
+        //   System.out.println("\n--PaintRow_elaboraRigaRS per riga n." + lineNumber);
+        ArrayList<boundFields> rowValues = elaboraRigaRS(rs, actualRowRights);
+        if (myForm.getHtmlPattern() != null && myForm.getHtmlPattern().length() > 0) {
+            try {
+                htmlCode += encodeNormalPatternRow();
+            } catch (SQLException ex) {
+                Logger.getLogger(smartRow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            try {
+                htmlCode += encodeNormalGridRow();
+            } catch (SQLException ex) {
+                Logger.getLogger(smartRow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        htmlCode += "</tr>";
+        htmlCode += "</TABLE></span></li>";
+        
+        return htmlCode;
+    }
 
     public String encodeNormalRow() {
         String htmlCode = "";
@@ -1200,7 +1505,36 @@ public class smartRow {
 
         return ValueAssigned;
     }
+private String paintBranchSelector(int lineNumber, String KEYvalue) {
+        String htmlCode = "";
+//        System.out.println("paintRowSelector:" + myForm.getShowCounter());
+        if (myForm.getShowCounter() != null && myForm.getShowCounter().equalsIgnoreCase("FALSE")) {
+            htmlCode += "<td></td>";
+        } else {
+            // row selector-------------
+            String xLineNumber = "" + lineNumber;
+            if (lineNumber == 0) {
+                xLineNumber = "NEW";
+            }
+            try {
+                if (myForm.getVisualType() != null && myForm.getVisualType().equalsIgnoreCase("singleRow")) {
+                    xLineNumber = "UPD";
+                }
+            } catch (Exception e) {
+            }
+            htmlCode += "<td class=\"lineSelector\""
+                    //+ " style=\"padding: 0;\""
+                    + "onClick=\"javascript:smartLeafSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\">"
+                    + "<a id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL\" "
+                    + "style=\""
+                    + " height: inherit;"
+                    + " padding: 1em;"
+                    + "\"><font size='1'><i><b>" + xLineNumber + "</b></i></font> "
+                    + "</a></td>";
+        }
 
+        return htmlCode;
+    }
     private String paintRowSelector(int lineNumber, String KEYvalue) {
         String htmlCode = "";
 //        System.out.println("paintRowSelector:" + myForm.getShowCounter());

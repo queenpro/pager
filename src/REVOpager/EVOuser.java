@@ -1208,7 +1208,7 @@ public class EVOuser {
                     response = 0; // accesso negato
                     System.out.println(" accesso negato ---> timepassed:" + timepassed);
                 } else {
-                    pokeSession();
+////////                    pokeSession();
                     //System.out.println(" accesso consentito ---> timepassed:" + timepassed);
                     response = 1;
 
@@ -1245,18 +1245,19 @@ public class EVOuser {
             } catch (Exception e) {
             }
         } else {
-            try {
-                String SQLphrase;
-                PreparedStatement ps;
-                SQLphrase = "UPDATE `archivio_operatoriTokens` SET `updated`= NOW()  "
-                        + "WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
-                System.out.println("\n*\nverifyUserTimeout-->SONO IN logout." + SQLphrase);
-                ps = accountConny.prepareStatement(SQLphrase);
-                int i = ps.executeUpdate();
-                accountConny.close();
-            } catch (SQLException ex) {
-                System.out.println("Error:" + ex);
-            }
+            pokeSession();
+////////            try {
+////////                String SQLphrase;
+////////                PreparedStatement ps;
+////////                SQLphrase = "UPDATE `archivio_operatoriTokens` SET `updated`= NOW()  "
+////////                        + "WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
+//////////                System.out.println("\n*\nverifyUserTimeout-->SONO IN updated." + SQLphrase);
+////////                ps = accountConny.prepareStatement(SQLphrase);
+////////                int i = ps.executeUpdate();
+////////                accountConny.close();
+////////            } catch (SQLException ex) {
+////////                System.out.println("Error:" + ex);
+////////            }
 
         }
         try {

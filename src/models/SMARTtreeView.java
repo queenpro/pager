@@ -172,20 +172,20 @@ public class SMARTtreeView {
         }
         elenco += " <ul  data-role=\"treeview\" style=\"width: 300px; height: 200px; overflow: auto;\">\n";
         String idList = myForm.getID() + "-" + myForm.getCopyTag() + "-" + curObj.name;
-////////        elenco += "<li "
-////////                + "id = \"\" "
-////////                + "> "
-////////                + "<INPUT type=\"TEXT\" "
-////////                + "id = \"" + idList + "\" "
-////////                + "onclick=\"javascript:populateNestedList('" + myForm.getID() + "',"
-////////                + "'" + myForm.getCopyTag() + "',"
-////////                + "'" + curObj.name + "',"
-////////                + "'ul-root',"
-////////                + "'addNode',"
-////////                + "'" + Level + "',"
-////////                + ")\" "
-////////                + "><a>ADD</a>"
-////////                + "</li>";
+        elenco += "<li "
+                + "id = \"\" "
+                + "> "
+                + "<INPUT type=\"TEXT\" "
+                + "id = \"" + idList + "\" "
+                + "onclick=\"javascript:populateNestedList('" + myForm.getID() + "',"
+                + "'" + myForm.getCopyTag() + "',"
+                + "'" + curObj.name + "',"
+                + "'ul-root',"
+                + "'addNode',"
+                + "'" + Level + "',"
+                + ")\" "
+                + "><a>ADD</a>"
+                + "</li>";
 
         try {
             //======================================================

@@ -111,7 +111,7 @@ public class Settings {
     private String updateMode;
 
     private TomcatGaiaHost gaiaHost;
-    
+
     boolean logEvents;
     boolean logCRUD;
     boolean logLogin;
@@ -119,29 +119,35 @@ public class Settings {
 
     public void chargeHost() {
         gaiaHost = new TomcatGaiaHost(projectName);
-
+        String newPW = null;
+        String newUser = null;
         if (this.getGaiaHost().getPwType() != null
                 && this.getGaiaHost().getDbUsername() != null
                 && this.getGaiaHost().getDbUsername().length() > 0) {
-            String newPW = null;
+
             if (this.getGaiaHost().getPwType().equalsIgnoreCase("standard")) {
-                newPW = this.getGaiaHost().getDbSeed();
-                newPW += "_Pa$$_queenpro";
-                this.setData_DATABASE_USER(this.getGaiaHost().getDbUsername());
-                this.setData_DATABASE_PW(newPW);
-                this.setAccount_DATABASE_USER(this.getGaiaHost().getDbUsername());
-                this.setAccount_DATABASE_PW(newPW);
-                this.setFE_DATABASE_USER(this.getGaiaHost().getDbUsername());
-                this.setFE_DATABASE_PW(newPW);
-                this.setRevolution_DATABASE_USER(this.getGaiaHost().getDbUsername());
-                this.setRevolution_DATABASE_PW(newPW);
+                newPW = this.getGaiaHost().getDbSeed() + "_Pa$$_queenpro";
+                newUser = this.getGaiaHost().getDbUsername();
+
             }
             if (this.getGaiaHost().getQP_centralManagerURL() != null && this.getGaiaHost().getQP_centralManagerURL().length() > 0) {
-                QP_centralManagerURL = this.getGaiaHost().getQP_centralManagerURL()+"centralManager";
+                QP_centralManagerURL = this.getGaiaHost().getQP_centralManagerURL() + "centralManager";
             }
+        } else {
+            newUser = "NAS-SOFTWARE";
+            newPW = "buckaroo!22014";
         }
 
-        System.out.println("@@@@@chargeHost>>>" + this.getData_DATABASE_USER() + " - QPserver:"  + this.getQP_centralManagerURL() + " - ");
+        this.setData_DATABASE_USER(newUser);
+        this.setData_DATABASE_PW(newPW);
+        this.setAccount_DATABASE_USER(newUser);
+        this.setAccount_DATABASE_PW(newPW);
+        this.setFE_DATABASE_USER(newUser);
+        this.setFE_DATABASE_PW(newPW);
+        this.setRevolution_DATABASE_USER(newUser);
+        this.setRevolution_DATABASE_PW(newPW);
+
+        System.out.println("@@@@@chargeHost>>>" + this.getData_DATABASE_USER() + " - QPserver:" + this.getQP_centralManagerURL() + " - ");
     }
 
     public void printSettings(String mittente) {

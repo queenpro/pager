@@ -1751,7 +1751,7 @@ public class eventManager {
         HtmlCode += (dbCode);
         HtmlCode += "<link rel=\"stylesheet\" href=\"stylesheet.css\" type=\"text/css\" charset=\"utf-8\" />\n";
         HtmlCode += "<link rel=\"stylesheet\" href=\"gaia.css\" type=\"text/css\" charset=\"utf-8\" />\n";
-        HtmlCode += "<script type=\"text/javascript\" src=\"external/nicEdit/nicEdit.js\"></script>\n";
+        HtmlCode += "<script type=\"text/javascript\" src=\"external/nicEdit/nicEdit.js\"></script>\n"; 
         HtmlCode += "<script>";
 //        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Carico gli script JS dal DB.");
         //dbCode = myDirective.getDirective("gaia.variables"); 

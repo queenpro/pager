@@ -421,6 +421,25 @@ public class requestsManager {
                         Irequest.setResponse(formResponse.HtmlCode);
                         System.out.println("Esco con Door="+  Irequest.getMyGate().getDoor() );
                         
+                    } else if (myForm.getType().equalsIgnoreCase("SMARTTREE")) {
+                        smartForm mySmartForm = loadSmartFORMfromGATE();
+                        mySmartForm.setLoadType("{\"type\":\"SMARTTREE\","
+                                + "\"visualType\":\"FULLFORM\","
+                                + "\"firstRow\":\"1\","
+                                + "\"NofRows\":\"50\","
+                                + "\"currentPage\":\"1\","
+                                + "\"visualFilter\":\"\"}");
+                        System.out.println("VADO IN clickedObject-->SMARTTREE, getVisualType:" + mySmartForm.getVisualType());
+                        mySmartForm.paintForm();//questo mette il codice html in mySmartForm.formResponse
+                        System.out.println("PaintForm eseguito");
+
+                        formResponse.setGes_routineOnLoad(mySmartForm.formResponse.getGes_routineOnLoad());
+                        formResponse.setHtmlCode(mySmartForm.formResponse.getHtmlCode());
+                        Irequest.getMyGate().setGes_routineOnLoad(formResponse.ges_routineOnLoad); 
+                        Irequest.setResponse(formResponse.HtmlCode);
+                        System.out.println("Esco con Door="+  Irequest.getMyGate().getDoor() );
+                        System.out.println("formResponse.HtmlCode="+  formResponse.HtmlCode );
+                        
                     } else if (myForm.getType().equalsIgnoreCase("SMARTPANEL")) {
                         smartForm mySmartForm = loadSmartFORMfromGATE();
                         mySmartForm.setLoadType("{\"type\":\"SMARTPANEL\","

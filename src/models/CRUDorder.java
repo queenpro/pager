@@ -79,6 +79,8 @@ public class CRUDorder {
     String mainTable;
     String JSafterHour;
     String ActionParams;
+    
+    String formType;
 
     String AfterOperationRoutineOnChange;
     String AfterOperationRoutineOnNew;
@@ -116,6 +118,14 @@ public class CRUDorder {
         System.out.println("ActionParams:" + ActionParams);
         System.out.println("---------------------------------");
         return params;
+    }
+
+    public String getFormType() {
+        return formType;
+    }
+
+    public void setFormType(String formType) {
+        this.formType = formType;
     }
 
     public String getActionParams() {
@@ -479,6 +489,8 @@ public class CRUDorder {
         myForm.setCopyTag(this.getFormCopyTag());
         myForm.setSendToCRUD(this.getSendToCRUD());
         myForm.buildSchema();
+        
+        this.formType = myForm.getType();
 
         String SQLphrase = "";
         String whereClause = "";

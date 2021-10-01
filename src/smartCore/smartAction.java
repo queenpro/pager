@@ -127,8 +127,8 @@ public class smartAction {
             try {
                 payload = java.net.URLDecoder.decode(payload, "UTF-8");
             } catch (UnsupportedEncodingException ex) {
-            }
-//            System.out.println("resolveConnector RICEVUTA RICHIESTA wsRequest. payload: " + payload);
+            } 
+            System.out.println("resolveConnector RICEVUTA RICHIESTA wsRequest. payload: " + payload);
             jsonParser = new JSONParser();
             JSONObject pl = (JSONObject) jsonParser.parse(payload);
             try {
@@ -138,12 +138,36 @@ public class smartAction {
             }
             try {
                 connectors = (JSONArray) pl.get("connectors");
-//                System.out.println("connectors.size: " + connectors.size());
+                System.out.println("connectors.size: " + connectors.size());
             } catch (Exception e1) {
-                System.out.println("connectors filter ERROR: " + e1.toString());
+                System.out.println("connectors connectors ERROR: " + e1.toString());
             }
         } catch (ParseException ex) {
-            System.out.println("resolveAction ERROR: " + ex.toString());
+            System.out.println("resolveAction ERROR: " + ex.toString()); 
+            try {
+            try {
+                payload = java.net.URLDecoder.decode(payload, "UTF-8");
+            } catch (UnsupportedEncodingException ezx) {
+            } 
+            System.out.println("rrielaborata RICHIESTA wsRequest. payload: " + payload);
+            jsonParser = new JSONParser();
+            JSONObject pl = (JSONObject) jsonParser.parse(payload);
+            try {
+                filter = (JSONArray) pl.get("filter");
+            } catch (Exception e1) {
+                System.out.println("resolveAction filter2 ERROR: " + e1.toString());
+            }
+            try {
+                connectors = (JSONArray) pl.get("connectors");
+                System.out.println("connectors.size: " + connectors.size());
+            } catch (Exception e1) {
+                System.out.println("connectors connectors ERROR: " + e1.toString());
+            }
+        } catch (ParseException exx) {
+            System.out.println("resolveAction2 ERROR: " + exx.toString()); 
+            
+        }
+            
         }
         jObj = (JSONObject) connectors.get(0);
         return jObj;
@@ -412,6 +436,9 @@ public class smartAction {
                         myCrud.setFormID(connector.get("formID").toString());
                     } catch (Exception e) {
                     }
+                    
+                    System.out.println("smartAction --->connector.get(\"formID\"): " + connector.get("formID").toString());
+                    
                     try {
                         myCrud.setFormCopyTag(connector.get("copyTag").toString());
                     } catch (Exception e) {
@@ -424,8 +451,17 @@ public class smartAction {
 //                    idOne = UUID.randomUUID();
 //                    connector.put("opToken", idOne);
                     String CRUDrepsonse = myCrud.executeCRUD();
+                    
+                    
+                    System.out.println("smartAction --->FORM TYPE: " + myCrud.getFormType());
+                    
 
                     if (myCrud.getOperation().equalsIgnoreCase("ADD")) {
+                        String action ="SHOWADDEDROW";
+                        if ( myCrud.getFormType()!=null &&  myCrud.getFormType().equalsIgnoreCase("SMARTTREE")){
+                            action ="SHOWADDEDLEAF";
+                        }
+                        
                         String htmlCode = "";
                         htmlCode = encodeURIComponent(htmlCode);
                         actionResponse = new JSONObject();
@@ -441,7 +477,10 @@ public class smartAction {
                     } else if (myCrud.getOperation().equalsIgnoreCase("DEL")) {
 
                     } else if (myCrud.getOperation().equalsIgnoreCase("UPD")) {
-
+                        String action ="CRUD-UPD-RESPONSE";
+                        if (  myCrud.getFormType()!=null && myCrud.getFormType().equalsIgnoreCase("SMARTTREE")){
+                            action ="CRUD-UPD-RESPONSE-LEAF";
+                        }
 //                        System.out.println("smartAction --->myCrud.getRoutineOnChange(): " + myCrud.getRoutineOnChange());
                         actionResponse = new JSONObject();
                         JSONObject outPayload = new JSONObject();
@@ -1188,8 +1227,12 @@ public class smartAction {
         String actionParams = "";
         Connection FEconny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalFE();
         String SQLphrase = "";
+//        System.out.println("VAdo in loadFORMparams");
         smartForm myForm = loadFORMparams(connector);
+//        System.out.println("VAdo in buildSchema");
         myForm.buildSchema();
+        
+//        System.out.println(" Schema oggetti: "+myForm.objects.size());
         for (smartObject object : myForm.objects) {
             System.out.println("FORM OBJECT:" + object.name);
             if (object.name.equalsIgnoreCase(rifObj)) {
@@ -1197,6 +1240,7 @@ public class smartAction {
                 break;
             }
         }
+        //CERCO TRA I FORM OBJECTS
         if (actionParams == null || actionParams == "") {
             for (smartObject object : myForm.formObjects) {
                 System.out.println("FORM OBJECT:" + object.name);
@@ -1207,7 +1251,7 @@ public class smartAction {
             }
         }
 
-        System.out.println("resolveAction--->actionParams per richiedente secondary form (es button): " + actionParams.toString());
+        System.out.println("resolveAction--->actionParams per richiedente secondary form (es da un button IN RIGA (non in panel!!!!)): " + actionParams.toString());
         if (actionParams != null && actionParams.length() > 2) {
             if (actionParams.startsWith("{")) {//singolo form da aprire
                 JSONParser jsonParser = new JSONParser();
@@ -1698,7 +1742,9 @@ public class smartAction {
     }
 
     public smartForm loadFORMparams(JSONObject connector) {
-
+        // finora queste funzioni sono usate solo a partire da pulsanti in row dentro a uno SMARTTABLE. 
+        //Non l'ho implementato da un panel
+// System.out.println("### costriuisco form : " + connector.toString());
         smartForm myForm = new smartForm(connector.get("formID").toString(),
                 myParams, mySettings);
 
