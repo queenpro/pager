@@ -18,8 +18,6 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package models;
 
 import java.io.File;
@@ -58,7 +56,7 @@ public class TomcatGaiaHost {
     public TomcatGaiaHost(String XprjectName) {
         this.projectName = XprjectName;
 
-//        System.out.println("\n<<<<<<< data:" + data);
+        System.out.println("\n<<<<<<< TomcatGaiaHost XprjectName:" + XprjectName);
         try {
             getConfigPath();
             try {
@@ -68,7 +66,7 @@ public class TomcatGaiaHost {
 
             }
         } catch (Exception e) {
-
+            System.out.println("\nTomcatGaiaHost:" + e.toString());
         }
 
     }
@@ -126,32 +124,32 @@ public class TomcatGaiaHost {
 //            System.out.println("\n>>>>>>>>> DATA FROM DISK:" + data);
 
         } catch (FileNotFoundException ex) {
-            System.out.println("\n>>>>>>>>>FILE NOT FOUND");
+            System.out.println("\ngetConfigData>>>>>>>>>FILE NOT FOUND");
         } catch (IOException ex) {
-            System.out.println("\n>>>>>>>>>FILE NOT REACHABLE");
+            System.out.println("\ngetConfigData>>>>>>>>>FILE NOT REACHABLE");
         }
         if (data == null) {
 
             try {
                 File myObj = new File(path);
                 if (myObj.createNewFile()) {
-                    System.out.println("File created: " + myObj.getName());
+                    System.out.println("getConfigData->File created: " + myObj.getName());
                 } else {
-                    System.out.println("File already exists.");
+                    System.out.println("getConfigData->File already exists.");
                 }
                 try {
                     FileWriter myWriter = new FileWriter(path);
-                    data= "{\"apps\":[{\"appName\":\"" + this.projectName + "\",\"dbUsr\":\"Anakim\",\"dbSeed\":\"Padme\",\"pwType\":\"standard\"}]}";
+                    data = "{\"apps\":[{\"appName\":\"" + this.projectName + "\",\"dbUsr\":\"Anakim\",\"dbSeed\":\"Padme\",\"pwType\":\"standard\"}]}";
                     myWriter.write(data);
                     myWriter.close();
-                    System.out.println("Successfully wrote to the file.");
+                    System.out.println("getConfigData->Successfully wrote to the file.");
                 } catch (IOException e) {
-                    System.out.println("An error occurred writing file.");
+                    System.out.println("getConfigData->An error occurred writing file.");
                     e.printStackTrace();
                 }
 
             } catch (IOException e) {
-                System.out.println("An error occurred.");
+                System.out.println("getConfigData->An error occurred.");
                 e.printStackTrace();
             }
         }
@@ -161,6 +159,7 @@ public class TomcatGaiaHost {
 
     public void getProjectInfos() {
         System.out.println("\n<<<<<>>>>>> data:" + data);
+        int flag=0;
         if (data != null && data.length() > 0) {
             try {
                 JSONParser jsonParser = new JSONParser();
@@ -178,17 +177,24 @@ public class TomcatGaiaHost {
                         dbSeed = jObject.get("dbSeed").toString();
                         pwType = jObject.get("pwType").toString();
                         QP_centralManagerURL = jObject.get("QP_centralManagerURL").toString();
+                        flag ++;
                         break;
                     }
                 }
+                
             } catch (ParseException ex) {
                 Logger.getLogger(TomcatGaiaHost.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
+            flag=0;
+        }
+        if (flag<=0){
+            
             dbUsername = "Anakim";
             dbSeed = "Padme";
             pwType = "standard";
             QP_centralManagerURL = "http://queenpro.myqnapcloud.com:9080/qpmanager/centralManager";
         }
+        
     }
 }

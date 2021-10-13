@@ -18,10 +18,9 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package models;
 
+import REVOdbManager.EVOpagerParams;
 import showIt.eventManager;
 import smartCore.smartForm;
 import REVOpager.EVOpagerDBconnection;
@@ -71,9 +70,12 @@ public class requestsManager {
         String paramsJSON = this.Irequest.getParams();
 //        System.out.println("IncomingRequest processRequest()...Assegno i params " + paramsJSON);
         try {
-            Irequest.setMyParams(Irequest.getMyParams().chargeParams(paramsJSON, Irequest.getMySettings()));
+            EVOpagerParams myParams = Irequest.getMyParams().chargeParams(paramsJSON, Irequest.getMySettings());
+            if (myParams != null) {
+                Irequest.setMyParams(myParams);
+            }
         } catch (Exception e) {
-            System.out.println("ERRORE IN CARICAMENTO PARAMETRI:" + e.toString());
+            System.out.println("requestsManager-->ERRORE IN CARICAMENTO PARAMETRI:" + e.toString());
         }
         //  System.out.println("\t\tFATTO! ");
 /*
@@ -307,7 +309,7 @@ public class requestsManager {
                 } else if (Irequest.getMyGate().getEvent().equalsIgnoreCase("ownerAccountManager")) {
                     /* request.getMyGate().setControlNeeded(false);
                    request = myEvent.ownerAccountManager(request);*/
-                    ShowItForm myForm = loadFORMfromGATE();  
+                    ShowItForm myForm = loadFORMfromGATE();
                     Irequest.setResponse(myForm.paintForm().HtmlCode);
                     Irequest.getMyGate().setForm((String) Irequest.getResponse());
                     Irequest.getMyGate().setFormType(myForm.getType());
@@ -417,10 +419,10 @@ public class requestsManager {
 
                         formResponse.setGes_routineOnLoad(mySmartForm.formResponse.getGes_routineOnLoad());
                         formResponse.setHtmlCode(mySmartForm.formResponse.getHtmlCode());
-                        Irequest.getMyGate().setGes_routineOnLoad(formResponse.ges_routineOnLoad); 
+                        Irequest.getMyGate().setGes_routineOnLoad(formResponse.ges_routineOnLoad);
                         Irequest.setResponse(formResponse.HtmlCode);
-                        System.out.println("Esco con Door="+  Irequest.getMyGate().getDoor() );
-                        
+                        System.out.println("Esco con Door=" + Irequest.getMyGate().getDoor());
+
                     } else if (myForm.getType().equalsIgnoreCase("SMARTTREE")) {
                         smartForm mySmartForm = loadSmartFORMfromGATE();
                         mySmartForm.setLoadType("{\"type\":\"SMARTTREE\","
@@ -435,11 +437,11 @@ public class requestsManager {
 
                         formResponse.setGes_routineOnLoad(mySmartForm.formResponse.getGes_routineOnLoad());
                         formResponse.setHtmlCode(mySmartForm.formResponse.getHtmlCode());
-                        Irequest.getMyGate().setGes_routineOnLoad(formResponse.ges_routineOnLoad); 
+                        Irequest.getMyGate().setGes_routineOnLoad(formResponse.ges_routineOnLoad);
                         Irequest.setResponse(formResponse.HtmlCode);
-                        System.out.println("Esco con Door="+  Irequest.getMyGate().getDoor() );
-                        System.out.println("formResponse.HtmlCode="+  formResponse.HtmlCode );
-                        
+                        System.out.println("Esco con Door=" + Irequest.getMyGate().getDoor());
+                        System.out.println("formResponse.HtmlCode=" + formResponse.HtmlCode);
+
                     } else if (myForm.getType().equalsIgnoreCase("SMARTPANEL")) {
                         smartForm mySmartForm = loadSmartFORMfromGATE();
                         mySmartForm.setLoadType("{\"type\":\"SMARTPANEL\","
@@ -609,7 +611,7 @@ public class requestsManager {
                 myCrud.setSendToCRUD(Irequest.getMyGate().getSendToCRUD());
                 myCrud.setFormID(Irequest.getMyGate().getFormID());
                 myCrud.setFormCopyTag(Irequest.getMyGate().getCopyTag());
-                
+
 //System.out.println("_request manager Irequest.getMyGate().getPrimaryFieldName():" + Irequest.getMyGate().getPrimaryFieldName());
 //System.out.println("_request manager Irequest.getMyGate().getPrimaryFieldValue():" + Irequest.getMyGate().getPrimaryFieldValue());
 //System.out.println("_request manager Irequest.getMyGate().getNewValue():" + Irequest.getMyGate().getNewValue());
@@ -617,9 +619,7 @@ public class requestsManager {
 //System.out.println("_request manager Irequest.getMyGate().getTBS():" + Irequest.getMyGate().getTBS());
 //System.out.println("_request manager Irequest.getMyGate().getFatherKEYvalue():" + Irequest.getMyGate().getFatherKEYvalue());
 //System.out.println("_request manager Irequest.getMyGate().getCellName():" + Irequest.getMyGate().getCellName());
-
 //                System.out.println("\\n\\n>>routineOnChange: " + myCrud.getRoutineOnChange());
-
                 //===ESEGUO OPERAZIONE CRUD=====================================
                 Irequest.getMyGate().setForm(myCrud.executeCRUD());
                 //==============================================================
@@ -627,8 +627,7 @@ public class requestsManager {
                 Irequest.getMyGate().setAfterOperationRoutineOnNew("");
                 Irequest.getMyGate().setAfterOperationRoutineOnChange("");
                 Irequest.getMyGate().setAfterOperationRoutineOnDelete("");
-                
-                
+
                 if (myCrud.getOperation() != null && myCrud.getOperation().equalsIgnoreCase("ADD")) {
                     Irequest.getMyGate().setAfterOperationRoutineOnNew(myCrud.getAfterOperationRoutineOnNew());
                 } else if (myCrud.getOperation() != null && myCrud.getOperation().equalsIgnoreCase("UPD")) {
@@ -780,11 +779,8 @@ public class requestsManager {
                     System.out.println("requestManager_Tabella individuata:" + myCrud.getMainTable() + " ; KEY:" + myCrud.getPrimaryFieldValue());
                     Irequest.getMyGate().setForm(newjson);
                     Irequest.setResponse(newjson);
-                    
-                    // su Irequest posso passare anche i parametri usati per il CCRUD che andranno al portal e serviranno per l'esecuzione della routineOnChange
-                    
-                    
 
+                    // su Irequest posso passare anche i parametri usati per il CCRUD che andranno al portal e serviranno per l'esecuzione della routineOnChange
                 }
 
             } else // </editor-fold>             

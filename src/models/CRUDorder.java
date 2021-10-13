@@ -80,11 +80,14 @@ public class CRUDorder {
     String JSafterHour;
     String ActionParams;
     
+    ShowItForm myForm;
     String formType;
+    String addedIndex;
 
     String AfterOperationRoutineOnChange;
     String AfterOperationRoutineOnNew;
     String AfterOperationRoutineOnDelete;
+    
 
     public String printParams() {
 
@@ -118,6 +121,14 @@ public class CRUDorder {
         System.out.println("ActionParams:" + ActionParams);
         System.out.println("---------------------------------");
         return params;
+    }
+
+    public ShowItForm getMyForm() {
+        return myForm;
+    }
+
+    public void setMyForm(ShowItForm myForm) {
+        this.myForm = myForm;
     }
 
     public String getFormType() {
@@ -443,6 +454,7 @@ public class CRUDorder {
     }
 
     public String executeCRUD() {
+        JSONObject jsonAnswer = new JSONObject();
         logEvent myEvent = new logEvent();
         myEvent.setType("CRUD");
         myEvent.setUser(myParams.getCKuserID());
@@ -480,7 +492,8 @@ public class CRUDorder {
         //myParams.printParams();
         //      this.printParams();
         //  if (newValue!=null && newValue.length()>0)    newValue = newValue.replaceAll("'", "''");
-        ShowItForm myForm = new ShowItForm(this.getFormID(), myParams, mySettings);
+        //ShowItForm 
+                myForm = new ShowItForm(this.getFormID(), myParams, mySettings);
         if (this.getFormName() != null) {
             myForm.setName(this.getFormName());
         }
@@ -488,9 +501,9 @@ public class CRUDorder {
 
         myForm.setCopyTag(this.getFormCopyTag());
         myForm.setSendToCRUD(this.getSendToCRUD());
-        myForm.buildSchema();
-        
-        this.formType = myForm.getType();
+        myForm.buildSchema(); 
+
+        this.formType = myForm.getType(); //per gestire il tipo tree
 
         String SQLphrase = "";
         String whereClause = "";
@@ -606,11 +619,24 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                 int Result = s.executeUpdate(SQLphrase);
 
                 if (Result > 0) {
-                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"DEL\",\"code\":\"OK\",\"mess\":\"DELETED\",\"routineResponse\":" + afterDel + "}";
-                    answer = jsonAnswer;
+                    jsonAnswer = new JSONObject();
+                    jsonAnswer.put("sender", "CRUD");
+                    jsonAnswer.put("operation", "DEL");
+                    jsonAnswer.put("code", "OK");
+                    jsonAnswer.put("mess", "DELETED");
+                    jsonAnswer.put("routineResponse", afterDel);
+
+                    // String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"DEL\",\"code\":\"OK\",\"mess\":\"DELETED\",\"routineResponse\":" + afterDel + "}";
+//                    answer = jsonAnswer;
                 } else {
-                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"DEL\",\"code\":\"ERR\",\"mess\":\"ERROR WHILE DELETING.\"}";
-                    answer = jsonAnswer;
+                    jsonAnswer = new JSONObject();
+                    jsonAnswer.put("sender", "CRUD");
+                    jsonAnswer.put("operation", "DEL");
+                    jsonAnswer.put("code", "ERR");
+                    jsonAnswer.put("mess", "ERROR WHILE DELETING.");
+                    jsonAnswer.put("routineResponse", "");
+//                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"DEL\",\"code\":\"ERR\",\"mess\":\"ERROR WHILE DELETING.\"}";
+//                    answer = jsonAnswer;
                 }
                 System.out.println("DEL:answer:" + answer);
 
@@ -900,13 +926,29 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                         pKEYvalue = this.getPrimaryFieldValue().replace("'", "");
                         pKEYtype = this.getPrimaryFieldType();
                     }
+                    jsonAnswer = new JSONObject();
+                    jsonAnswer.put("sender", "CRUD");
+                    jsonAnswer.put("operation", "ADD");
+                    jsonAnswer.put("code", "OK");
+                    jsonAnswer.put("mess", "");
+                    jsonAnswer.put("routineResponse", "");
+                    jsonAnswer.put("newID", pKEYvalue);
+                    jsonAnswer.put("afterHour", JSafterHour);
 
-                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"ADD\",\"code\":\"OK\",\"newID\":\"" + pKEYvalue + "\",\"afterHour\":\"" + JSafterHour + "\"}";
-                    answer = jsonAnswer;
-
+//                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"ADD\",\"code\":\"OK\",\"newID\":\"" + pKEYvalue + "\",\"afterHour\":\"" + JSafterHour + "\"}";
+//                    answer = jsonAnswer;
                 } else {
-                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"ADD\",\"code\":\"ERR\",\"mess\":\"ERRORE IN INSERIMENTO (probabile duplicazione codice).\"}";
-                    answer = jsonAnswer;
+                    jsonAnswer = new JSONObject();
+                    jsonAnswer.put("sender", "CRUD");
+                    jsonAnswer.put("operation", "ADD");
+                    jsonAnswer.put("code", "ERR");
+                    jsonAnswer.put("mess", "ERRORE IN INSERIMENTO (probabile duplicazione codice).");
+//                    jsonAnswer.put("routineResponse", "");
+//                    jsonAnswer.put("newID", "");
+//                    jsonAnswer.put("afterHour", "");
+//
+//                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"ADD\",\"code\":\"ERR\",\"mess\":\"ERRORE IN INSERIMENTO (probabile duplicazione codice).\"}";
+//                    answer = jsonAnswer;
                 }
 //                System.out.println("answer:" + answer + "_");
             } else // </editor-fold>    
@@ -953,20 +995,36 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                 errorMessage = "ERROR ON UPDATE";
                 int Result = statement.executeUpdate();
                 if (Result > 0) {
-                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"UPD\",\"code\":\"OK\",\"mess\":\"UPDATED\",\"formType\":\"" + formType + "\",\"actionPassed\":\"" + actionPassed + "\" }";
-                    answer = jsonAnswer;
+                    jsonAnswer = new JSONObject();
+                    jsonAnswer.put("sender", "CRUD");
+                    jsonAnswer.put("operation", "UPD");
+                    jsonAnswer.put("code", "OK");
+                    jsonAnswer.put("mess", "UPDATED");
+                    jsonAnswer.put("formType", formType);
+                    jsonAnswer.put("actionPassed", actionPassed);
 
+//                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"UPD\",\"code\":\"OK\",\"mess\":\"UPDATED\",\"formType\":\"" + formType + "\",\"actionPassed\":\"" + actionPassed + "\" }";
+//                    answer = jsonAnswer;
                 } else {
-                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"UPD\",\"code\":\"ERR\",\"mess\":\"ERROR WHILE UPDATING.\" }";
-                    answer = jsonAnswer;
+                    jsonAnswer = new JSONObject();
+                    jsonAnswer.put("sender", "CRUD");
+                    jsonAnswer.put("operation", "UPD");
+                    jsonAnswer.put("code", "ERR");
+                    jsonAnswer.put("mess", "ERROR WHILE UPDATING.");
+//                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"UPD\",\"code\":\"ERR\",\"mess\":\"ERROR WHILE UPDATING.\" }";
+//                    answer = jsonAnswer;
                 }
 
             }
 // </editor-fold>     
         } catch (SQLException ex) {
-
-            String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"NOP\",\"code\":\"ERR\",\"message\":\"" + errorMessage + "\"}";
-            answer = jsonAnswer;
+            jsonAnswer = new JSONObject();
+            jsonAnswer.put("sender", "CRUD");
+            jsonAnswer.put("operation", "NOP");
+            jsonAnswer.put("code", "ERR");
+            jsonAnswer.put("mess", errorMessage);
+//            String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"NOP\",\"code\":\"ERR\",\"message\":\"" + errorMessage + "\"}";
+//            answer = jsonAnswer;
 
             System.out.println("errorMessage 1497:" + errorMessage + "_" + ex.toString());
         }
@@ -975,7 +1033,17 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
         } catch (SQLException ex) {
 
         }
+        
+        /*
+        FATTO IL CRUD se era un tipo tree, manderò come risposta in caso di ADD la leaf per il nuovo LI
+        in caso di UPDATE la leaf aggiornata con la dicitura corretta (però in un treer l'update per il momento non è previsto
+        in caso di DEL l'ID del LI da eliminare
+         */
+        if (this.formType != null && this.formType.equalsIgnoreCase("SMARTTREE") && this.getOperation().equalsIgnoreCase("ADD")) {
 
+        }
+        answer = jsonAnswer.toString();
+        //--------------------------
         myEvent.setInfo2(answer);
         myEvent.save(myParams, mySettings);
         return answer;
@@ -1145,12 +1213,11 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
         // ora inizio il parsing delle info da StC
 //           System.out.println("standardReplace Step 3 getSendToCRUD:" + params);
 //        System.out.println("standardReplace--->applico sostituzioni con SendToCRUD:" + this.getSendToCRUD());
-        
-        defVal = replaceMarkers(defVal, decodeURLstring( this.getSendToCRUD()));
+        defVal = replaceMarkers(defVal, decodeURLstring(this.getSendToCRUD()));
 //        System.out.println("standardReplace--->applico sostituzioni con ToBeSent:" + this.getToBeSent());
-        defVal = replaceMarkers(defVal, decodeURLstring( this.getToBeSent()));
+        defVal = replaceMarkers(defVal, decodeURLstring(this.getToBeSent()));
 
-         System.out.println(" *REPLACE RESULT:" + defVal);
+        System.out.println(" *REPLACE RESULT:" + defVal);
         return defVal;
     }
 
@@ -1189,80 +1256,80 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
         String phraseReplaced = phrase;
 
         String tbsJson = "{\"TBS\":" + params + "}";
-         if (params != null && params.length() > 0) {
+        if (params != null && params.length() > 0) {
 //            System.out.println("CRUDorder tbsJson:" + tbsJson);
-        try {
-            jsonObject = (JSONObject) jsonParser.parse(tbsJson);
-            TBSarray = jsonObject.get("TBS").toString();
-            if (TBSarray != null && TBSarray.length() > 0) {
-                JSONParser parser = new JSONParser();
-                Object obj;
-                obj = parser.parse(TBSarray);
-                JSONArray array = (JSONArray) obj;
-                for (Object riga : array) {
-                    //rows++;
-                    jsonObject = (JSONObject) jsonParser.parse(riga.toString());
+            try {
+                jsonObject = (JSONObject) jsonParser.parse(tbsJson);
+                TBSarray = jsonObject.get("TBS").toString();
+                if (TBSarray != null && TBSarray.length() > 0) {
+                    JSONParser parser = new JSONParser();
+                    Object obj;
+                    obj = parser.parse(TBSarray);
+                    JSONArray array = (JSONArray) obj;
+                    for (Object riga : array) {
+                        //rows++;
+                        jsonObject = (JSONObject) jsonParser.parse(riga.toString());
 
-                    try {
-                        xType = jsonObject.get("childType").toString();
-                    } catch (Exception e) {
-                    }
+                        try {
+                            xType = jsonObject.get("childType").toString();
+                        } catch (Exception e) {
+                        }
 
-                    try {
-                        xMarker = jsonObject.get("childMarker").toString();
-                    } catch (Exception e) {
-                    }
+                        try {
+                            xMarker = jsonObject.get("childMarker").toString();
+                        } catch (Exception e) {
+                        }
 
-                    try {
-                        xValue = jsonObject.get("value").toString();
-                    } catch (Exception e) {
-                    }
+                        try {
+                            xValue = jsonObject.get("value").toString();
+                        } catch (Exception e) {
+                        }
 
-                    PreparedStatement ps;
+                        PreparedStatement ps;
 
 //   System.out.println(" xMarker:" + xMarker+" xValue:" + xValue+" xType:" + xType);
-                    if (xValue != null && xMarker != null) {
-                        xValue = encodeMYSQLstring(xValue);
+                        if (xValue != null && xMarker != null) {
+                            xValue = encodeMYSQLstring(xValue);
 //                        System.out.println("* xMarker:" + xMarker + " xValue:" + xValue + " xType:" + xType);
-                        if (xType.equalsIgnoreCase("formField")) {
-                            String toBeReplaced = "###" + xMarker + "###";
-                            if (phraseReplaced.contains(toBeReplaced)) {
-                                phraseReplaced = phraseReplaced.replace(toBeReplaced, xValue);
+                            if (xType.equalsIgnoreCase("formField")) {
+                                String toBeReplaced = "###" + xMarker + "###";
+                                if (phraseReplaced.contains(toBeReplaced)) {
+                                    phraseReplaced = phraseReplaced.replace(toBeReplaced, xValue);
+                                }
+                                toBeReplaced = "@@@" + xMarker + "@@@";
+                                if (phraseReplaced.contains(toBeReplaced)) {
+                                    phraseReplaced = phraseReplaced.replace(toBeReplaced, xValue);
+                                }
                             }
-                            toBeReplaced = "@@@" + xMarker + "@@@";
-                            if (phraseReplaced.contains(toBeReplaced)) {
-                                phraseReplaced = phraseReplaced.replace(toBeReplaced, xValue);
-                            }
-                        }
-                        if (xType.equalsIgnoreCase("panelFilter")) {
-                            String toBeReplaced = "###" + xMarker + "###";
-                            if (phraseReplaced.contains(toBeReplaced)) {
-                                phraseReplaced = phraseReplaced.replace(toBeReplaced, xValue);
-                            }
-                        } else if (xType.equalsIgnoreCase("rowField")) {
-                            String toBeReplaced = "@@@" + xMarker + "@@@";
-                            if (phraseReplaced.contains(toBeReplaced)) {
-                                phraseReplaced = phraseReplaced.replace(toBeReplaced, xValue);
-                            }
-                        } else if (xType.equalsIgnoreCase("overall")) {
+                            if (xType.equalsIgnoreCase("panelFilter")) {
+                                String toBeReplaced = "###" + xMarker + "###";
+                                if (phraseReplaced.contains(toBeReplaced)) {
+                                    phraseReplaced = phraseReplaced.replace(toBeReplaced, xValue);
+                                }
+                            } else if (xType.equalsIgnoreCase("rowField")) {
+                                String toBeReplaced = "@@@" + xMarker + "@@@";
+                                if (phraseReplaced.contains(toBeReplaced)) {
+                                    phraseReplaced = phraseReplaced.replace(toBeReplaced, xValue);
+                                }
+                            } else if (xType.equalsIgnoreCase("overall")) {
 
+                            }
                         }
-                    }
 //                        if (rows < 2) {
 //                            System.out.println(" xMarker:" + xMarker + " xValue:" + xValue);
 //                        }
+                    }
                 }
+            } catch (ParseException ex) {
+                System.out.println(" err3:" + ex);
             }
-        } catch (ParseException ex) {
-            System.out.println(" err3:" + ex);
+
         }
 
+        return phraseReplaced;
     }
 
-    return phraseReplaced ;
-}
-
-public static String encodeMYSQLstring(String s) {
+    public static String encodeMYSQLstring(String s) {
         String result = s;
         try {
             result = s.replaceAll("\\'", "\\\\'");

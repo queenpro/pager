@@ -121,7 +121,8 @@ public class Settings {
         gaiaHost = new TomcatGaiaHost(projectName);
         String newPW = null;
         String newUser = null;
-        if (this.getGaiaHost().getPwType() != null
+        
+        if (this.getGaiaHost()!=null && this.getGaiaHost().getPwType() != null
                 && this.getGaiaHost().getDbUsername() != null
                 && this.getGaiaHost().getDbUsername().length() > 0) {
 

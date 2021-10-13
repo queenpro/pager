@@ -156,6 +156,7 @@ public class ShowItForm {
     String ges_formPanel;
     String ges_routineOnLoad;
     String ges_triggers;
+    String ges_autolinks;
 
     ArrayList<boundFields> sentFieldList;
     ArrayList<boundFields> filterList;
@@ -220,6 +221,22 @@ public class ShowItForm {
 
     }
 // <editor-fold defaultstate="collapsed" desc="GETTERS & SETTERS">
+
+    public String getGes_autolinks() {
+        return ges_autolinks;
+    }
+
+    public void setGes_autolinks(String ges_autolinks) {
+        this.ges_autolinks = ges_autolinks;
+    }
+
+    public String getAdvancedFiltered() {
+        return advancedFiltered;
+    }
+
+    public void setAdvancedFiltered(String advancedFiltered) {
+        this.advancedFiltered = advancedFiltered;
+    }
 
     public String getQueryUsed() {
         return queryUsed;
@@ -8078,7 +8095,7 @@ public class ShowItForm {
     }
 
     public void getFormPanel() {
-//        System.out.println("formPanel:" + this.getGes_formPanel());
+        System.out.println("getFormPanel-->formPanel:" + this.getGes_formPanel());
         if (this.getGes_formPanel() != null && this.getGes_formPanel().length() > 4) {
             String formPanel = "{\"formPanel\":" + this.getGes_formPanel() + "}";
 //            System.out.println("formPanel:" + formPanel);
@@ -8099,7 +8116,7 @@ public class ShowItForm {
                     JSONArray array = (JSONArray) parser.parse(TRIGGERSarray);
 
                     for (Object riga : array) {
-                        lockRule myRule = new lockRule();
+//                        lockRule myRule = new lockRule();
                         jsonObject = (JSONObject) jsonParser.parse(riga.toString());
                         try {
                             infotype = (jsonObject.get("infoType").toString());
@@ -8152,7 +8169,13 @@ public class ShowItForm {
                             } catch (Exception e) {
                                 this.advancedFiltered = ("");
                             }
-
+                            try {
+                                this.ges_autolinks = (jsonObject.get("autolinks").toString());
+                                System.out.println("\nRETREIVED ges_autolinks:" + this.ges_autolinks);
+                            } catch (Exception e) {
+                                this.ges_autolinks = ("");
+                            }
+ 
                         }
                     }
                 }

@@ -398,6 +398,7 @@ public class EVOpagerParams {
     }
 
     public EVOpagerParams chargeParams(String params, Settings mySettings) {
+//        System.out.println("\nchargeParams: "+params);
         EVOpagerParams myParams = new EVOpagerParams();
         if (params != null && params.length() > 0) {
             JSONParser paramsParser = new JSONParser();

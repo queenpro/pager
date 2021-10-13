@@ -851,6 +851,11 @@ public class jsFunctionServer {
                 + "                var newFormID = ans.formID;\n"
                 + "                var newFormCopyTag = ans.formCopyTag;\n"
                 + "             }"
+                + "             else if(respOK =='logout'){\n"
+                + "                 console.log(\"ricevuto LOGOUT. \" );\n"
+                + "                 toast(\"SESSIONE CONCLUSA PER TIMEOUT. RIESEGUIRE IL LOGIN.\",1);\n"
+                + "                 setTimeout(() => {   PagerLogout(); }, 2000);\n"
+                + "             }\n"
                 + "        } catch (err) {\n"
                 + "        }\n"
                 + "        }\n"
@@ -2470,6 +2475,11 @@ public class jsFunctionServer {
                 + "                 } else if (formType=='SMARTPANEL'  ){"
                 + "                     getSmartChildrenList(formID, formCopyTag,null);\n"
                 + "                 }"
+                
+                + "             }else if(respOK =='logout'){\n"
+                + "                 console.log(\"ricevuto LOGOUT. \" );\n"
+                + "                 toast(\"SESSIONE CONCLUSA PER TIMEOUT. RIESEGUIRE IL LOGIN.\",1);\n"
+                + "                 setTimeout(() => {   PagerLogout(); }, 2000);\n" 
                 + "            } else {\n"
                 + "                var url = \"index.jsp\";\n"
                 + "                window.open(url, '_parent');\n"
@@ -2560,6 +2570,11 @@ public class jsFunctionServer {
                 + "                    var params = '{\"formID\":\"' + formID + '\",\"copyTag\":\"' + formCopyTag + '\",\"formName\":\"' + formToLoad + '\"}';\n"
                 //                + "                    executeRoutineOnForm(params);\n"
                 + "                }\n"
+                
+                + "             }else if(respOK =='logout'){\n"
+                + "                 console.log(\"ricevuto LOGOUT. \" );\n"
+                + "                 toast(\"SESSIONE CONCLUSA PER TIMEOUT. RIESEGUIRE IL LOGIN.\",1);\n"
+                + "                 setTimeout(() => {   PagerLogout(); }, 2000);\n" 
                 + "            } else {\n"
                 + "                var url = \"index.jsp\";\n"
                 + "                window.open(url, '_parent');\n"
@@ -3151,7 +3166,7 @@ public class jsFunctionServer {
         //--------------------------------
         // <editor-fold defaultstate="collapsed" desc="parseText">
         dbCode += "function parseText(data) {\n"
-                                + "     console.log(\"ricevuto-->\"+data );"
+                + "     console.log(\"ricevuto-->\"+data );"
                 + "     var jsonData = JSON.parse(data);\n"
                 + "     type = jsonData.TYPE;\n"
                 //                + "     console.log(\"type-->\"+type );"
@@ -3279,7 +3294,7 @@ public class jsFunctionServer {
                 + "       populateRightSpace();\n"
                 + "    }\n"
                 // </editor-fold> 
-                
+
                 // <editor-fold defaultstate="collapsed" desc="receivedOK">
                 + "    else if (type == \"receivedOK\") {\n"
                 + "console.log(\"ricevuto OK. \" );"
@@ -3428,7 +3443,7 @@ public class jsFunctionServer {
                 + "         toast(\"SESSIONE CONCLUSA PER TIMEOUT. RIESEGUIRE IL LOGIN.\",1);"
                 + "setTimeout(() => {   PagerLogout(); }, 2000);"
                 + "       "
-                + "     }else" 
+                + "     }else"
                 //--------------------             
                 + "     if (action == \"SHOWADDEDROW\"){"
                 //                + "         console.log(\"DEVO MOSTRARE LA RIGA AGGIUNTA\");"
@@ -3507,7 +3522,57 @@ public class jsFunctionServer {
                 + "         document.getElementById(ID).value = \"\";\n"
                 + "         } catch (err) {\n"
                 + "         }\n"
-                + "     }"//* FINE SHOWADDEDROW
+                + "     }else"
+                //--------------------             
+                + "     if (action == \"SHOWADDEDLEAF\"){"
+                //                + "         console.log(\"DEVO MOSTRARE LA RIGA AGGIUNTA\");"
+                + "         CRUDrepsonse = myarg.CRUDrepsonse;"
+                + "         var CRUDrx = decodeURIComponent(CRUDrepsonse);\n"
+                //                + "         console.log(\"CRUDrx: \"+CRUDrx);"
+                + "         crudArgs = JSON.parse(CRUDrx);\n"
+                + "         operation = crudArgs.operation;\n"
+                + "         code = crudArgs.code;\n"
+                + "         code = decodeURIComponent(code);\n"
+                + "         var answerNewID = crudArgs.newID;\n"
+                //                + "         console.log(\"operation:\"+operation+\"  -  code:\"+code+\"   -   answerNewID:\"+answerNewID);"
+                + "         myCNT = myarg.CONNECTOR;"
+                + "         var CNTx = JSON.stringify(myCNT);\n"
+                + "         var CNTrx = (CNTx);\n"
+                //                + "         console.log(\"CNTrx: \"+CNTrx);"
+                + "         cntArgs = JSON.parse(CNTrx);\n"
+                + "         var fatherValueBefore = cntArgs.thisFormFather;\n"
+                + "         var cellName = cntArgs.cellName;\n"
+                + "         var thisFormFather=\"\";"
+                + "         try {thisFormFather = document.getElementById(rifForm + \"-FATHER\").value;  } catch (err) {}\n"
+                + "         formName = cntArgs.formName;\n"
+                + "         formID = cntArgs.formID;\n"
+                + "         var copyTag = cntArgs.copyTag;\n"
+                + "         var rifForm = formID+\"-\"+copyTag ;"
+                + "         console.log(\"thisFormFather:\"+thisFormFather+\"  -  rifForm:\"+rifForm +\"  -  formName:\"+formName   );"
+                + "         var fatherValue = \"\";\n"
+                + "         try {\n"
+                + "              if (thisFormFather != \"null\" && thisFormFather != \"\")\n"
+                + "              fatherValue = document.getElementById(thisFormFather + \"-KEYfieldValue\").value;\n"
+                + "         } catch (err) {\n"
+                + "              thisFormFather = \"\";\n"
+                + "         }\n"
+                + "         if (fatherValue == fatherValueBefore) {\n"//se non è cambiata la schermata durante il CRUD...
+
+                + "console.log(\"AGGIUNGO LEAF...\");"
+                //scrivo leaf in rifForm+"-ROWSTABLE"  --> autom30e1a-X-ROWSTABLE
+                + "var li = document.createElement('li');\n"
+                + "    li.innerHTML = code;  \n"
+                + "    document.getElementById(rifForm+\"-ROWSTABLE\").appendChild(li);"
+                + "}\n"
+                // adesso cancello il contenuto della casella di inserimento
+
+                + "     try {\n"
+                + "         document.getElementById(rifForm + \"-NEW-ROW\").style.dislpay = \"block\";\n"
+                + "         var ID = rifForm + \"-\" + cellName + \"-NEW\";\n"
+                + "         document.getElementById(ID).value = \"\";\n"
+                + "         } catch (err) {\n"
+                + "         }\n"
+                + "     }"//* FINE SHOWADDEDLEAF
                 + ""
                 + "else{"
                 + " console.log(\"destDiv : \"+destDiv  );\n"
@@ -5578,8 +5643,8 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "   if (event.shiftKey && event.ctrlKey ){\n"
                 + "                alert('Shift key was pressed while picking ' + brobj.value);\n"
                 + "            }"
-//                + "else{\n"
-//                + "                alert('You picked ' + brobj.value);}\n"
+                //                + "else{\n"
+//                + "                alert('You picked ' + brobj.id);\n"
                 + "}\n"
                 + "\n";
         // </editor-fold>

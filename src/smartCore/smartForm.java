@@ -1888,7 +1888,7 @@ public class smartForm {
         3. DATAONLY
          */
         if (this.getVisualType().equalsIgnoreCase("singleRow")) {
-            System.out.println("smartForm-->CASO SINGLE ROW");
+            System.out.println("paintDataTree-->CASO SINGLE ROW");
             // System.out.println("creo il filtro qualificato per ricerca");
             //makeQualifiedQuery();
             //==============================================================================
@@ -1930,16 +1930,16 @@ public class smartForm {
 
             System.out.println("PAINTFORM_case singleRow_whereClause:" + whereClause);
             setInfoReceived(this.getToBeSent());
-            System.out.println("TIPO DI FORM:" + this.type);
+            System.out.println("TIPO DI FORM:" + this.type); 
             if (this.type.equalsIgnoreCase("SINGLEROWFORM")) {
                 //----SINGOLA RIGA IN MASK-----------------------------------------------------------------------
                 System.out.println("----SINGOLA RIGA IN MASK-----------------------------------------------------------------------");
-                htmlCode = fillRowData("MaskRow", whereClause);
+                htmlCode = fillLeafData("MaskRow", whereClause);
             } else {
                 //----SINGOLA RIGA IN TABLE-----------------------------------------------------------------------
                 System.out.println("----SINGOLA RIGA IN TABLE-----------------------------------------------------------------------");
 
-                htmlCode = fillRowData("fillRow", whereClause);
+                htmlCode = fillLeafData("fillRow", whereClause);
             }
 
         } else //==============================================================================
@@ -2338,6 +2338,50 @@ public class smartForm {
 
         htmlCode += rowsCode;
 
+        return htmlCode;
+    }
+
+    public String fillLeafData(String type, String whereClause) {
+        
+        String htmlCode = "";
+        Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
+        ResultSet rs;
+        // cerca il FORM per nome e se non è compilato per ID
+
+//        System.out.println("fillRowData query: " + this.query);
+        System.out.println("fillLeafData whereClause: " + whereClause);
+        String myQuery = prepareSQL(this.query);
+        this.queryUsed = regenerateQuery(myQuery, whereClause, false, null, false, false);
+        System.out.println("====fillLeafData queryUsed: " + this.queryUsed);
+
+        if (this.queryUsed == null || this.queryUsed == "") {
+            return "ERROR LOADING FORM TABLE.";
+        }
+        Statement s;
+        try {
+            s = conny.createStatement();
+            rs = s.executeQuery(this.queryUsed);
+            while (rs.next()) {
+                try {
+                    smartRow myRow = new smartRow(this, rs, 0);
+                    smartObjRight rowRights = myRow.valutaRightsRiga(this.getDisableRules(), rs);/// analizzo il LOCKER del form per la riga
+                    smartObjRight actualRowRights = joinRights(formRightsRules, rowRights);
+                    myRow.setActualRowRights(actualRowRights);
+                    myRow.setFormRightsRules(formRightsRules); 
+                    htmlCode += myRow.SMRTpaintBranch("normal");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+//                break;// solo una riga
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            conny.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
         return htmlCode;
     }
 

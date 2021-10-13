@@ -90,6 +90,393 @@ public class eventManager {
         el.setPrintOnLog(true);
     }
 
+    public IncomingRequest MasterFormShow(IncomingRequest request) {
+
+        if (request.getMyGate().controlNeeded) {
+            if (request.getMyGate().getUserEnabled() < 1) {
+                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\nACCESSO NON CONSENTITO A MasterFormShowRenderPic");
+            }
+        }
+
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\n\n\n********\nMasterFormShow by Event Manager");
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "IP:      \t" + request.getRemoteIP());
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "recorded:\t" + request.getRecorded());
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "projectName:\t" + request.getMySettings().getProjectName());
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "contextID:\t" + request.getMyParams().getCKcontextID());
+        String HtmlCode = "";
+        String dbCode = "";
+        String WindowTitle = "";
+        String CNTX = "";
+        try {
+            CNTX = "" + myParams.getCKcontextID().toUpperCase();
+        } catch (Exception e) {
+        }
+        if (CNTX.length() < 1) {
+            CNTX = " ";
+        }
+
+        ShowItForm myForm = new ShowItForm("", myParams, mySettings); //in realtà qui ho solo il NAME del form, ma ricaverò l'ID dal DB
+//        System.out.println("NOME FORM DA CARICARE IN MAINFORMSHOW: " + request.getMyGate().getFormName());
+
+//*****************************************************************
+//**QUI SI DECIDE IL PRIMO FORM DA CARICARE: **********************
+//*****DI NORMA SARA' MAINFORM MA POTREBBE ESSERE ACCOUNTMANAGER **
+//*****OPPURE LASTNEWS MANAGER OPPURE UNO SPLASH DA FIRMARE********
+//*****************************************************************
+        myForm.setName(request.getMyGate().getFormName());
+
+        EVOuser myUser = new EVOuser(myParams, mySettings);
+        myUser.loadDBinfos();
+//        System.out.println("USER USERNAME: " + myUser.getUsername());
+//        System.out.println("USER COGNOME: " + myUser.getSurname());
+//        if ((myUser.getUsername() == null || myUser.getUsername().length() < 1)
+//                && (myUser.getSurname() == null || myUser.getSurname().length() < 1)
+//                && (myUser.getName() == null || myUser.getName().length() < 1)) 
+        String nameShowed = myUser.getName() + " " + myUser.getSurname();
+        if ((myUser.getName() == null || myUser.getName().equalsIgnoreCase("null") || myUser.getName().length() < 1)
+                && (myUser.getSurname() == null || myUser.getSurname().equalsIgnoreCase("null") || myUser.getSurname().length() < 1)) {
+            nameShowed = myUser.getUsername();
+
+        }
+        if ((myUser.getUsername() == null || myUser.getUsername().equalsIgnoreCase("null") || myUser.getUsername().length() < 1)) {
+            nameShowed = "";
+        }
+        if ((myUser.getSurname() == null || myUser.getSurname().equalsIgnoreCase("null") || myUser.getSurname().length() < 1)) {
+            nameShowed = "";
+        }
+        if ((myUser.getName() == null || myUser.getName().equalsIgnoreCase("null") || myUser.getName().length() < 1)) {
+            nameShowed = "";
+        }
+        if (nameShowed == "") {
+//            System.out.println("CARICO ACCOUNT MANAGER");
+            myForm.setAbstractTextCode("Prima di procedere nel portale occorre compilare <B>tutti i campi</B> del form !");
+            myForm.setName("accountManager");
+        }
+
+//        myForm.setName("accountManager");
+        myForm.setID("");
+        myForm.setFather("");
+        myForm.setFatherFilters("");
+        myForm.setLoadType(request.getMyGate().getLoadType());
+        myForm.setMyParams(myParams);
+        myForm.setMySettings(mySettings);
+
+        myForm.getFormInformationsFromDB(); // per mainFOrm questo non serviva e non so il perchè
+//        System.out.println("firstForm ID ricavato da getFormInformationsFromDB: " + myForm.getID()); 
+
+        System.out.println("\n\nfirstForm  : " + myForm.getType());
+        String firstForm = "";
+
+        firstForm = myForm.paintForm().getHtmlCode();
+
+        String formHtmlCode = "";
+        String formID = "";
+        try {
+            JSONParser jsonParser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) jsonParser.parse(firstForm);
+            try {
+                formID = jsonObject.get("formID").toString();
+                formID = java.net.URLDecoder.decode(formID, "UTF-8");
+            } catch (Exception ex) {
+            }
+            try {
+                formHtmlCode = ((String) jsonObject.get("htmlCode"));
+                formHtmlCode = java.net.URLDecoder.decode(formHtmlCode, "UTF-8");
+            } catch (Exception ex) {
+            }
+
+        } catch (org.json.simple.parser.ParseException pe) {
+        }
+
+        WindowTitle = "<title>"
+                //                + "MAIN FRAME : " 
+                + request.getMySettings().getProjectName().toUpperCase()
+                + " " + CNTX
+                //                + " Released under AGPL License Copyright 2019. www.ffs.it"
+                + "</title>";
+
+        HtmlCode += "<!DOCTYPE html>";
+        HtmlCode += "<html>";
+        HtmlCode += "<head>";
+        HtmlCode += WindowTitle;
+        HtmlCode += " <meta charset=\"utf-8\">\n"
+                + " <meta http-equiv=\"Content-Security-Policy\"  content=\"connect-src * 'unsafe-inline';\">\n";
+        // </editor-fold>   
+// cerco una direttiva chiamata gaia.css
+        EVOpagerDirectivesManager myDirective = new EVOpagerDirectivesManager(request.getMyParams(), request.getMySettings());
+        // String dbCode = myDirective.getDirective("gaia.css");
+        // HtmlCode += (dbCode);
+// cerco una direttiva chiamata alle funzioni javascript   
+        jsFunctionServer JSfs = new jsFunctionServer(myParams, mySettings);
+        dbCode = myDirective.getDirective("gaia.inclusions");
+        HtmlCode += (dbCode);
+        HtmlCode += "<link rel=\"stylesheet\" href=\"stylesheet.css\" type=\"text/css\" charset=\"utf-8\" />\n";
+        HtmlCode += "<link rel=\"stylesheet\" href=\"gaia.css\" type=\"text/css\" charset=\"utf-8\" />\n";
+        HtmlCode += "<script type=\"text/javascript\" src=\"external/nicEdit/nicEdit.js\"></script>\n"; 
+        HtmlCode += "<script>";
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Carico gli script JS dal DB.");
+        //dbCode = myDirective.getDirective("gaia.variables"); 
+        HtmlCode += (JSfs.getGaiaVariables());
+        //dbCode = myDirective.getDirective("gaia.function.openWS");
+        HtmlCode += (JSfs.getWebsocketJS());
+        //dbCode = myDirective.getDirective("gaia.function.manageSplash");
+        HtmlCode += (JSfs.getManageSplash());
+        //dbCode = myDirective.getDirective("gaia.function.manageUpDownload");
+        HtmlCode += (JSfs.getManageUpDownload());
+        //dbCode = myDirective.getDirective("gaia.function.manageTBS");
+        HtmlCode += (JSfs.getManageTBS());
+        //dbCode = myDirective.getDirective("gaia.function.manageUserActions");           
+        HtmlCode += (JSfs.getPagerUserActions());
+        //dbCode = myDirective.getDirective("gaia.function.manageAutoActions");           
+        HtmlCode += (JSfs.getPagerAutoActions());
+        //dbCode = myDirective.getDirective("gaia.function.serviceFunctions");            
+        HtmlCode += (JSfs.getServiceFunctions());
+        HtmlCode += (JSfs.getManageContextMenu());
+        HtmlCode += (JSfs.getManageDoubleClickable());
+        HtmlCode += (JSfs.getMapsJS());
+        HtmlCode += (JSfs.getManageAdvancedFilter());
+        HtmlCode += (JSfs.getSmartWebsocketRoutines());
+        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Caricati gli script JS dal DB.");
+        HtmlCode += ("var jqueryFunction;\n"
+                + "\n"
+                + "$().ready(function(){\n"
+                + "//jQuery function\n"
+                + "    jqueryFunction = function( _msg )\n"
+                + "    {\n"
+                + "                $('#date-pick').datepicker({\n"
+                + "                    showOn: \"button\",\n"
+                + "                    dateFormat: \"dd/mm/yy\",\n"
+                + "                    onSelect: function() { \n"
+                + "                    }\n"
+                + "                });\n"
+                //---
+                + "                $('#date-pick').datepicker({\n"
+                + "                    showOn: \"button\",\n"
+                + "                    dateFormat: \"dd/mm/yy\",\n"
+                + "                    onSelect: function() { \n"
+                + "                    }\n"
+                + "                });\n"
+                //--
+                + "    }\n"
+                + "})\n"
+                + "\n"
+                + "//javascript function\n"
+                + "function jsFunction()\n"
+                + "{\n"
+                + "    //Invoke jQuery Function\n"
+                + "    jqueryFunction(\"Call from js to jQuery\");\n"
+                + "}");
+        HtmlCode += "</script>";
+        HtmlCode += ("<script>");
+        HtmlCode += ("var activeForms = [{ level:0, father:'' , id:'" + formID + "', name:'mainForm', space:'', key:''}];");
+        HtmlCode += ("var myObj = " + request.getMyParams().makeJSONparams() + ";");
+        HtmlCode += ("var overallProjectName=\"" + request.getMySettings().getProjectName() + "\";\n");
+        HtmlCode += ("var contextID=\"" + request.getMyParams().getCKcontextID() + "\";\n");
+        HtmlCode += ("var CKtokenID=\"" + request.getMyParams().getCKtokenID() + "\";\n");
+        HtmlCode += ("var PORTALparams = " + request.getMyParams().makePORTALparams() + ";\n");
+        HtmlCode += ("var overallProjectName = \"" + request.getMySettings().getProjectName() + "\";");
+        HtmlCode += ("var WSactive =1  ;");
+        HtmlCode += ("var rtfArea  ;");
+        HtmlCode += ("</script>");
+        HtmlCode += ("</head>");
+
+        HtmlCode += (" ");
+        HtmlCode += ("<body onload=\"startup()\" style=\"  width: 100%;  \">");
+
+        HtmlCode += ("<INPUT type='hidden' id='txtParams'  />");
+        HtmlCode += ("<INPUT type='hidden' id='portalParams'  />");
+        HtmlCode += ("<INPUT type='hidden' id='WSstatus' value=\"DISCONNECTED\"  />");
+        HtmlCode += ("<INPUT type='hidden' id='WStoken'  />");
+        HtmlCode += ("<INPUT type='hidden' id='WSsessionID'  />");
+        HtmlCode += ("<INPUT type='hidden' id='WSclientId'  />");
+        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-type\" value=\"\">\n");
+        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-rifForm\" value=\"\">\n");
+        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-copyTag\" value=\"\">\n");
+        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-keyValue\" value=\"\">\n");
+        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-args\" value=\"\">\n");
+        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"master-params\" value=\"" + encodeURIComponent(myParams.makeJSONparams()) + "\">\n");
+
+        HtmlCode += ("<TABLE style=\"height: 100px; width:100%;"
+                //                + "table-layout:fixed; "
+                + "background-color: white;\"><TR>");
+
+        //---SESSION SPACE con ACCOUNT MANAGER-----------
+        HtmlCode += ("<TD style=\"width:20%;align:right;overflow:hidden;white-space:nowrap;\">");
+        HtmlCode += ("<DIV id=\"SessionSpace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
+        HtmlCode += ("</TD>");
+        //---TITLE BAR SPACE -----------
+        HtmlCode += ("<TD style=\"width:40%;align:right;overflow:hidden;white-space:nowrap;\">");
+        HtmlCode += ("<DIV id=\"titleBarSpace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
+        HtmlCode += ("</TD>");
+
+        //---LIGHTHOUSE CONNECTION SPACE -----------
+        HtmlCode += ("<TD style=\"width:20%;align:left;overflow:hidden;white-space:nowrap;\">");
+        HtmlCode += ("<DIV id=\"LHWSspace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
+        HtmlCode += ("</TD>");
+//---LOCAL SERVER CONNECTION SPACE -----------
+        HtmlCode += ("<TD style=\"width:20%;align:left;overflow:hidden;white-space:nowrap;\">");
+        HtmlCode += ("<DIV id=\"WSspace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
+        HtmlCode += ("</TD>");
+        HtmlCode += ("</TR>"
+                + "<TR  style=\"border-bottom: 1px solid red\"><TD></TD></TR>"
+                + "</TABLE>");
+
+        HtmlCode += (" <TABLE style=\"height: 100px; width:100%;"
+                //                + "table-layout:fixed; "
+                + "background-color: white;\"><TR>");
+        HtmlCode += ("<TD style=\"height: 100%; width:100%;\">");
+        //***********************************************    
+        HtmlCode += (" <div id=\"mainFormSpace\">");
+        HtmlCode += (formHtmlCode);
+        HtmlCode += (" </div>");
+        //***********************************************   
+
+        HtmlCode += ("</TD><TD>");
+
+        HtmlCode += (" <div id=\"mainRightSpace\">");//mainRightSpace
+        HtmlCode += ("<table><tr>");
+        HtmlCode += ("<tr><td><div id=\"contactsSpace\"> </div><td><tr>");
+        HtmlCode += ("</tr><tr>");
+        HtmlCode += ("<tr><td><div id=\"formsMapSpace\"> </div><td><tr>");
+        HtmlCode += ("</tr></table>");
+        HtmlCode += ("</div>");//mainRightSpace
+
+        HtmlCode += ("</TD></TR>");
+        HtmlCode += ("<TR><TD colspan=\"2\">");
+        HtmlCode += (" <div id=\"mainBottomSpace\" ></div>\n");
+        HtmlCode += ("</TD></TR> ");
+        HtmlCode += ("</TABLE>");
+
+        //-------------------------------------------------------------
+        HtmlCode += "<div id=\"snackbar\"></div>";
+
+        HtmlCode += " <div id=\"splashPanel\" class=\"modalDialog\" "
+                + " >\n"
+                + "     <div><a href=\"#close\" title=\"Close\" class=\"close\">X</a>\n"
+                + "         <div id=\"selectors\"><p></p></div>"
+                + "     </div>\n"
+                + "</div>";
+        HtmlCode += ""
+                + "<div class=\"lightbox\" id=\"dropPanel\">\n"
+                + "  <figure>\n"
+                + "    <a href=\"#\" class=\"close\"></a>\n"
+                + "    <figcaption id=\"dropPanelFigcaption\">"
+                + "         <div style=\"width:100%;height:100%;overflow: auto;\" id=\"dropSpace\"  ></div>"
+                + "  </figure>\n"
+                + "</div>"
+                + ""
+                + "";
+        HtmlCode += " <div id=\"suggesterPanel\" class=\"suggester\" >\n"
+                + "<a href=\"#\" class=\"dropPanelClose\"> "
+                + "	<div>\n"
+                + " <a href=\"#suggesterclose\" title=\"Close\" class=\"close\">X</a>\n"
+                + " <div id=\"selectors1\"  ><p></p></div>"
+                + "</div>\n"
+                + "</div>";
+
+        HtmlCode += " <div id = \"contextmenu\" class=\"contxtmenu\"  onmouseout=\"javascript:setPosition('hide');\"></div>";
+        HtmlCode += "<div id=\"info-box\" class=\"infobox\" style=\"display:none\"></div>\n";
+        HtmlCode += "<script>"
+                + "$(document).ready(function() {   });\n"
+                //---------------
+                + "$('body').on('focus',\".datetimepickerclass\", function() {\n"
+                + "    $(this).datetimepicker({\n"
+                + "   step:60,\n"
+                + "monthChangeSpinner:true,\n"
+                + "closeOnDateSelect:false,\n"
+                + "closeOnWithoutClick:true,\n"
+                + "closeOnInputClick: true,\n"
+                + "timepicker:true,\n"
+                + "datepicker:true,\n"
+                + "defaultTime:false,\n"// use formatTime format (ex. '10:00' for formatTime:	'H:i')
+                + "defaultDate:false,\n" // use formatDate format (ex new Date() or '1986/12/08' or '-1970/01/05' or '-1970/01/05')
+                + "formatDate:'yyyy-MM-dd',\n"
+                + "minDate:false,\n"
+                + "maxDate:false,\n"
+                + "minTime:false,\n"
+                + "maxTime:false,\n"
+                + "allowTimes:[],\n"
+                + "opened:false,\n"
+                + "initTime:true,\n"
+                + "inline:false,\n"
+                + "onSelectDate:function() {},\n"
+                + "onSelectTime:function() {},\n"
+                + "onChangeMonth:function() {},\n"
+                + "onChangeDateTime:function() {},\n"
+                + "onShow:function() {},\n"
+                + "onClose:function() {},\n"
+                + "onGenerate:function() {},\n"
+                + "withoutCopyright:true,\n"
+                + "inverseButton:false,\n"
+                + "hours12:false,\n"
+                + "next:	'xdsoft_next',\n"
+                + "prev : 'xdsoft_prev',\n"
+                + "dayOfWeekStart:0,\n"
+                + "timeHeightInTimePicker:25,\n"
+                + "todayButton:true,\n" // 2.1.0
+                + "defaultSelect:true,\n" // 2.1.0
+                + "scrollMonth:true,\n"
+                + "scrollTime:true,\n"
+                + "scrollInput:true,\n"
+                + "lazyInit:false,\n"
+                + "mask:false,\n"
+                + "validateOnBlur:true,\n"
+                + "allowBlank:true,\n"
+                + "yearStart:2000,\n"
+                + "yearEnd:2100,\n"
+                + "style:'',\n"
+                + "id:'',\n"
+                + "fixed: false,\n"
+                + "roundTime:'round',\n" // ceil, floor
+                + "className:'',\n"
+                + "weekends	: 	[],\n"
+                + "yearOffset:0,\n"
+                + "beforeShowDay: null"
+                + "    });\n"
+                + "});"
+                //--------------------
+                + "$('body').on('focus',\".timepickerclass\", function() {\n"
+                + "    $(this).timepicker({\n"
+                + "'scrollDefault': 'now',"
+                + "'timeFormat': 'H:i:s'"
+                + "});"
+                + "});"
+                + "$('body').on('focus',\".datepickerclass\", function(){\n"
+                //QUESTO E' QUELLO CHE ASSEGNA VERAMENTE IL FORMATO DAL PICKER
+                + "    $(this).datepicker({ dateFormat: 'dd/mm/yy' });\n"
+                + "});"
+                + "$('body').on('focus',\".datepickerfilter\", function(){\n"
+                + "    $(this).datepicker({ dateFormat: 'dd/mm/yy' });\n"
+                + "});"
+                //-------
+                ////////                + "$('body').on('focus',\".richTextClass\", function(){\n" 
+                ////////                + "var objX = $(this).attr(\"id\");"
+                ////////                + "console.log(\"rich text area focused:\"+objX); "
+                ////////                //                + "rtfArea.removeInstance('myArea1');\n"
+                ////////                //                + "rtfArea = null;\n"
+                ////////                + "rtfArea = new nicEditor({fullPanel : true}).panelInstance(objX,{hasPanel : true});\n"
+                ////////                //                + "    nicEditors.allTextAreas();"
+                ////////                + "});\n"
+                ////////                                //-------
+                + "$('body').on('focusin',\".richTextClass\", function(){\n"
+                + "var objX = $(this).attr(\"id\");"
+                + "console.log(\"rich text area focusedIN:\"+objX); "
+                + "rtfArea = new nicEditor({fullPanel : true}).panelInstance(objX,{hasPanel : true});\n"
+                + "});\n"
+                //-------
+                + "$('body').on('focusout',\".richTextClass\", function(){\n"
+                + "var objX = $(this).attr(\"id\");"
+                + "console.log(\"rich text area focusedOUT:\"+objX); "
+                + "rtfArea.removeInstance(objX);\n"
+                + "});\n"
+                + "</script>\n";
+        HtmlCode += "</body>\n";
+        HtmlCode += "</html>\n";
+
+        request.setResponse(HtmlCode);
+        return request;
+    }
+
     public IncomingRequest logout(IncomingRequest request) {
         logEvent myEvent = new logEvent();
         myEvent.setType("Logout");
@@ -1604,418 +1991,7 @@ public class eventManager {
         request.setResponse((Object) HtmlCode);
         return request;
     }
-
-//ownerAccountManager
-
-    /*   public IncomingRequest ownerAccountManager(IncomingRequest request) {
-       el.log(myParams.getCKprojectName()+myParams.getCKcontextID()+"eventManager","\n\n********\nMasterFormShow by Event Manager");
-       el.log(myParams.getCKprojectName()+myParams.getCKcontextID()+"eventManager","IP:      \t" + request.getRemoteIP());
-       el.log(myParams.getCKprojectName()+myParams.getCKcontextID()+"eventManager","recorded:\t" + request.getRecorded());
-       el.log(myParams.getCKprojectName()+myParams.getCKcontextID()+"eventManager","projectName:\t" + request.getMyParams().getCKprojectName());
-       el.log(myParams.getCKprojectName()+myParams.getCKcontextID()+"eventManager","contextID:\t" + request.getMyParams().getCKcontextID());
-        String HtmlCode = "";
-        String dbCode = "";
-        String params = "\"params\":" + encodeURIComponent(myParams.makePORTALparams());
-        String connectors = "\"connectors\":[{\"door\":\"FormShow\","
-                + "\"event\":\"firstForm\","
-                + "\"formName\":\"mainForm\" }]";
-        String utils = "\"responseType\":\"text\"";
-        String gp = "{" + encodeURIComponent(utils) + "," + encodeURIComponent(params) + "," + encodeURIComponent(connectors) + "}";
-        String newPage = "portal?target=requestsManager&gp=" + gp;
-        request.setOutputStreamType("forward");
-        request.setResponse(newPage); 
-        
-      
-        return request;
-    }
-     */
-    public IncomingRequest MasterFormShow(IncomingRequest request) {
-
-        if (request.getMyGate().controlNeeded) {
-            if (request.getMyGate().getUserEnabled() < 1) {
-                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\nACCESSO NON CONSENTITO A MasterFormShowRenderPic");
-            }
-        }
-
-//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\n\n\n********\nMasterFormShow by Event Manager");
-//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "IP:      \t" + request.getRemoteIP());
-//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "recorded:\t" + request.getRecorded());
-//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "projectName:\t" + request.getMySettings().getProjectName());
-//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "contextID:\t" + request.getMyParams().getCKcontextID());
-        String HtmlCode = "";
-        String dbCode = "";
-        String WindowTitle = "";
-        String CNTX = "";
-        try {
-            CNTX = "" + myParams.getCKcontextID().toUpperCase();
-        } catch (Exception e) {
-        }
-        if (CNTX.length() < 1) {
-            CNTX = " ";
-        }
-
-        ShowItForm myForm = new ShowItForm("", myParams, mySettings); //in realtà qui ho solo il NAME del form, ma ricaverò l'ID dal DB
-//        System.out.println("NOME FORM DA CARICARE IN MAINFORMSHOW: " + request.getMyGate().getFormName());
-
-//*****************************************************************
-//**QUI SI DECIDE IL PRIMO FORM DA CARICARE: **********************
-//*****DI NORMA SARA' MAINFORM MA POTREBBE ESSERE ACCOUNTMANAGER **
-//*****OPPURE LASTNEWS MANAGER OPPURE UNO SPLASH DA FIRMARE********
-//*****************************************************************
-        myForm.setName(request.getMyGate().getFormName());
-
-        EVOuser myUser = new EVOuser(myParams, mySettings);
-        myUser.loadDBinfos();
-//        System.out.println("USER USERNAME: " + myUser.getUsername());
-//        System.out.println("USER COGNOME: " + myUser.getSurname());
-//        if ((myUser.getUsername() == null || myUser.getUsername().length() < 1)
-//                && (myUser.getSurname() == null || myUser.getSurname().length() < 1)
-//                && (myUser.getName() == null || myUser.getName().length() < 1)) 
-        String nameShowed = myUser.getName() + " " + myUser.getSurname();
-        if ((myUser.getName() == null || myUser.getName().equalsIgnoreCase("null") || myUser.getName().length() < 1)
-                && (myUser.getSurname() == null || myUser.getSurname().equalsIgnoreCase("null") || myUser.getSurname().length() < 1)) {
-            nameShowed = myUser.getUsername();
-
-        }
-        if ((myUser.getUsername() == null || myUser.getUsername().equalsIgnoreCase("null") || myUser.getUsername().length() < 1)) {
-            nameShowed = "";
-        }
-        if ((myUser.getSurname() == null || myUser.getSurname().equalsIgnoreCase("null") || myUser.getSurname().length() < 1)) {
-            nameShowed = "";
-        }
-        if ((myUser.getName() == null || myUser.getName().equalsIgnoreCase("null") || myUser.getName().length() < 1)) {
-            nameShowed = "";
-        }
-        if (nameShowed == "") {
-//            System.out.println("CARICO ACCOUNT MANAGER");
-            myForm.setAbstractTextCode("Prima di procedere nel portale occorre compilare <B>tutti i campi</B> del form !");
-            myForm.setName("accountManager");
-        }
-
-//        myForm.setName("accountManager");
-        myForm.setID("");
-        myForm.setFather("");
-        myForm.setFatherFilters("");
-        myForm.setLoadType(request.getMyGate().getLoadType());
-        myForm.setMyParams(myParams);
-        myForm.setMySettings(mySettings);
-
-        myForm.getFormInformationsFromDB(); // per mainFOrm questo non serviva e non so il perchè
-//        System.out.println("firstForm ID ricavato da getFormInformationsFromDB: " + myForm.getID()); 
-
-        System.out.println("\n\nfirstForm  : " + myForm.getType());
-        String firstForm = "";
-
-        firstForm = myForm.paintForm().getHtmlCode();
-
-        String formHtmlCode = "";
-        String formID = "";
-        try {
-            JSONParser jsonParser = new JSONParser();
-            JSONObject jsonObject = (JSONObject) jsonParser.parse(firstForm);
-            try {
-                formID = jsonObject.get("formID").toString();
-                formID = java.net.URLDecoder.decode(formID, "UTF-8");
-            } catch (Exception ex) {
-            }
-            try {
-                formHtmlCode = ((String) jsonObject.get("htmlCode"));
-                formHtmlCode = java.net.URLDecoder.decode(formHtmlCode, "UTF-8");
-            } catch (Exception ex) {
-            }
-
-        } catch (org.json.simple.parser.ParseException pe) {
-        }
-
-        WindowTitle = "<title>"
-                //                + "MAIN FRAME : " 
-                + request.getMySettings().getProjectName().toUpperCase()
-                + " " + CNTX
-                //                + " Released under AGPL License Copyright 2019. www.ffs.it"
-                + "</title>";
-
-        HtmlCode += "<!DOCTYPE html>";
-        HtmlCode += "<html>";
-        HtmlCode += "<head>";
-        HtmlCode += WindowTitle;
-        HtmlCode += " <meta charset=\"utf-8\">\n"
-                + " <meta http-equiv=\"Content-Security-Policy\"  content=\"connect-src * 'unsafe-inline';\">\n";
-        // </editor-fold>   
-// cerco una direttiva chiamata gaia.css
-        EVOpagerDirectivesManager myDirective = new EVOpagerDirectivesManager(request.getMyParams(), request.getMySettings());
-        // String dbCode = myDirective.getDirective("gaia.css");
-        // HtmlCode += (dbCode);
-// cerco una direttiva chiamata alle funzioni javascript   
-        jsFunctionServer JSfs = new jsFunctionServer(myParams, mySettings);
-        dbCode = myDirective.getDirective("gaia.inclusions");
-        HtmlCode += (dbCode);
-        HtmlCode += "<link rel=\"stylesheet\" href=\"stylesheet.css\" type=\"text/css\" charset=\"utf-8\" />\n";
-        HtmlCode += "<link rel=\"stylesheet\" href=\"gaia.css\" type=\"text/css\" charset=\"utf-8\" />\n";
-        HtmlCode += "<script type=\"text/javascript\" src=\"external/nicEdit/nicEdit.js\"></script>\n"; 
-        HtmlCode += "<script>";
-//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Carico gli script JS dal DB.");
-        //dbCode = myDirective.getDirective("gaia.variables"); 
-        HtmlCode += (JSfs.getGaiaVariables());
-        //dbCode = myDirective.getDirective("gaia.function.openWS");
-        HtmlCode += (JSfs.getWebsocketJS());
-        //dbCode = myDirective.getDirective("gaia.function.manageSplash");
-        HtmlCode += (JSfs.getManageSplash());
-        //dbCode = myDirective.getDirective("gaia.function.manageUpDownload");
-        HtmlCode += (JSfs.getManageUpDownload());
-        //dbCode = myDirective.getDirective("gaia.function.manageTBS");
-        HtmlCode += (JSfs.getManageTBS());
-        //dbCode = myDirective.getDirective("gaia.function.manageUserActions");           
-        HtmlCode += (JSfs.getPagerUserActions());
-        //dbCode = myDirective.getDirective("gaia.function.manageAutoActions");           
-        HtmlCode += (JSfs.getPagerAutoActions());
-        //dbCode = myDirective.getDirective("gaia.function.serviceFunctions");            
-        HtmlCode += (JSfs.getServiceFunctions());
-        HtmlCode += (JSfs.getManageContextMenu());
-        HtmlCode += (JSfs.getManageDoubleClickable());
-        HtmlCode += (JSfs.getMapsJS());
-        HtmlCode += (JSfs.getManageAdvancedFilter());
-        HtmlCode += (JSfs.getSmartWebsocketRoutines());
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Caricati gli script JS dal DB.");
-        HtmlCode += ("var jqueryFunction;\n"
-                + "\n"
-                + "$().ready(function(){\n"
-                + "//jQuery function\n"
-                + "    jqueryFunction = function( _msg )\n"
-                + "    {\n"
-                + "                $('#date-pick').datepicker({\n"
-                + "                    showOn: \"button\",\n"
-                + "                    dateFormat: \"dd/mm/yy\",\n"
-                + "                    onSelect: function() { \n"
-                + "                    }\n"
-                + "                });\n"
-                //---
-                + "                $('#date-pick').datepicker({\n"
-                + "                    showOn: \"button\",\n"
-                + "                    dateFormat: \"dd/mm/yy\",\n"
-                + "                    onSelect: function() { \n"
-                + "                    }\n"
-                + "                });\n"
-                //--
-                + "    }\n"
-                + "})\n"
-                + "\n"
-                + "//javascript function\n"
-                + "function jsFunction()\n"
-                + "{\n"
-                + "    //Invoke jQuery Function\n"
-                + "    jqueryFunction(\"Call from js to jQuery\");\n"
-                + "}");
-        HtmlCode += "</script>";
-        HtmlCode += ("<script>");
-        HtmlCode += ("var activeForms = [{ level:0, father:'' , id:'" + formID + "', name:'mainForm', space:'', key:''}];");
-        HtmlCode += ("var myObj = " + request.getMyParams().makeJSONparams() + ";");
-        HtmlCode += ("var overallProjectName=\"" + request.getMySettings().getProjectName() + "\";\n");
-        HtmlCode += ("var contextID=\"" + request.getMyParams().getCKcontextID() + "\";\n");
-        HtmlCode += ("var CKtokenID=\"" + request.getMyParams().getCKtokenID() + "\";\n");
-        HtmlCode += ("var PORTALparams = " + request.getMyParams().makePORTALparams() + ";\n");
-        HtmlCode += ("var overallProjectName = \"" + request.getMySettings().getProjectName() + "\";");
-        HtmlCode += ("var WSactive =1  ;");
-        HtmlCode += ("var rtfArea  ;");
-        HtmlCode += ("</script>");
-        HtmlCode += ("</head>");
-
-        HtmlCode += (" ");
-        HtmlCode += ("<body onload=\"startup()\" style=\"  width: 100%;  \">");
-
-        HtmlCode += ("<INPUT type='hidden' id='txtParams'  />");
-        HtmlCode += ("<INPUT type='hidden' id='portalParams'  />");
-        HtmlCode += ("<INPUT type='hidden' id='WSstatus' value=\"DISCONNECTED\"  />");
-        HtmlCode += ("<INPUT type='hidden' id='WStoken'  />");
-        HtmlCode += ("<INPUT type='hidden' id='WSsessionID'  />");
-        HtmlCode += ("<INPUT type='hidden' id='WSclientId'  />");
-        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-type\" value=\"\">\n");
-        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-rifForm\" value=\"\">\n");
-        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-copyTag\" value=\"\">\n");
-        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-keyValue\" value=\"\">\n");
-        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-args\" value=\"\">\n");
-        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"master-params\" value=\"" + encodeURIComponent(myParams.makeJSONparams()) + "\">\n");
-
-        HtmlCode += ("<TABLE style=\"height: 100px; width:100%;"
-                //                + "table-layout:fixed; "
-                + "background-color: white;\"><TR>");
-
-        //---SESSION SPACE con ACCOUNT MANAGER-----------
-        HtmlCode += ("<TD style=\"width:20%;align:right;overflow:hidden;white-space:nowrap;\">");
-        HtmlCode += ("<DIV id=\"SessionSpace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
-        HtmlCode += ("</TD>");
-        //---TITLE BAR SPACE -----------
-        HtmlCode += ("<TD style=\"width:40%;align:right;overflow:hidden;white-space:nowrap;\">");
-        HtmlCode += ("<DIV id=\"titleBarSpace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
-        HtmlCode += ("</TD>");
-
-        //---LIGHTHOUSE CONNECTION SPACE -----------
-        HtmlCode += ("<TD style=\"width:20%;align:left;overflow:hidden;white-space:nowrap;\">");
-        HtmlCode += ("<DIV id=\"LHWSspace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
-        HtmlCode += ("</TD>");
-//---LOCAL SERVER CONNECTION SPACE -----------
-        HtmlCode += ("<TD style=\"width:20%;align:left;overflow:hidden;white-space:nowrap;\">");
-        HtmlCode += ("<DIV id=\"WSspace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
-        HtmlCode += ("</TD>");
-        HtmlCode += ("</TR>"
-                + "<TR  style=\"border-bottom: 1px solid red\"><TD></TD></TR>"
-                + "</TABLE>");
-
-        HtmlCode += (" <TABLE style=\"height: 100px; width:100%;"
-                //                + "table-layout:fixed; "
-                + "background-color: white;\"><TR>");
-        HtmlCode += ("<TD style=\"height: 100%; width:100%;\">");
-        //***********************************************    
-        HtmlCode += (" <div id=\"mainFormSpace\">");
-        HtmlCode += (formHtmlCode);
-        HtmlCode += (" </div>");
-        //***********************************************   
-
-        HtmlCode += ("</TD><TD>");
-
-        HtmlCode += (" <div id=\"mainRightSpace\">");//mainRightSpace
-        HtmlCode += ("<table><tr>");
-        HtmlCode += ("<tr><td><div id=\"contactsSpace\"> </div><td><tr>");
-        HtmlCode += ("</tr><tr>");
-        HtmlCode += ("<tr><td><div id=\"formsMapSpace\"> </div><td><tr>");
-        HtmlCode += ("</tr></table>");
-        HtmlCode += ("</div>");//mainRightSpace
-
-        HtmlCode += ("</TD></TR>");
-        HtmlCode += ("<TR><TD colspan=\"2\">");
-        HtmlCode += (" <div id=\"mainBottomSpace\" ></div>\n");
-        HtmlCode += ("</TD></TR> ");
-        HtmlCode += ("</TABLE>");
-
-        //-------------------------------------------------------------
-        HtmlCode += "<div id=\"snackbar\"></div>";
-
-        HtmlCode += " <div id=\"splashPanel\" class=\"modalDialog\" "
-                + " >\n"
-                + "     <div><a href=\"#close\" title=\"Close\" class=\"close\">X</a>\n"
-                + "         <div id=\"selectors\"><p></p></div>"
-                + "     </div>\n"
-                + "</div>";
-        HtmlCode += ""
-                + "<div class=\"lightbox\" id=\"dropPanel\">\n"
-                + "  <figure>\n"
-                + "    <a href=\"#\" class=\"close\"></a>\n"
-                + "    <figcaption id=\"dropPanelFigcaption\">"
-                + "         <div style=\"width:100%;height:100%;overflow: auto;\" id=\"dropSpace\"  ></div>"
-                + "  </figure>\n"
-                + "</div>"
-                + ""
-                + "";
-        HtmlCode += " <div id=\"suggesterPanel\" class=\"suggester\" >\n"
-                + "<a href=\"#\" class=\"dropPanelClose\"> "
-                + "	<div>\n"
-                + " <a href=\"#suggesterclose\" title=\"Close\" class=\"close\">X</a>\n"
-                + " <div id=\"selectors1\"  ><p></p></div>"
-                + "</div>\n"
-                + "</div>";
-
-        HtmlCode += " <div id = \"contextmenu\" class=\"contxtmenu\"  onmouseout=\"javascript:setPosition('hide');\"></div>";
-        HtmlCode += "<div id=\"info-box\" class=\"infobox\" style=\"display:none\"></div>\n";
-        HtmlCode += "<script>"
-                + "$(document).ready(function() {   });\n"
-                //---------------
-                + "$('body').on('focus',\".datetimepickerclass\", function() {\n"
-                + "    $(this).datetimepicker({\n"
-                + "   step:60,\n"
-                + "monthChangeSpinner:true,\n"
-                + "closeOnDateSelect:false,\n"
-                + "closeOnWithoutClick:true,\n"
-                + "closeOnInputClick: true,\n"
-                + "timepicker:true,\n"
-                + "datepicker:true,\n"
-                + "defaultTime:false,\n"// use formatTime format (ex. '10:00' for formatTime:	'H:i')
-                + "defaultDate:false,\n" // use formatDate format (ex new Date() or '1986/12/08' or '-1970/01/05' or '-1970/01/05')
-                + "formatDate:'yyyy-MM-dd',\n"
-                + "minDate:false,\n"
-                + "maxDate:false,\n"
-                + "minTime:false,\n"
-                + "maxTime:false,\n"
-                + "allowTimes:[],\n"
-                + "opened:false,\n"
-                + "initTime:true,\n"
-                + "inline:false,\n"
-                + "onSelectDate:function() {},\n"
-                + "onSelectTime:function() {},\n"
-                + "onChangeMonth:function() {},\n"
-                + "onChangeDateTime:function() {},\n"
-                + "onShow:function() {},\n"
-                + "onClose:function() {},\n"
-                + "onGenerate:function() {},\n"
-                + "withoutCopyright:true,\n"
-                + "inverseButton:false,\n"
-                + "hours12:false,\n"
-                + "next:	'xdsoft_next',\n"
-                + "prev : 'xdsoft_prev',\n"
-                + "dayOfWeekStart:0,\n"
-                + "timeHeightInTimePicker:25,\n"
-                + "todayButton:true,\n" // 2.1.0
-                + "defaultSelect:true,\n" // 2.1.0
-                + "scrollMonth:true,\n"
-                + "scrollTime:true,\n"
-                + "scrollInput:true,\n"
-                + "lazyInit:false,\n"
-                + "mask:false,\n"
-                + "validateOnBlur:true,\n"
-                + "allowBlank:true,\n"
-                + "yearStart:2000,\n"
-                + "yearEnd:2100,\n"
-                + "style:'',\n"
-                + "id:'',\n"
-                + "fixed: false,\n"
-                + "roundTime:'round',\n" // ceil, floor
-                + "className:'',\n"
-                + "weekends	: 	[],\n"
-                + "yearOffset:0,\n"
-                + "beforeShowDay: null"
-                + "    });\n"
-                + "});"
-                //--------------------
-                + "$('body').on('focus',\".timepickerclass\", function() {\n"
-                + "    $(this).timepicker({\n"
-                + "'scrollDefault': 'now',"
-                + "'timeFormat': 'H:i:s'"
-                + "});"
-                + "});"
-                + "$('body').on('focus',\".datepickerclass\", function(){\n"
-                //QUESTO E' QUELLO CHE ASSEGNA VERAMENTE IL FORMATO DAL PICKER
-                + "    $(this).datepicker({ dateFormat: 'dd/mm/yy' });\n"
-                + "});"
-                + "$('body').on('focus',\".datepickerfilter\", function(){\n"
-                + "    $(this).datepicker({ dateFormat: 'dd/mm/yy' });\n"
-                + "});"
-                //-------
-                ////////                + "$('body').on('focus',\".richTextClass\", function(){\n" 
-                ////////                + "var objX = $(this).attr(\"id\");"
-                ////////                + "console.log(\"rich text area focused:\"+objX); "
-                ////////                //                + "rtfArea.removeInstance('myArea1');\n"
-                ////////                //                + "rtfArea = null;\n"
-                ////////                + "rtfArea = new nicEditor({fullPanel : true}).panelInstance(objX,{hasPanel : true});\n"
-                ////////                //                + "    nicEditors.allTextAreas();"
-                ////////                + "});\n"
-                ////////                                //-------
-                + "$('body').on('focusin',\".richTextClass\", function(){\n"
-                + "var objX = $(this).attr(\"id\");"
-                + "console.log(\"rich text area focusedIN:\"+objX); "
-                + "rtfArea = new nicEditor({fullPanel : true}).panelInstance(objX,{hasPanel : true});\n"
-                + "});\n"
-                //-------
-                + "$('body').on('focusout',\".richTextClass\", function(){\n"
-                + "var objX = $(this).attr(\"id\");"
-                + "console.log(\"rich text area focusedOUT:\"+objX); "
-                + "rtfArea.removeInstance(objX);\n"
-                + "});\n"
-                + "</script>\n";
-        HtmlCode += "</body>\n";
-        HtmlCode += "</html>\n";
-
-        request.setResponse(HtmlCode);
-        return request;
-    }
-
+ 
     public IncomingRequest newAccountForm(IncomingRequest request) {
 
         String extension = findExtension();
@@ -2878,149 +2854,7 @@ public class eventManager {
 
         return myForm;
     }
-////////
-////////    public IncomingRequest getGroupsList(IncomingRequest request) {
-////////        //devo creare elenco dei gruppi in base a formID e object name, compilando 
-////////        //le righe in base a KEYvalue
-////////        String formID = "";
-////////        String objID = "";
-////////        String copyTag = "";
-////////        String keyValue = "";
-////////        String params = "";
-////////
-////////        formID = request.getMyGate().formID;
-////////        copyTag = request.getMyGate().copyTag;
-////////        objID = request.getMyGate().rifObj;
-////////        keyValue = request.getMyGate().keyValue;
-////////        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "getGroupsList: devo creare elenco dei gruppi in base a:");
-////////        ShowItForm myForm = loadFORMfromGATE(request);
-////////        myForm.buildSchema();
-////////        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "rifForm:" + formID);
-////////        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "objID:" + objID);
-////////        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "keyValue:" + keyValue);
-////////        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", " myForm.getName():" + myForm.getName());
-////////
-////////        for (int kk = 0; kk < myForm.getObjects().size(); kk++) {
-////////            if (myForm.getObjects().get(kk).getName().equalsIgnoreCase(objID)) {
-////////                params = myForm.getObjects().get(kk).CG.getParams();
-////////            }
-////////        }
-////////        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "params:" + params);
-////////        /*.
-////////        {"partAtab":"contacts",
-////////        "partAfield":"ID" 
-////////        "partBquery":"SELECT * FROM gruppiInteresse",
-////////        "partBvalueField":"ID",
-////////        "partBlabelField":"descrizione",
-////////        "partBiconField":"" }
-////////         */
-////////
-////////        String partAtab = "";
-////////        String partAfield = "";
-////////        String partBtab = "";
-////////        String partBquery = "";
-////////        String partBvalueField = "";
-////////        String partBlabelField = "";
-////////        String partBiconField = "";
-////////
-////////        if (params != null && params.length() > 4) {
-////////            try {
-////////                JSONParser jsonParser = new JSONParser();
-////////                JSONObject jsonObject = (JSONObject) jsonParser.parse(params);
-////////
-////////                try {
-////////                    partAtab = jsonObject.get("partAtab").toString();
-////////                } catch (Exception ex) {
-////////                }
-////////                try {
-////////                    partAfield = jsonObject.get("partAfield").toString();
-////////                } catch (Exception ex) {
-////////                }
-////////                try {
-////////                    partBtab = jsonObject.get("partBtab").toString();
-////////                } catch (Exception ex) {
-////////                }
-////////                try {
-////////                    partBquery = jsonObject.get("partBquery").toString();
-////////                } catch (Exception ex) {
-////////                }
-////////                try {
-////////                    partBvalueField = jsonObject.get("partBvalueField").toString();
-////////                } catch (Exception ex) {
-////////                }
-////////                try {
-////////                    partBlabelField = jsonObject.get("partBlabelField").toString();
-////////                } catch (Exception ex) {
-////////                }
-////////                try {
-////////                    partBiconField = jsonObject.get("partBiconField").toString();
-////////                } catch (Exception ex) {
-////////                }
-////////            } catch (org.json.simple.parser.ParseException pe) {
-////////
-////////            }
-////////
-////////            // l'elenco da mostrare sarà dato dagli elementi in partBquery
-////////            //Poi per ogni elemento, se esiste già una correlazione con il mio valore key
-////////            // allora la spunta risulterà checkata
-////////        }
-////////        ArrayList<SelectListLine> myLines = new ArrayList<SelectListLine>();
-////////        ArrayList<SelectListLine> myCheckedLines = new ArrayList<SelectListLine>();
-////////
-////////        CRUDorder myCRUD = new CRUDorder(myParams, mySettings);
-////////        myCRUD.setFatherKEYvalue(request.getMyGate().getFatherKEYvalue());
-////////        myCRUD.setSendToCRUD(request.getMyGate().sendToCRUD);
-////////        String SQLphrase = myCRUD.standardReplace(partBquery, null);
-////////
-////////        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "SQLphrase -2755--------->" + SQLphrase);
-////////        Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
-////////        PreparedStatement ps = null;
-////////        ResultSet rs;
-////////        try {
-////////            ps = conny.prepareStatement(SQLphrase);
-////////            rs = ps.executeQuery();
-////////            while (rs.next()) {
-////////                SelectListLine myLine = new SelectListLine();
-////////                myLine.setLabel(rs.getString(partBlabelField));
-////////                myLine.setValue(rs.getString(partBvalueField));
-////////                myLines.add(myLine);
-////////            }
-////////            for (int jj = 0; jj < myLines.size(); jj++) {
-////////                SQLphrase = "SELECT * FROM archivio_correlazioni WHERE "
-////////                        + "partAtab = '" + partAtab + "' "
-////////                        + "AND partAfield = '" + partAfield + "' "
-////////                        + "AND partAvalue = '" + keyValue + "' "
-////////                        + "AND partBtab = '" + partBtab + "' "
-////////                        + "AND partBvalueField = '" + partBvalueField + "' "
-////////                        + "AND partBvalue = '" + myLines.get(jj).getValue() + "' ";
-////////                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "CERCO CHECK ---------->" + SQLphrase);
-////////                myLines.get(jj).setChecked(0);
-////////                ps = conny.prepareStatement(SQLphrase);
-////////                rs = ps.executeQuery();
-////////                while (rs.next()) {
-////////                    myCheckedLines.add(myLines.get(jj));
-////////                    break;
-////////                }
-////////            }
-////////
-////////            conny.close();
-////////        } catch (SQLException ex) {
-////////
-////////        }
-////////
-////////        String HtmlCode = "";
-////////        HtmlCode += "<TABLE>";
-////////        for (int jj = 0; jj < myCheckedLines.size(); jj++) {
-////////
-////////            HtmlCode += "<TR><TD>";
-////////            HtmlCode += myCheckedLines.get(jj).getLabel();
-////////            HtmlCode += " </TD></TR>";
-////////        }
-////////        HtmlCode += "</TABLE>";
-////////        request.setResponse((Object) HtmlCode);
-////////        return request;
-////////    }
-
+ 
     public IncomingRequest getGroups(IncomingRequest request) {
         //devo creare elenco dei gruppi in base a formID e object name, compilando 
         //le righe in base a KEYvalue
