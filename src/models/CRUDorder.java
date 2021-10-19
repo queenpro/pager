@@ -46,6 +46,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import showIt.ShowItForm;
+import smartCore.smartForm;
 
 /**
  *
@@ -79,7 +80,7 @@ public class CRUDorder {
     String mainTable;
     String JSafterHour;
     String ActionParams;
-    
+
     ShowItForm myForm;
     String formType;
     String addedIndex;
@@ -87,7 +88,6 @@ public class CRUDorder {
     String AfterOperationRoutineOnChange;
     String AfterOperationRoutineOnNew;
     String AfterOperationRoutineOnDelete;
-    
 
     public String printParams() {
 
@@ -453,12 +453,41 @@ public class CRUDorder {
         return answer;
     }
 
+    public void buildMyForm() {
+        myForm = new ShowItForm(this.getFormID(), myParams, mySettings);
+        if (this.getFormName() != null) {
+            myForm.setName(this.getFormName());
+        }
+        // se conosco il nome questo prevale sull'ID e l'ID viene invece ricavato di conseguenza dal DB
+
+        myForm.setCopyTag(this.getFormCopyTag());
+        myForm.setSendToCRUD(this.getSendToCRUD());
+        myForm.buildSchema();
+
+    }
+
+    public smartForm buildMySmartForm() {
+        smartForm mySmartForm = new smartForm(this.getFormID(), myParams, mySettings);
+        if (this.getFormName() != null) {
+            mySmartForm.setName(this.getFormName());
+        }
+        // se conosco il nome questo prevale sull'ID e l'ID viene invece ricavato di conseguenza dal DB
+
+        mySmartForm.setCopyTag(this.getFormCopyTag());
+        mySmartForm.setSendToCRUD(this.getSendToCRUD());
+        mySmartForm.buildSchema();
+        return mySmartForm;
+    }
+
     public String executeCRUD() {
+        //ShowItForm 
+
+        buildMyForm();
+
         JSONObject jsonAnswer = new JSONObject();
         logEvent myEvent = new logEvent();
         myEvent.setType("CRUD");
         myEvent.setUser(myParams.getCKuserID());
-
         myEvent.setToken(myParams.getCKtokenID());
 
         String errorMessage = "";
@@ -492,17 +521,16 @@ public class CRUDorder {
         //myParams.printParams();
         //      this.printParams();
         //  if (newValue!=null && newValue.length()>0)    newValue = newValue.replaceAll("'", "''");
-        //ShowItForm 
-                myForm = new ShowItForm(this.getFormID(), myParams, mySettings);
-        if (this.getFormName() != null) {
-            myForm.setName(this.getFormName());
-        }
-        // se conosco il nome questo prevale sull'ID e l'ID viene invece ricavato di conseguenza dal DB
-
-        myForm.setCopyTag(this.getFormCopyTag());
-        myForm.setSendToCRUD(this.getSendToCRUD());
-        myForm.buildSchema(); 
-
+////////        //ShowItForm ATTENZIONE! 2011-10-15 ho spostato le prossime righe all'inizio e le trasformerò in routine a sè stante
+////////        myForm = new ShowItForm(this.getFormID(), myParams, mySettings);
+////////        if (this.getFormName() != null) {
+////////            myForm.setName(this.getFormName());
+////////        }
+////////        // se conosco il nome questo prevale sull'ID e l'ID viene invece ricavato di conseguenza dal DB
+////////
+////////        myForm.setCopyTag(this.getFormCopyTag());
+////////        myForm.setSendToCRUD(this.getSendToCRUD());
+////////        myForm.buildSchema();
         this.formType = myForm.getType(); //per gestire il tipo tree
 
         String SQLphrase = "";
@@ -519,20 +547,6 @@ public class CRUDorder {
             //myForm.printVals();
             String dbTable = myForm.getMainTable();
             String formType = myForm.getType();
-//            System.out.println(" executeCRUD->mainTable:" + myForm.getMainTable());
-//            System.out.println(" executeCRUD->PrimaryFieldType():" + this.getPrimaryFieldType());
-//            System.out.println(" executeCRUD->this.getOperation():" + this.getOperation());
-//            System.out.println(" executeCRUD->myParams.getCKcontextID():" + this.myParams.getCKcontextID());
-//            System.out.println(" executeCRUD->myParams.getCKuserID():" + this.myParams.getCKuserID());
-//            System.out.println(" executeCRUD->myParams.getCKtokenID():" + this.myParams.getCKtokenID());
-//            System.out.println("operazione:" + operation);
-//            System.out.println("formName:" + formName);
-//            System.out.println("formID:" + formID);
-//            System.out.println("cellName:" + cellName);
-//            System.out.println("cellID:" + cellID);
-//            System.out.println("formSettings:" + myForm.getGes_topBar());
-//            System.out.println("getRefreshOnUpdate:" + myForm.getRefreshOnUpdate());
-
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = null;
             String afterDel = "";
@@ -571,6 +585,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                     Logger.getLogger(CRUDorder.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+
             System.out.println("[CRUD]routineOnNew:" + routineOnNew);
             this.setAfterOperationRoutineOnNew(routineOnNew);
             System.out.println("[CRUD]routineOnFormChange:" + routineOnFormChange);
@@ -609,8 +624,8 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
 
             myEvent.setEventCode(this.getOperation());
 //----------------------------------------------------------    
-// <editor-fold defaultstate="collapsed" desc="DEL">   
-//DEL///////////////////////////////////////////////////////////////                
+            // <editor-fold defaultstate="collapsed" desc="DEL">   
+            //DEL///////////////////////////////////////////////////////////////                
             if (this.getOperation().equalsIgnoreCase("DEL")) {
                 SQLphrase = "DELETE FROM `" + dbTable + "`  " + whereClause;
 //                System.out.println("DEL:SQLphrase:" + SQLphrase);
@@ -711,7 +726,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                 }
 
                 ArrayList<boundFields> boundFieldList = new ArrayList<boundFields>();
-// </editor-fold>    
+
                 // <editor-fold defaultstate="collapsed" desc="ANALIZZO filterSequence">   
                 System.out.println("\nADD================\n2.ANALIZZO filterSequence:" + this.getFilterSequence());
                 //analizzo la filterSequence per aggiungere i campi autocompilati
@@ -1033,7 +1048,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
         } catch (SQLException ex) {
 
         }
-        
+
         /*
         FATTO IL CRUD se era un tipo tree, manderò come risposta in caso di ADD la leaf per il nuovo LI
         in caso di UPDATE la leaf aggiornata con la dicitura corretta (però in un treer l'update per il momento non è previsto

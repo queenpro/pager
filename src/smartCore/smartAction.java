@@ -67,6 +67,7 @@ public class smartAction {
     public ArrayList<childLink> myChilds;
     public String door;
     public String event;
+      CRUDorder myCrud;
 
     public smartAction(WShandler Xsupreme, WSclient XsenderClient, EVOpagerParams myParams, Settings mySettings) {
         this.myParams = myParams;
@@ -86,6 +87,14 @@ public class smartAction {
         myChilds = new ArrayList<childLink>();
         door = "";
         event = "";
+    }
+
+    public CRUDorder getMyCrud() {
+        return myCrud;
+    }
+
+    public void setMyCrud(CRUDorder myCrud) {
+        this.myCrud = myCrud;
     }
 
     public JSONObject getjObj() {
@@ -172,6 +181,98 @@ public class smartAction {
         }
         jObj = (JSONObject) connectors.get(0);
         return jObj;
+    }
+
+    public void makeCRUDobject(JSONObject Xconnector) {
+
+        connector = Xconnector;
+        myCrud = new CRUDorder(myParams, mySettings);
+
+        try {
+            myCrud.setOperation(connector.get("operation").toString());
+        } catch (Exception e) {
+        }   // ADD;UPD;DEL
+//                    try{ myCrud.setFormName(connector.get("operation").toString());} catch(Exception e){}
+        try {
+            myCrud.setCellType(connector.get("cellType").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setRoutineOnChange(connector.get("routineOnChange").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setFilterSequence(connector.get("filterSequence").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setPrimaryFieldName(connector.get("primaryFieldName").toString());
+        } catch (Exception e) {
+        } // in caso di DEL indica il valore del campo primary (es. ID)
+        try {
+            myCrud.setPrimaryFieldValue(connector.get("primaryFieldValue").toString());
+        } catch (Exception e) {
+        } // in caso di DEL indica il valore del campo primary
+        try {
+            myCrud.setPrimaryFieldType(connector.get("primaryFieldType").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setFilterField(connector.get("filterField").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setFilterValue(connector.get("filterValue").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setCellName(connector.get("cellName").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setNewValue(connector.get("newValue").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setFatherKEYvalue(connector.get("fatherKEYvalue").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setFatherKEYtype(connector.get("fatherKEYtype").toString());
+        } catch (Exception e) {
+        }
+//                   try{  myCrud.setFieldFiltered(connector.get("operation").toString());} catch(Exception e){}
+        try {
+            myCrud.setToBeSent(connector.get("tbs").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setSendToCRUD(connector.get("sendToCRUD").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setSendToCRUD(connector.get("STC").toString());
+        } catch (Exception e) {
+        }
+
+//                    System.out.println("smartAction --->connector.get(\"sendToCRUD\"): " + connector.get("sendToCRUD").toString());
+//                    System.out.println("smartAction --->connector.get(\"STC\"): " + connector.get("STC").toString());
+        try {
+            myCrud.setFormID(connector.get("formID").toString());
+        } catch (Exception e) {
+        }
+
+//        System.out.println("smartAction --->connector.get(\"formID\"): " + connector.get("formID").toString());
+
+        try {
+            myCrud.setFormCopyTag(connector.get("copyTag").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setCellID(connector.get("cellID").toString());
+        } catch (Exception e) {
+        }
+
     }
 
     public JSONObject deployAction(JSONObject Xconnector) {
@@ -360,103 +461,20 @@ public class smartAction {
                 // <editor-fold defaultstate="collapsed" desc="CELLCHANGED">
                 if (event.equalsIgnoreCase("CELLCHANGED")) { //---> COMPORTA UN CRUD
                     System.out.println("resolveAction--->EVENTO CELLCHANGED ");
-                    CRUDorder myCrud = new CRUDorder(myParams, mySettings);
-
-                    try {
-                        myCrud.setOperation(connector.get("operation").toString());
-                    } catch (Exception e) {
-                    }   // ADD;UPD;DEL
-//                    try{ myCrud.setFormName(connector.get("operation").toString());} catch(Exception e){}
-                    try {
-                        myCrud.setCellType(connector.get("cellType").toString());
-                    } catch (Exception e) {
-                    }
-                    try {
-                        myCrud.setRoutineOnChange(connector.get("routineOnChange").toString());
-                    } catch (Exception e) {
-                    }
-                    try {
-                        myCrud.setFilterSequence(connector.get("filterSequence").toString());
-                    } catch (Exception e) {
-                    }
-                    try {
-                        myCrud.setPrimaryFieldName(connector.get("primaryFieldName").toString());
-                    } catch (Exception e) {
-                    } // in caso di DEL indica il valore del campo primary (es. ID)
-                    try {
-                        myCrud.setPrimaryFieldValue(connector.get("primaryFieldValue").toString());
-                    } catch (Exception e) {
-                    } // in caso di DEL indica il valore del campo primary
-                    try {
-                        myCrud.setPrimaryFieldType(connector.get("primaryFieldType").toString());
-                    } catch (Exception e) {
-                    }
-                    try {
-                        myCrud.setFilterField(connector.get("filterField").toString());
-                    } catch (Exception e) {
-                    }
-                    try {
-                        myCrud.setFilterValue(connector.get("filterValue").toString());
-                    } catch (Exception e) {
-                    }
-                    try {
-                        myCrud.setCellName(connector.get("cellName").toString());
-                    } catch (Exception e) {
-                    }
-                    try {
-                        myCrud.setNewValue(connector.get("newValue").toString());
-                    } catch (Exception e) {
-                    }
-                    try {
-                        myCrud.setFatherKEYvalue(connector.get("fatherKEYvalue").toString());
-                    } catch (Exception e) {
-                    }
-                    try {
-                        myCrud.setFatherKEYtype(connector.get("fatherKEYtype").toString());
-                    } catch (Exception e) {
-                    }
-//                   try{  myCrud.setFieldFiltered(connector.get("operation").toString());} catch(Exception e){}
-                    try {
-                        myCrud.setToBeSent(connector.get("tbs").toString());
-                    } catch (Exception e) {
-                    }
-                    try {
-                        myCrud.setSendToCRUD(connector.get("sendToCRUD").toString());
-                    } catch (Exception e) {
-                    }
-                    try {
-                        myCrud.setSendToCRUD(connector.get("STC").toString());
-                    } catch (Exception e) {
-                    }
-
-//                    System.out.println("smartAction --->connector.get(\"sendToCRUD\"): " + connector.get("sendToCRUD").toString());
-//                    System.out.println("smartAction --->connector.get(\"STC\"): " + connector.get("STC").toString());
-                    try {
-                        myCrud.setFormID(connector.get("formID").toString());
-                    } catch (Exception e) {
-                    }
-
-                    System.out.println("smartAction --->connector.get(\"formID\"): " + connector.get("formID").toString());
-
-                    try {
-                        myCrud.setFormCopyTag(connector.get("copyTag").toString());
-                    } catch (Exception e) {
-                    }
-                    try {
-                        myCrud.setCellID(connector.get("cellID").toString());
-                    } catch (Exception e) {
-                    }
+                    makeCRUDobject(connector);
+                    System.out.println("\n\n*****\nsono in smartAction e sto per esegiore il CRUD " + myCrud.getOperation());
 //                    UUID idOne = null;
 //                    idOne = UUID.randomUUID();
 //                    connector.put("opToken", idOne);
                     String CRUDrepsonse = myCrud.executeCRUD();
+                    
                     JSONParser parser = new JSONParser();
                     JSONObject Rjson = (JSONObject) parser.parse(CRUDrepsonse);
                     String newID = "";
-                    newID =  Rjson.get("newID").toString();
+                    newID = Rjson.get("newID").toString();
                     // adesso ricavo la riga da mettere in lista 
                     System.out.println("smartAction --->QUERY: " + myCrud.getMyForm().getQuery());
-                    System.out.println("smartAction --->newID: " +newID);
+                    System.out.println("smartAction --->newID: " + newID);
                     connector.remove("keyValue");
                     connector.put("keyValue", Rjson.get("newID").toString());
 //                    System.out.println("smartAction --->connector: " + connector.toString());
@@ -466,6 +484,7 @@ public class smartAction {
 
                     if (myCrud.getOperation().equalsIgnoreCase("ADD")) {
                         String action = "SHOWADDEDROW";
+                         // <editor-fold defaultstate="collapsed" desc="caso SMARTTREE">
                         if (myCrud.getFormType() != null && myCrud.getFormType().equalsIgnoreCase("SMARTTREE")) {
                             action = "SHOWADDEDLEAF";
                             // ho appena eseguito crud su un leaf di SMARTTREE
@@ -577,7 +596,7 @@ public class smartAction {
                             System.out.println("smartAction --->leaf: " + leaf);
 
                         }
-
+// </editor-fold>
 //                        String htmlCode = "";
 //                        htmlCode = encodeURIComponent(htmlCode);
                         actionResponse = new JSONObject();

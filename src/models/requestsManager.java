@@ -148,7 +148,7 @@ public class requestsManager {
                     System.out.println(" >" + Irequest.getMyGate().getEvent());
                     Irequest.getMyGate().setForm("");
 
-                    String risposta = "{\"respOK\":\"logout\",\"MESSAGE\":\"INVALID SESSION\",\"DESCRIPTION\":\"SESSIONE SCADUTA, RIESEGUIRE IL LOGIN.\"}";
+                    String risposta = "{\"ACTION\":\"LOGOUT\",\"respOK\":\"logout\",\"MESSAGE\":\"INVALID SESSION\",\"DESCRIPTION\":\"SESSIONE SCADUTA, RIESEGUIRE IL LOGIN.\"}";
                     Irequest.setResponse(risposta);
                     return Irequest;
                 }

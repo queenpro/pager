@@ -209,7 +209,9 @@ public class eventManager {
 // cerco una direttiva chiamata alle funzioni javascript   
         jsFunctionServer JSfs = new jsFunctionServer(myParams, mySettings);
         dbCode = myDirective.getDirective("gaia.inclusions");
+        if (dbCode!=null && !dbCode.trim().equals("")){
         HtmlCode += (dbCode);
+        }
         HtmlCode += "<link rel=\"stylesheet\" href=\"stylesheet.css\" type=\"text/css\" charset=\"utf-8\" />\n";
         HtmlCode += "<link rel=\"stylesheet\" href=\"gaia.css\" type=\"text/css\" charset=\"utf-8\" />\n";
         HtmlCode += "<script type=\"text/javascript\" src=\"external/nicEdit/nicEdit.js\"></script>\n"; 
@@ -274,7 +276,7 @@ public class eventManager {
         HtmlCode += ("var contextID=\"" + request.getMyParams().getCKcontextID() + "\";\n");
         HtmlCode += ("var CKtokenID=\"" + request.getMyParams().getCKtokenID() + "\";\n");
         HtmlCode += ("var PORTALparams = " + request.getMyParams().makePORTALparams() + ";\n");
-        HtmlCode += ("var overallProjectName = \"" + request.getMySettings().getProjectName() + "\";");
+        HtmlCode += ("var overallProjectContext = \"" + request.getMyParams().getCKcontextID() + "\";");
         HtmlCode += ("var WSactive =1  ;");
         HtmlCode += ("var rtfArea  ;");
         HtmlCode += ("</script>");

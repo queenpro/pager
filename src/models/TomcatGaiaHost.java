@@ -71,26 +71,6 @@ public class TomcatGaiaHost {
 
     }
 
-    public String getQP_centralManagerURL() {
-        return QP_centralManagerURL;
-    }
-
-    public String getDbUsername() {
-        return dbUsername;
-    }
-
-    public String getDbSeed() {
-        return dbSeed;
-    }
-
-    public String getDefaultContext() {
-        return defaultContext;
-    }
-
-    public String getPwType() {
-        return pwType;
-    }
-
     public String getConfigPath() {
 
         String pth;
@@ -197,4 +177,24 @@ public class TomcatGaiaHost {
         }
         
     }
+    public String getQP_centralManagerURL() {
+        return QP_centralManagerURL;
+    }
+
+    public String getDbUsername() {
+        return dbUsername;
+    }
+
+    public String getDbSeed() {
+        return dbSeed;
+    }
+
+    public String getDefaultContext() {
+        return defaultContext;
+    }
+
+    public String getPwType() {
+        return pwType;
+    }
+
 }

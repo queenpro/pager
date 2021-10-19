@@ -194,7 +194,7 @@ public class ShowItForm {
         this.database = new Database(myParams, mySettings);
         //------------------------------------------------------- 
         this.ID = id;
-        System.out.println("FORM DA COSTRUIRE: " + this.ID);
+        System.out.println("ShowItForm " + this.ID);
         this.objects = new ArrayList<ShowItObject>();
         this.formObjects = new ArrayList<ShowItObject>();
     }

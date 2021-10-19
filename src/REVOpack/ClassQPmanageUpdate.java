@@ -385,14 +385,14 @@ public class ClassQPmanageUpdate {
                     InputStreamReader in = new InputStreamReader(conn.getInputStream());
                     BufferedReader br = new BufferedReader(in);
                     String output = "";
-                    String confRetreived="";
+                    String confRetreived = "";
                     while ((output = br.readLine()) != null) {
 //                         System.out.println("->output: " + output);
-                         confRetreived = output;
+                        confRetreived = output;
                     }
                     conn.disconnect();
                     address = "";
-                    
+
 //                         System.out.println("1->confRetreived: " + confRetreived);
                     // leggo il parametro di emergenza
                     if (confRetreived != null && confRetreived.length() > 0) {
@@ -411,7 +411,6 @@ public class ClassQPmanageUpdate {
                                 address += "qpmanager/centralManager";
 
 //                                System.out.println("->address: " + address);
-
                                 args = "?target=requestsManager&gp=";
 
                                 obj = new JSONObject();
@@ -647,6 +646,7 @@ public class ClassQPmanageUpdate {
                     }
 //                    System.out.println("\n=======================================\nil numero di rows nella tabella è :" + totLines);
 
+                        System.out.println("RIPORTO IN LOCALE tabella:" + localFEtableName );
                     for (int lns = 0; lns < totLines; lns++) {
                         int numRiga = lns + 1;
                         connectors = "[{\"door\":\"manageUpdate\","
@@ -774,6 +774,7 @@ public class ClassQPmanageUpdate {
 
                         }
 //                        System.out.println("LI RICOPIO IN LOCALE:" + statement.toString());
+                        System.out.println("RIPORTO IN LOCALE tabella:" + localFEtableName+" RIGA "+ numRiga+"/"+totLines);
                         try {
                             result = statement.executeUpdate();
                         } catch (Exception e) {

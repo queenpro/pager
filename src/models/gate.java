@@ -153,11 +153,35 @@ public class gate {
         itemjObj.put("payload", outPayload);
         return itemjObj;
     }
+public JSONObject insertAction_packResponse(EVOpagerParams myParams, Settings mySettings,String Type, String Status ) {
+    // questo tipo di risposta serve ad essere parsato dal codice prima dell'invio al browser; es in caso di operation before CRUD
+        JSONObject outPayload = new JSONObject();
+        outPayload.put("ACTION", "ROUTINE_RESPONSE");
+        outPayload.put("DESTDIV", "");
+        outPayload.put("CODE", "");
+        outPayload.put("TYPE", Type);      
+        outPayload.put("STATUS", Status);        
+        outPayload.put("NEEDS", this.actions);
 
+        JSONObject itemjObj = new JSONObject();
+        itemjObj.put("ip", "0000");
+        itemjObj.put("TYPE", "wsResponse");
+        itemjObj.put("payload", outPayload);
+        return itemjObj;
+    }
     public void insertAction_toast(EVOpagerParams myParams, Settings mySettings, String phrase) {
         JSONObject action = new JSONObject();
         action.put("action", "toast");
-        action.put("phrase", phrase);
+        action.put("phrase", phrase); 
+
+        this.actions.add(action);
+
+    }
+    public void insertAction_toast(EVOpagerParams myParams, Settings mySettings, String phrase, Boolean speak) {
+        JSONObject action = new JSONObject();
+        action.put("action", "toast");
+        action.put("phrase", phrase); 
+        action.put("speak", speak); 
 
         this.actions.add(action);
 

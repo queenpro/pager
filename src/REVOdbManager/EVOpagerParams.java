@@ -419,7 +419,7 @@ public class EVOpagerParams {
                 }
                 try {
                     myParams.setCKcontextID(paramsObject.get("CNT").toString());
-//                    System.out.println("CKcontextID:" + myParams.getCKcontextID());
+                    System.out.println("CKcontextID:" + myParams.getCKcontextID());
                 } catch (Exception e) {
                     myParams.setCKcontextID("");
                 }
