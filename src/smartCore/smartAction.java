@@ -58,8 +58,8 @@ import showIt.ShowItForm;
  */
 public class smartAction {
 
-    JSONObject connector;
-    JSONObject jObj = new JSONObject();
+    public JSONObject connector;
+    public JSONObject jObj = new JSONObject();
     public EVOpagerParams myParams;
     public Settings mySettings;
     WSclient senderClient;
@@ -67,7 +67,7 @@ public class smartAction {
     public ArrayList<childLink> myChilds;
     public String door;
     public String event;
-      CRUDorder myCrud;
+    CRUDorder myCrud;
 
     public smartAction(WShandler Xsupreme, WSclient XsenderClient, EVOpagerParams myParams, Settings mySettings) {
         this.myParams = myParams;
@@ -263,7 +263,6 @@ public class smartAction {
         }
 
 //        System.out.println("smartAction --->connector.get(\"formID\"): " + connector.get("formID").toString());
-
         try {
             myCrud.setFormCopyTag(connector.get("copyTag").toString());
         } catch (Exception e) {
@@ -291,15 +290,15 @@ public class smartAction {
                 if (event.equalsIgnoreCase("REFILTER")) {
                     try {
                         String filtroLike = "";
-                        System.out.println("resolveAction--->EVENTO REFILTER ");
+//                        System.out.println("resolveAction--->EVENTO REFILTER ");
                         String jfilter = "";
                         String JcurPage = "";
                         String newOrder = "";
                         try {
                             jfilter = connector.get("filter").toString();
-                            System.out.println("*jfilter: " + jfilter);
+//                            System.out.println("*jfilter: " + jfilter);
                             JSONArray array = (JSONArray) connector.get("filter");
-                            System.out.println("array.size: " + array.size());
+//                            System.out.println("array.size: " + array.size());
 
                             try {
 
@@ -307,7 +306,7 @@ public class smartAction {
 
                                 for (int i = 0; i < array.size(); i++) {
                                     list.add((JSONObject) array.get(i));
-                                    System.out.println("list.add: " + ((JSONObject) array.get(i)).get("field").toString());
+//                                    System.out.println("list.add: " + ((JSONObject) array.get(i)).get("field").toString());
                                 }
                                 if (list != null && list.size() > 0) {
                                     Collections.sort(list, new MyJSONComparator());
@@ -322,7 +321,7 @@ public class smartAction {
                                             int start = field.indexOf("[");
                                             int end = field.indexOf("]");
                                             String newField = field.substring(start + 1, end);
-                                            System.out.println("field: " + field + " --> newField: " + newField);
+//                                            System.out.println("field: " + field + " --> newField: " + newField);
                                             field = newField;
                                         } catch (Exception e) {
                                             System.out.println("Error in FILTER manage ");
@@ -350,7 +349,7 @@ public class smartAction {
                                     } else {
                                         newOrder += " ASC ";
                                     }
-                                    System.out.println("newOrder:" + newOrder);
+//                                    System.out.println("newOrder:" + newOrder);
 
                                 }
                             } catch (Exception e) {
@@ -389,7 +388,7 @@ public class smartAction {
 //                        if (newFilter != null && newFilter.length() > 0) {
                         smartQuery mySquery = new smartQuery(myForm.queryUsed, myForm.filteredElements, myForm.visualFilter);
                         myForm.queryUsed = mySquery.regenerateQuery(newFilter, newOrder, newGroup, true, "AND", true, true);
-                        System.out.println("regenerateQuery-->Query used: " + myForm.queryUsed);
+//                        System.out.println("regenerateQuery-->Query used: " + myForm.queryUsed);
 //                        }
 
 //                    myForm.queryUsed += newOrder;
@@ -467,7 +466,7 @@ public class smartAction {
 //                    idOne = UUID.randomUUID();
 //                    connector.put("opToken", idOne);
                     String CRUDrepsonse = myCrud.executeCRUD();
-                    
+
                     JSONParser parser = new JSONParser();
                     JSONObject Rjson = (JSONObject) parser.parse(CRUDrepsonse);
                     String newID = "";
@@ -484,7 +483,7 @@ public class smartAction {
 
                     if (myCrud.getOperation().equalsIgnoreCase("ADD")) {
                         String action = "SHOWADDEDROW";
-                         // <editor-fold defaultstate="collapsed" desc="caso SMARTTREE">
+                        // <editor-fold defaultstate="collapsed" desc="caso SMARTTREE">
                         if (myCrud.getFormType() != null && myCrud.getFormType().equalsIgnoreCase("SMARTTREE")) {
                             action = "SHOWADDEDLEAF";
                             // ho appena eseguito crud su un leaf di SMARTTREE
@@ -639,17 +638,20 @@ public class smartAction {
 //------------------------------------------------------------------------------ 
                 // <editor-fold defaultstate="collapsed" desc="ExecuteRoutine">
                 if (event.equalsIgnoreCase("ExecuteRoutine")) {
-
+                    System.out.println("\n\n###########\nSONO IN CERCA DELLA ROUTINE DA ESEGUIRE ");
                     //2021-03-16: la routine voglio andarla a prendere dallo schema del form
                     // senza farmela passare dalle procedure via browser
                     gate myGate = new gate();
                     myGate.connector2gate(connector);
                     smartForm mySmartForm = new smartForm(myGate, myParams, mySettings);
                     mySmartForm.buildSchema();
+                    boolean found = false;
+                    
+                    System.out.println("Cerco routine in oggetto: "+myGate.getRifObj());
                     for (smartObject object : mySmartForm.objects) {
                         if (object.name.equalsIgnoreCase(myGate.getRifObj())) {
                             String objActionParams = object.actionParams;
-//                            System.out.println("--AppWS: PULSANTE " + myGate.getRifObj() + ", objActionParams=" + objActionParams);
+                            System.out.println("--AppWS: PULSANTE " + myGate.getRifObj() + ", objActionParams=" + objActionParams);
                             JSONParser jsonParser = new JSONParser();
                             JSONObject jsonObject = (JSONObject) jsonParser.parse(objActionParams);
                             String routine = getJSONarg(jsonObject, "routine");
@@ -657,9 +659,28 @@ public class smartAction {
                             connector.put("routine", routine);
                             System.out.println("ricavata routine: " + routine);
                             connector.put("paramsToSend", paramsToSend);
+                            found = true;
+                            break;
                         }
                     }
-
+                    if (found == false) {
+                        System.out.println("Non trovato oggetto, cerco nei Form objects "+mySmartForm.formObjects.size() );
+                        for (smartObject object : mySmartForm.formObjects) {
+                            if (object.name.equalsIgnoreCase(myGate.getRifObj())) {
+                                String objActionParams = object.actionParams;
+                                System.out.println("--AppWS: PULSANTE " + myGate.getRifObj() + ", objActionParams=" + objActionParams);
+                                JSONParser jsonParser = new JSONParser();
+                                JSONObject jsonObject = (JSONObject) jsonParser.parse(objActionParams);
+                                String routine = getJSONarg(jsonObject, "routine");
+                                String paramsToSend = getJSONarg(jsonObject, "paramsToSend");
+                                connector.put("routine", routine);
+                                System.out.println("ricavata routine: " + routine);
+                                connector.put("paramsToSend", paramsToSend);
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
                     // dovrò rimandare a AppWS il nome della routine da eseguire
                     // mettendolo in connector.routine
                     String destDiv = "";
@@ -974,18 +995,18 @@ public class smartAction {
         tbs = connector.get("tbs").toString();
         STC = connector.get("STC").toString();
 
-        System.out.println("formID:" + formID);
-        System.out.println("copyTag:" + copyTag);
-        System.out.println("objID:" + objID);
-        System.out.println("keyValue:" + keyValue);
-        System.out.println("valueKEY:" + valueKEY);
-        System.out.println("newValue:" + newValue);
-        System.out.println("fatherKEYvalue:" + fatherKEYvalue);
-        System.out.println("fatherKEYtype:" + fatherKEYtype);
-        System.out.println("fatherForm:" + fatherForm);
-        System.out.println("fatherCopyTag:" + fatherCopyTag);
-        System.out.println("tbs:" + tbs);
-        System.out.println("STC:" + STC);
+////////        System.out.println("formID:" + formID);
+////////        System.out.println("copyTag:" + copyTag);
+////////        System.out.println("objID:" + objID);
+////////        System.out.println("keyValue:" + keyValue);
+////////        System.out.println("valueKEY:" + valueKEY);
+////////        System.out.println("newValue:" + newValue);
+////////        System.out.println("fatherKEYvalue:" + fatherKEYvalue);
+////////        System.out.println("fatherKEYtype:" + fatherKEYtype);
+////////        System.out.println("fatherForm:" + fatherForm);
+////////        System.out.println("fatherCopyTag:" + fatherCopyTag);
+////////        System.out.println("tbs:" + tbs);
+////////        System.out.println("STC:" + STC);
 
         String targetElement = formID + "-" + copyTag + "-" + objID + "-" + keyValue;
         String rowToRepaint = formID + "-" + copyTag + "-" + keyValue + "-ROW";
@@ -1003,11 +1024,11 @@ public class smartAction {
         mySmartForm.setSendToCRUD(STC);
         mySmartForm.setLoadType("{\"type\":\"SMARTTABLE\","
                 + "\"visualType\":\"SINGLEROW\"}");
-        System.out.println("Costruito smartForm... vado in buildSchema");
+//        System.out.println("Costruito smartForm... vado in buildSchema");
         mySmartForm.loadPagingInstructions();
         mySmartForm.buildSchema();
-        System.out.println("mySmartForm.getName:" + mySmartForm.getName());
-        System.out.println("Concluso buildSchema. verifico presenza routine onn change per oggetto groupchecker");
+//        System.out.println("mySmartForm.getName:" + mySmartForm.getName());
+//        System.out.println("Concluso buildSchema. verifico presenza routine onn change per oggetto groupchecker");
         String AfterProcessByObjectRoutine = "";
         for (int kk = 0; kk < mySmartForm.getObjects().size(); kk++) {
             if (mySmartForm.getObjects().get(kk).getName().equalsIgnoreCase(objID)) {
@@ -1015,7 +1036,7 @@ public class smartAction {
                 AfterProcessByObjectRoutine = mySmartForm.getObjects().get(kk).routineOnChange;
             }
         }
-        System.out.println(" routine on change per oggettoo groupchecker:" + AfterProcessByObjectRoutine);
+//        System.out.println(" routine on change per oggettoo groupchecker:" + AfterProcessByObjectRoutine);
 
 ////////         request.setAfterProcessByObjectRoutines(AfterProcessByObjectRoutine);
         Linker myLinker = new Linker();
@@ -1065,10 +1086,10 @@ public class smartAction {
             System.out.println("ERROR e ---------->" + ex.toString());
         }
 // adesso devo ridisegnare la row a cui appartiene il targertElement
-        System.out.println("rowToRepaint ---------->" + rowToRepaint);
+//        System.out.println("rowToRepaint ---------->" + rowToRepaint);
 
         mySmartForm.setCurKEYvalue(keyValue);
-        System.out.println("Query used: " + mySmartForm.queryUsed);
+//        System.out.println("Query used: " + mySmartForm.queryUsed);
         smartFormResponse myFormResponse = mySmartForm.paintDataTable();
 
         HtmlCode = myFormResponse.getHtmlCode();
@@ -1155,18 +1176,18 @@ public class smartAction {
         } catch (Exception e) {
         }
 
-        System.out.println("\n******\nmakeRowRefreshOrder\nformID:" + formID);
-        System.out.println("copyTag:" + copyTag);
-        System.out.println("objID:" + objID);//rifObj
-        System.out.println("keyValue:" + keyValue);
-        System.out.println("valueKEY:" + valueKEY);//cellName
-        System.out.println("newValue:" + newValue);
-        System.out.println("fatherKEYvalue:" + fatherKEYvalue);
-        System.out.println("fatherKEYtype:" + fatherKEYtype);
-        System.out.println("fatherForm:" + fatherForm);
-        System.out.println("fatherCopyTag:" + fatherCopyTag);
-        System.out.println("tbs:" + tbs);
-        System.out.println("STC:" + STC);
+////////        System.out.println("\n******\nmakeRowRefreshOrder\nformID:" + formID);
+////////        System.out.println("copyTag:" + copyTag);
+////////        System.out.println("objID:" + objID);//rifObj
+////////        System.out.println("keyValue:" + keyValue);
+////////        System.out.println("valueKEY:" + valueKEY);//cellName
+////////        System.out.println("newValue:" + newValue);
+////////        System.out.println("fatherKEYvalue:" + fatherKEYvalue);
+////////        System.out.println("fatherKEYtype:" + fatherKEYtype);
+////////        System.out.println("fatherForm:" + fatherForm);
+////////        System.out.println("fatherCopyTag:" + fatherCopyTag);
+////////        System.out.println("tbs:" + tbs);
+////////        System.out.println("STC:" + STC);
 
         String rowToRepaint = formID + "-" + copyTag + "-" + keyValue + "-ROW";
 
@@ -1182,11 +1203,11 @@ public class smartAction {
         mySmartForm.setCopyTag(copyTag);
         mySmartForm.setSendToCRUD(STC);
         mySmartForm.setLoadType("{\"type\":\"SMARTTREE\",\"visualType\":\"SINGLEROW\"}");
-        System.out.println("Costruito SMARTTREE... vado in buildSchema");
+//        System.out.println("Costruito SMARTTREE... vado in buildSchema");
         mySmartForm.loadPagingInstructions();
         mySmartForm.buildSchema();
-        System.out.println("mySmartForm.getName:" + mySmartForm.getName());
-        System.out.println("Concluso buildSchema. verifico presenza routine onn change per oggetto groupchecker");
+//        System.out.println("mySmartForm.getName:" + mySmartForm.getName());
+//        System.out.println("Concluso buildSchema. verifico presenza routine onn change per oggetto groupchecker");
         String AfterProcessByObjectRoutine = "";
         for (int kk = 0; kk < mySmartForm.getObjects().size(); kk++) {
             if (mySmartForm.getObjects().get(kk).getName().equalsIgnoreCase(objID)) {
@@ -1270,19 +1291,19 @@ public class smartAction {
             STC = connector.get("STC").toString();
         } catch (Exception e) {
         }
-
-        System.out.println("\n******\nmakeRowRefreshOrder\nformID:" + formID);
-        System.out.println("copyTag:" + copyTag);
-        System.out.println("objID:" + objID);//rifObj
-        System.out.println("keyValue:" + keyValue);
-        System.out.println("valueKEY:" + valueKEY);//cellName
-        System.out.println("newValue:" + newValue);
-        System.out.println("fatherKEYvalue:" + fatherKEYvalue);
-        System.out.println("fatherKEYtype:" + fatherKEYtype);
-        System.out.println("fatherForm:" + fatherForm);
-        System.out.println("fatherCopyTag:" + fatherCopyTag);
-        System.out.println("tbs:" + tbs);
-        System.out.println("STC:" + STC);
+////////
+////////        System.out.println("\n******\nmakeRowRefreshOrder\nformID:" + formID);
+////////        System.out.println("copyTag:" + copyTag);
+////////        System.out.println("objID:" + objID);//rifObj
+////////        System.out.println("keyValue:" + keyValue);
+////////        System.out.println("valueKEY:" + valueKEY);//cellName
+////////        System.out.println("newValue:" + newValue);
+////////        System.out.println("fatherKEYvalue:" + fatherKEYvalue);
+////////        System.out.println("fatherKEYtype:" + fatherKEYtype);
+////////        System.out.println("fatherForm:" + fatherForm);
+////////        System.out.println("fatherCopyTag:" + fatherCopyTag);
+////////        System.out.println("tbs:" + tbs);
+////////        System.out.println("STC:" + STC);
 
         String rowToRepaint = formID + "-" + copyTag + "-" + keyValue + "-ROW";
 
@@ -1298,11 +1319,11 @@ public class smartAction {
         mySmartForm.setCopyTag(copyTag);
         mySmartForm.setSendToCRUD(STC);
         mySmartForm.setLoadType("{\"type\":\"SMARTTABLE\",\"visualType\":\"SINGLEROW\"}");
-        System.out.println("Costruito smartForm... vado in buildSchema");
+//        System.out.println("Costruito smartForm... vado in buildSchema");
         mySmartForm.loadPagingInstructions();
         mySmartForm.buildSchema();
-        System.out.println("mySmartForm.getName:" + mySmartForm.getName());
-        System.out.println("Concluso buildSchema. verifico presenza routine onn change per oggetto groupchecker");
+//        System.out.println("mySmartForm.getName:" + mySmartForm.getName());
+//        System.out.println("Concluso buildSchema. verifico presenza routine onn change per oggetto groupchecker");
         String AfterProcessByObjectRoutine = "";
         for (int kk = 0; kk < mySmartForm.getObjects().size(); kk++) {
             if (mySmartForm.getObjects().get(kk).getName().equalsIgnoreCase(objID)) {
@@ -1603,8 +1624,7 @@ public class smartAction {
 
         return myJObj;
     }
-
-    public String makeFormRefreshOrder(JSONObject connector) {
+public String makeFormRefreshOrder(JSONObject connector) {
         System.out.println("\nSONO IN makeFormRefreshOrder.");
         String formID = "";
         String objID = "";
@@ -1739,6 +1759,175 @@ public class smartAction {
         smartForm myForm = loadFORMparams(connector);
         JSONObject loadTypeObj = new JSONObject();
         loadTypeObj.put("visualType", "DATAONLY");
+        loadTypeObj.put("firstRow", 1);
+        loadTypeObj.put("NofRows", 50);
+        loadTypeObj.put("currentPage", curPage);
+        loadTypeObj.put("visualFilter", "");
+        myForm.setLoadType(loadTypeObj.toString());
+        myForm.buildSchema();
+        myForm.loadPagingInstructions();
+        String newFilter = filtroLike;
+        System.out.println("newFilter: " + newFilter);
+        String newGroup = "";
+
+        System.out.println("Come base per il filter uso la query già sostituita: " + myForm.queryUsed);
+
+        smartQuery mySquery = new smartQuery(myForm.queryUsed, myForm.filteredElements, myForm.visualFilter);
+        System.out.println("myForm.query: " + myForm.queryUsed);
+
+        String preparedQuery = mySquery.regenerateQuery(newFilter, newOrder, newGroup, true, "AND", true, true);
+        System.out.println("preparedQuery: " + preparedQuery);
+
+        preparedQuery = browserArgsReplace(preparedQuery, myForm.fatherKEYvalue, myForm.sendToCRUD, myForm.toBeSent);
+        System.out.println("preparedQuery replaced: " + preparedQuery);
+
+        myForm.queryUsed = preparedQuery;
+
+        System.out.println("makeFormRefreshOrder -> regenerateQuery-->Query used: " + myForm.queryUsed);
+
+        smartFormResponse myFormResponse = myForm.paintDataTable();
+        //                    smartFormResponse myFormResponse = myForm.paintForm();
+        //                    System.out.println("Eseguito paintform: " + myFormResponse.HtmlCode);
+        String htmlCode = myFormResponse.getHtmlCode();
+        htmlCode = encodeURIComponent(htmlCode);
+
+        return htmlCode;
+    }
+    public String makeFormRepaintOrder(JSONObject connector) {
+        System.out.println("\nSONO IN makeFormRefreshOrder.");
+        String formID = "";
+        String objID = "";
+        String copyTag = "";
+        String keyValue = "";
+        String params = "";
+        String valueKEY = "";
+        String newValue = "";
+        String fatherKEYvalue = "";
+        String fatherKEYtype = "";
+        String fatherForm = "";
+        String fatherCopyTag = "";
+        String tbs = "";
+        String STC = "";
+        try {
+            formID = connector.get("formID").toString();
+        } catch (Exception e) {
+        }
+        try {
+            copyTag = connector.get("copyTag").toString();
+        } catch (Exception e) {
+        }
+        try {
+            objID = connector.get("rifObj").toString();
+        } catch (Exception e) {
+        }
+        try {
+            keyValue = connector.get("keyValue").toString();
+        } catch (Exception e) {
+        }
+        try {
+            valueKEY = connector.get("cellName").toString();
+        } catch (Exception e) {
+        }
+        try {
+            newValue = connector.get("newValue").toString();
+        } catch (Exception e) {
+        }
+        try {
+            fatherKEYvalue = connector.get("fatherKEYvalue").toString();
+        } catch (Exception e) {
+        }
+        try {
+            fatherKEYtype = connector.get("fatherKEYtype").toString();
+        } catch (Exception e) {
+        }
+        try {
+            fatherForm = connector.get("fatherForm").toString();
+        } catch (Exception e) {
+        }
+        try {
+            fatherCopyTag = connector.get("fatherCopyTag").toString();
+        } catch (Exception e) {
+        }
+        try {
+            tbs = connector.get("tbs").toString();
+        } catch (Exception e) {
+        }
+        try {
+            STC = connector.get("STC").toString();
+        } catch (Exception e) {
+        }
+
+        String filtroLike = "";
+        System.out.println("resolveAction--->EVENTO REFILTER ");
+        String jfilter = "";
+        String JcurPage = "";
+
+        try {
+            jfilter = connector.get("filter").toString();
+        } catch (Exception e) {
+        }
+        try {
+            JcurPage = connector.get("curPage").toString();
+        } catch (Exception e) {
+        }
+
+        int curPage = 1;
+        try {
+            curPage = Integer.parseInt(JcurPage);
+        } catch (Exception e) {
+
+        }
+        System.out.println("jfilter: " + jfilter);
+        JSONArray array = new JSONArray();
+        System.out.println("array.size: " + array.size());
+        String newOrder = "";
+        if (jfilter != null && jfilter.length() > 2) {
+            try {
+                array = (JSONArray) connector.get("filter");
+                ArrayList<JSONObject> list = new ArrayList<>();
+
+                for (int i = 0; i < array.size(); i++) {
+                    list.add((JSONObject) array.get(i));
+                    System.out.println("list.add: " + ((JSONObject) array.get(i)).get("field").toString());
+                }
+                if (list != null && list.size() > 0) {
+                    Collections.sort(list, new MyJSONComparator());
+                }
+
+                for (JSONObject obj : list) {
+                    String field = obj.get("field").toString();
+                    String direction = obj.get("direction").toString();
+                    String value = obj.get("value").toString();//testo inserito nel filtro
+
+                    if (value != null && value.length() > 2) {
+                        if (filtroLike.length() > 0) {
+                            filtroLike += " AND ";
+                        }
+                        filtroLike += " " + field + " LIKE '%" + value + "%' ";
+                    }
+
+                    int pos = 0;
+                    try {
+                        pos = Integer.parseInt(obj.get("position").toString());
+                    } catch (Exception e) {
+                    }
+                    System.out.println("POS:" + pos + ")Field:" + field + " ");
+                    if (newOrder.length() > 0) {
+                        newOrder += ", ";
+                    }
+                    newOrder += field;
+                    if (!direction.equalsIgnoreCase("A")) {
+                        newOrder += " DESC ";
+                    }
+
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        smartForm myForm = loadFORMparams(connector);
+        JSONObject loadTypeObj = new JSONObject();
+        loadTypeObj.put("visualType", "FULLFORM");
         loadTypeObj.put("firstRow", 1);
         loadTypeObj.put("NofRows", 50);
         loadTypeObj.put("currentPage", curPage);
@@ -1922,7 +2111,7 @@ public class smartAction {
                 myParams, mySettings);
 
         try {
-            System.out.println("### costriuto form : " + connector.get("formID").toString());
+//            System.out.println("### costriuto form : " + connector.get("formID").toString());
             try {
                 myForm.setName(connector.get("formName").toString());
             } catch (Exception e) {
@@ -1975,7 +2164,7 @@ public class smartAction {
                 myForm.setSendToCRUD(connector.get("STC").toString());
             } catch (Exception e) {
             }
-            myForm.printVals();
+//            myForm.printVals();
         } catch (Exception e) {
             System.out.println("### ERRORR : " + e.toString());
         }

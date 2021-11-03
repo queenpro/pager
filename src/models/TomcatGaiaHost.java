@@ -138,7 +138,7 @@ public class TomcatGaiaHost {
     }
 
     public void getProjectInfos() {
-        System.out.println("\n<<<<<>>>>>> data:" + data);
+//        System.out.println("\n<<<<<>>>>>> data:" + data);
         int flag=0;
         if (data != null && data.length() > 0) {
             try {

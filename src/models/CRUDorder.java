@@ -495,7 +495,7 @@ public class CRUDorder {
         String pKEY = "";
         String pKEYtype = "";
         String pKEYvalue = "";
-        System.out.println("INIZIO CRUD value:" + this.getNewValue());
+//        System.out.println("INIZIO CRUD value:" + this.getNewValue());
         String newHtmlCode = "";
         Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
         if (this.getNewValue() != null) {
@@ -513,7 +513,7 @@ public class CRUDorder {
                 Logger.getLogger(CRUDorder.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        System.out.println("armoinizzato value:" + this.getNewValue());
+//        System.out.println("armoinizzato value:" + this.getNewValue());
         if (this.getCellType() == null || this.getCellType() == "") {
             this.setCellType("T");
         }
@@ -540,8 +540,7 @@ public class CRUDorder {
         try {
             Statement s = conny.createStatement();
 
-            System.out.println("\n-----------------\n"
-                    + "SONO IN ExecuteCRUD\nCerco le info in base al nome del form:" + myForm.getName());
+//            System.out.println("\n-----------------\nSONO IN ExecuteCRUD\nCerco le info in base al nome del form:" + myForm.getName());
             myForm.getFormInformationsFromDB();
 
             //myForm.printVals();
@@ -588,10 +587,11 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
 
             System.out.println("[CRUD]routineOnNew:" + routineOnNew);
             this.setAfterOperationRoutineOnNew(routineOnNew);
-            System.out.println("[CRUD]routineOnFormChange:" + routineOnFormChange);
             this.setAfterOperationRoutineOnChange(routineOnFormChange);
             if ((this.getAfterOperationRoutineOnChange() != null || this.getAfterOperationRoutineOnChange().length() > 4)
                     && (this.getRoutineOnChange() == null || this.getRoutineOnChange().length() < 5)) {
+            System.out.println("[CRUD]routineOnFormChange:" + routineOnFormChange);
+                
                 this.setRoutineOnChange(routineOnFormChange);
             }
 
@@ -775,10 +775,10 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
 
                 //   3.inoltre voglio aggiungere campi compilati dal valore di default impostato in evolution es. $$$NOW$$$ o $$$KEY$$$
                 int FlagPanelFIlter = 0;
-                System.out.println("\n3.Cerco negli oggetti i field con DEFAULT VALUE");
+//                System.out.println("\n3.Cerco negli oggetti i field con DEFAULT VALUE");
 
                 SQLphrase = "SELECT * FROM " + mySettings.getLocalFE_objects() + " WHERE rifForm = '" + this.getFormID() + "'";
-                System.out.println("SQLphrase" + SQLphrase);
+//                System.out.println("SQLphrase" + SQLphrase);
                 ResultSet rs = s.executeQuery(SQLphrase);
 
                 try {
@@ -789,7 +789,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                         String defVal = rs.getString("defaultValue");
                         if (defVal != null && !defVal.equalsIgnoreCase("NULL") && defVal.length() > 0) {
                             // questo oggetto ha un default value indicato !
-                            System.out.println("OGGETTO " + fieldName + " DEFAULT=" + defVal);
+//                            System.out.println("OGGETTO " + fieldName + " DEFAULT=" + defVal);
                             int flag = 0;
                             //controllo se fa parte della boundFieldList esistente
                             for (int jj = 0; jj < boundFieldList.size(); jj++) {
@@ -805,9 +805,9 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                             if (flag == 0) {
                                 String radix = newValue;
 
-                                System.out.println("579 prima=" + defVal);
+//                                System.out.println("579 prima=" + defVal);
                                 defVal = standardReplace(defVal, radix);
-                                System.out.println("579 dopo=" + defVal);
+//                                System.out.println("579 dopo=" + defVal);
 
                                 if (this.getNewValue().equalsIgnoreCase("PANELFILTER")) {
                                     FlagPanelFIlter++;
@@ -849,7 +849,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
 
                 String fieldsList = "";
                 String valuesList = "";
-                System.out.println("\n4.=======================\nTrovati in tutto " + boundFieldList.size() + " campi da inserire.");
+//                System.out.println("\n4.=======================\nTrovati in tutto " + boundFieldList.size() + " campi da inserire.");
 // </editor-fold>    
                 // <editor-fold defaultstate="collapsed" desc="INSERIMENTO">   
                 //===INSERIMENTO=====================================================      
@@ -1232,7 +1232,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
 //        System.out.println("standardReplace--->applico sostituzioni con ToBeSent:" + this.getToBeSent());
         defVal = replaceMarkers(defVal, decodeURLstring(this.getToBeSent()));
 
-        System.out.println(" *REPLACE RESULT:" + defVal);
+//        System.out.println(" *REPLACE RESULT:" + defVal);
         return defVal;
     }
 

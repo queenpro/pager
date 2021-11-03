@@ -202,6 +202,7 @@ public class WShandler {
         String RAMsessionID = "";
         String SENTclientID = clientId;
         String SENTsessionID = session.getId();
+        System.out.println("@@@WS:Messaggio ricevuto da client: " + SENTclientID + "  SESSION ID: " + SENTsessionID);
 
         for (int jj = 0; jj < this.clientsConnected.size(); jj++) {
             if (this.clientsConnected.get(jj).getClientID().equalsIgnoreCase(clientId)) {
@@ -1306,6 +1307,49 @@ public class WShandler {
         return mySem;
     }
 
+    public void sendToBrowser(String type, JSONObject payload, String token, String message) {
+        if (token != null && token.length() > 0) {
+            String destinationID = getClientIDbyToken(token);
+            String senderName = "***QUEENPRO SERVER***";
+//            System.out.println("sendToBrowser->token: " + token + " sessionID:" + destinationID);
+            try {
+//            el.log(PROJECT_ID, "APP-WS: sendToPeer from " + senderName + " to " + sess.getId() + ":" + message);
+                JSONObject obj = new JSONObject();
+                obj.put("ip", "000");
+                obj.put("SENDER", senderName);
+                obj.put("TYPE", type);
+                obj.put("VALUE", message);//descrizione...i9nserito client ecc...(per speech)
+                obj.put("payload", payload);// contiene clientPoint:oggetto JSON con clientID, sessionID e token appena assegnato
+                obj.put("priority", "0");
+                obj.put("duration", "3");
+                for (Session sess : peers) {
+                    if (destinationID.equals(sess.getId())) {
+//                        System.out.println("INVIO AL PEER " + destinationID + " messaggio TYPE:" + type + " con payload=" + payload);
+                        try {
+                            sess.getBasicRemote().sendText(obj.toJSONString());
+                        } catch (IOException ioe) {
+                            try {
+                                sleep(10);
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(WShandler.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                            try {
+                                sess.getBasicRemote().sendText(obj.toJSONString());
+                            } catch (IOException ie) {
+//                        System.out.println(ie.getMessage());
+                                parseClose(destinationID);// rimuove il peer non raggiungibile
+                            }
+                            parseClose(destinationID);// rimuove il peer non raggiungibile
+                        }
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void sendToPeer(String type, JSONObject payload, String destinationID, String message) {
         String senderName = "***GAIAWEB SERVER***";
 //            el.log(PROJECT_ID, "APP-WS: sendToPeer from " + senderName + " to " + sess.getId() + ":" + message);
@@ -1656,12 +1700,29 @@ public class WShandler {
     public void printClientsConnected() {
         System.out.println("\n--------\nCLIENT CONNECTED ");
         for (WSclient client : clientsConnected) {
-            System.out.println("CLIENT CONNECTED> " + client.getSessionID()
+            System.out.println("CLIENT CONNECTED> "
+                    + client.getSessionID()
                     + " Cid:" + client.clientID
                     + " U:" + client.getUser()
-                    + " T:" + client.tokenAssigned);
+                    + " T:" + client.tokenAssigned);// questo token non è quello del CK, ma viene assegnato nell'handshake al client
 
         }
+    }
+
+    public String getClientIDbyToken(String token) {
+        String searched = "WS/" + token;
+        String clientID = "";
+        if (token.length() > 10) {
+            for (WSclient client : clientsConnected) {
+                if (client.clientID.contains(searched)) {
+//                    System.out.println("client.clientID> " + client.clientID + "  CONTIENE " + searched + "  ---> SESSION ID:" + client.getSessionID());
+                    clientID = client.getSessionID();
+                    break;
+                }  
+
+            }
+        }
+        return clientID;
     }
 
     private JSONObject prepareMap(String type) {

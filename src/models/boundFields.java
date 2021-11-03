@@ -31,6 +31,16 @@ package models;
         String marker;
         String value;
         boolean present;
+        String type;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+        
 
         public boolean isPresent() {
             return present;

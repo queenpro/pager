@@ -21,6 +21,7 @@
 package REVOwebsocketManager;
 
 import REVOdbManager.EVOpagerParams;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -228,5 +229,5 @@ public class WSclient {
     public void setSessionID(String sessionID) {
         this.sessionID = sessionID;
     }
-
+     
 }

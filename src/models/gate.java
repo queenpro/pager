@@ -91,6 +91,9 @@ public class gate {
     public String fieldID = "";
     public String table = "";
     public String query = "";
+    
+    
+    public String addingNewID = "";
 
     public String KeyField = "";
     public String currentKEY = "";
@@ -153,14 +156,15 @@ public class gate {
         itemjObj.put("payload", outPayload);
         return itemjObj;
     }
-public JSONObject insertAction_packResponse(EVOpagerParams myParams, Settings mySettings,String Type, String Status ) {
-    // questo tipo di risposta serve ad essere parsato dal codice prima dell'invio al browser; es in caso di operation before CRUD
+
+    public JSONObject insertAction_packResponse(EVOpagerParams myParams, Settings mySettings, String Type, String Status) {
+        // questo tipo di risposta serve ad essere parsato dal codice prima dell'invio al browser; es in caso di operation before CRUD
         JSONObject outPayload = new JSONObject();
         outPayload.put("ACTION", "ROUTINE_RESPONSE");
         outPayload.put("DESTDIV", "");
         outPayload.put("CODE", "");
-        outPayload.put("TYPE", Type);      
-        outPayload.put("STATUS", Status);        
+        outPayload.put("TYPE", Type);
+        outPayload.put("STATUS", Status);
         outPayload.put("NEEDS", this.actions);
 
         JSONObject itemjObj = new JSONObject();
@@ -169,19 +173,21 @@ public JSONObject insertAction_packResponse(EVOpagerParams myParams, Settings my
         itemjObj.put("payload", outPayload);
         return itemjObj;
     }
+
     public void insertAction_toast(EVOpagerParams myParams, Settings mySettings, String phrase) {
         JSONObject action = new JSONObject();
         action.put("action", "toast");
-        action.put("phrase", phrase); 
+        action.put("phrase", phrase);
 
         this.actions.add(action);
 
     }
+
     public void insertAction_toast(EVOpagerParams myParams, Settings mySettings, String phrase, Boolean speak) {
         JSONObject action = new JSONObject();
         action.put("action", "toast");
-        action.put("phrase", phrase); 
-        action.put("speak", speak); 
+        action.put("phrase", phrase);
+        action.put("speak", speak);
 
         this.actions.add(action);
 
@@ -200,6 +206,82 @@ public JSONObject insertAction_packResponse(EVOpagerParams myParams, Settings my
 
     }
 
+    public void insertAction_repaintFormByName(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XkeyValue) {
+          System.out.println("\n ---SONO IN insertAction_repaintFormByName"  );
+        // XkeyValue sarò la riga evidenziata
+        String XhtmlCode = "";
+        XformID = formIDfromName(myParams, mySettings, XformID);
+          JSONObject connector = loadConnector();
+        connector.put("formID", XformID);
+        connector.put("copyTag", XCopyTag);
+        try{
+        connector.put("keyValue", XkeyValue);
+        }catch(Exception e){}
+//////        
+////////        connector.put("formName", this.getFormName());
+////////        connector.put("valueKEY", this.getPrimaryFieldName());
+////////        connector.put("fatherForm", this.getFatherForm());
+////////        connector.put("fatherCopyTag", this.getFatherCopyTag());
+////////        connector.put("fatherKEYvalue", this.getFatherKEYvalue());
+////////        connector.put("fatherKEYtype", this.getFatherKEYtype());
+        connector.put("curPage", this.getCurPage());
+//        connector.put("newValue", this.getFormID()); 
+        System.out.println("il connector che mando per insertAction_repaintFormDataOnly è: " + connector.toString());
+
+        smartAction myAction = new smartAction(myParams, mySettings);
+        String JhtmlCode = myAction.makeFormRepaintOrder(connector);
+        System.out.println("\n\n JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
+
+        try {
+            JhtmlCode = java.net.URLDecoder.decode(JhtmlCode, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+        }
+        System.out.println(" decoded JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
+        JSONParser jsonParser = new JSONParser();
+        JSONObject myJC = new JSONObject();
+        try {
+            myJC = (JSONObject) jsonParser.parse(JhtmlCode);
+            XhtmlCode = myJC.get("htmlCode").toString();
+        } catch (ParseException ex) {
+
+        }
+        String destTarget = "FRAME-"+this.getFormName() + "-" + this.getCopyTag();
+        JSONObject action = new JSONObject();
+        action.put("action", "repaintForm");
+        action.put("target", destTarget);// spazio destDiv da refreshare
+        action.put("htmlCode", XhtmlCode);// codice html
+        actions.add(action);
+
+    }
+
+    public void insertAction_repaintFormRowByName(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XkeyValue) {
+
+        XformID = formIDfromName(myParams, mySettings, XformID);
+        smartAction myAction = new smartAction(myParams, mySettings);
+        JSONObject connector = loadConnector();
+        connector.put("formID", XformID);
+        connector.put("copyTag", XCopyTag);
+        connector.put("keyValue", XkeyValue);
+        connector.put("curPage", this.getCurPage());
+        String htmlCode = "";
+        System.out.println("\n\n\n OCCORRE REPAINTARE LA ROW " + XkeyValue + " NEL FORM :" + XformID);
+        connector.replace("keyValue", XkeyValue);
+        connector.replace("formID", XformID);
+
+        System.out.println("il connector che mando per insertAction_repaintFormRow è: " + connector.toString());
+
+        myAction = new smartAction(myParams, mySettings);
+        String rowCode = myAction.makeRowRefreshOrder(connector);
+        String destTarget = XformID + "-" + XCopyTag + "-" + XkeyValue + "-ROW";
+
+        JSONObject action = new JSONObject();
+        action.put("action", "repaintRow");
+        action.put("target", destTarget);// spazio destDiv da refreshare
+        action.put("htmlCode", rowCode);// codice html
+        this.actions.add(action);
+
+    }
+
     public void insertAction_repaintFormRow(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XkeyValue) {
         smartAction myAction = new smartAction(myParams, mySettings);
         JSONObject connector = loadConnector();
@@ -212,7 +294,7 @@ public JSONObject insertAction_packResponse(EVOpagerParams myParams, Settings my
         connector.replace("keyValue", XkeyValue);
         connector.replace("formID", XformID);
 
-        System.out.println("il connector che mando per il repaint è: " + connector.toString());
+        System.out.println("il connector che mando per insertAction_repaintFormRow è: " + connector.toString());
 
         myAction = new smartAction(myParams, mySettings);
         String rowCode = myAction.makeRowRefreshOrder(connector);
@@ -255,6 +337,84 @@ public JSONObject insertAction_packResponse(EVOpagerParams myParams, Settings my
 
     }
 
+    public String formIDfromName(EVOpagerParams myParams, Settings mySettings, String formName) {
+        String formID = formName;
+
+        System.out.println("\n\n\n OCCORRE REPAINTARE IL FORM :" + formName);
+
+        JSONObject connector = loadConnector();
+        String formToSearch = formName;
+        String tableFormsName = "gFE_forms_" + myParams.getCKprojectName();
+// cerco l'ID del form da refreshare in base al nome
+        String SQLphrase = "SELECT * FROM " + tableFormsName + " WHERE name='" + formToSearch + "'";
+        System.out.println("SQLphrase  ---------->" + SQLphrase);
+        Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
+        PreparedStatement ps = null;
+        ResultSet rs;
+        try {
+            ps = conny.prepareStatement(SQLphrase);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                formID = rs.getString("ID");
+            }
+            conny.close();
+        } catch (SQLException ex) {
+            System.out.println("Errore :" + ex.toString());
+        }
+        System.out.println("L'ID del FORM :" + formID);
+        return formID;
+    }
+
+    public void insertAction_repaintFormDataOnlyByName(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XkeyValue) {
+        String XhtmlCode = "";
+        System.out.println("\n\n\n OCCORRE REPAINTARE IL FORM :" + XformID);
+
+        JSONObject connector = loadConnector();
+
+        XformID = formIDfromName(myParams, mySettings, XformID);
+
+        System.out.println("\n\n\n OCCORRE REPAINTARE IL FORM :" + XformID);
+        connector.put("formID", XformID);
+        connector.put("copyTag", XCopyTag);
+        connector.put("keyValue", XkeyValue);
+
+//////        
+////////        connector.put("formName", this.getFormName());
+////////        connector.put("valueKEY", this.getPrimaryFieldName());
+////////        connector.put("fatherForm", this.getFatherForm());
+////////        connector.put("fatherCopyTag", this.getFatherCopyTag());
+////////        connector.put("fatherKEYvalue", this.getFatherKEYvalue());
+////////        connector.put("fatherKEYtype", this.getFatherKEYtype());
+        connector.put("curPage", this.getCurPage());
+//        connector.put("newValue", this.getFormID()); 
+        System.out.println("il connector che mando per insertAction_repaintFormDataOnlyByName è: " + connector.toString());
+
+        smartAction myAction = new smartAction(myParams, mySettings);
+        String JhtmlCode = myAction.makeFormRefreshOrder(connector);
+        System.out.println("\n\n JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
+
+        try {
+            JhtmlCode = java.net.URLDecoder.decode(JhtmlCode, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+        }
+        System.out.println(" decoded JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
+        JSONParser jsonParser = new JSONParser();
+        JSONObject myJC = new JSONObject();
+        try {
+            myJC = (JSONObject) jsonParser.parse(JhtmlCode);
+            XhtmlCode = myJC.get("htmlCode").toString();
+        } catch (ParseException ex) {
+
+        }
+        String destTarget = XformID + "-" + this.getCopyTag() + "-ROWSDIV";
+        JSONObject action = new JSONObject();
+        action.put("action", "repaintForm");
+        action.put("target", destTarget);// spazio destDiv da refreshare
+        action.put("htmlCode", XhtmlCode);// codice html
+        actions.add(action);
+
+    }
+
     public void insertAction_repaintFormDataOnly(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XkeyValue) {
         String XhtmlCode = "";
         System.out.println("\n\n\n OCCORRE REPAINTARE IL FORM :" + this.getFormID());
@@ -273,7 +433,7 @@ public JSONObject insertAction_packResponse(EVOpagerParams myParams, Settings my
 ////////        connector.put("fatherKEYtype", this.getFatherKEYtype());
         connector.put("curPage", this.getCurPage());
 //        connector.put("newValue", this.getFormID()); 
-        System.out.println("il connector che mando per il repaint è: " + connector.toString());
+        System.out.println("il connector che mando per insertAction_repaintFormDataOnly è: " + connector.toString());
 
         smartAction myAction = new smartAction(myParams, mySettings);
         String JhtmlCode = myAction.makeFormRefreshOrder(connector);
@@ -2094,7 +2254,7 @@ public JSONObject insertAction_packResponse(EVOpagerParams myParams, Settings my
     }
 
     public ArrayList<SelectListLine> parseJSONargsTBS(ArrayList<SelectListLine> argList, String SecondaryArgs) {
-        System.out.println("parseJSONargsTBS--->SecondaryArgs:" + SecondaryArgs);
+//        System.out.println("parseJSONargsTBS--->SecondaryArgs:" + SecondaryArgs);
         try {
             SecondaryArgs = java.net.URLDecoder.decode(SecondaryArgs, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
@@ -2104,14 +2264,14 @@ public JSONObject insertAction_packResponse(EVOpagerParams myParams, Settings my
             SecondaryArgs = java.net.URLDecoder.decode(SecondaryArgs, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(gate.class.getName()).log(Level.SEVERE, null, ex);
-        } 
+        }
         JSONParser jsonParser = new JSONParser();
 //        ArrayList<SelectListLine> argList = new ArrayList<SelectListLine>();
         try {
 
             if (SecondaryArgs != null && SecondaryArgs.length() > 0) {
                 SecondaryArgs = "{\"sendToCRUD\":" + SecondaryArgs.replace("'", "\"") + "}";
-                System.out.println("parseJSONargsTBS--->*SecondaryArgs:" + SecondaryArgs);
+//                System.out.println("parseJSONargsTBS--->*SecondaryArgs:" + SecondaryArgs);
                 JSONObject jsonObject;
                 jsonObject = (JSONObject) jsonParser.parse(SecondaryArgs);
                 String TBSarray = jsonObject.get("sendToCRUD").toString();

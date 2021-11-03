@@ -18,8 +18,6 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package smartCore;
 
 import REVOdbManager.EVOpagerParams;
@@ -30,6 +28,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import models.CRUDorder;
+import models.boundFields;
+import models.jsonTranslate;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -46,9 +46,19 @@ public class smartEntity {
     String fatherKEYvalue;
     String sendToCRUD;
 
+    public int rowsCounter;
+
     public smartEntity(EVOpagerParams myParams, Settings mySettings) {
         this.myParams = myParams;
         this.mySettings = mySettings;
+    }
+
+    public int getRowsCounter() {
+        return rowsCounter;
+    }
+
+    public void setRowsCounter(int rowsCounter) {
+        this.rowsCounter = rowsCounter;
     }
 
     public void setFatherKEYvalue(String fatherKEYvalue) {
@@ -65,7 +75,7 @@ public class smartEntity {
     }
 
     public smartObjRight analyzeRightsRuleJson(String rights, ResultSet rs, Connection Conny, int levelBase) {
-        //  System.out.println("-----------------------------------");
+
 // verifica i diritti per stringa genericaJSON
         int gotRight = 0;
         if (rights == null || rights.length() < 5) {
@@ -269,6 +279,9 @@ public class smartEntity {
             -userInCustomGroup
              */
 //            System.out.println(jj + ") rTYPE :" + myRule.getRuleType() + " RIGHT:" + myRule.getRight() + " ->LEVEL: " + myRule.getLevel());
+// </editor-fold>             
+            //----------------------------------------------------------    
+            // <editor-fold defaultstate="collapsed" desc="default">
             if (myRule.getRuleType().equalsIgnoreCase("default")) {
                 //VERIFICATA
                 if (myRule.getLevel() > RuleLevel) {
@@ -285,8 +298,11 @@ public class smartEntity {
                     // prevale tempRight
                 }
 
-            } //*********************************************************************************************             
-            else if (myRule.getRuleType().equalsIgnoreCase("campareRSvalue")  ) {// caso di regola che confronta un valore di riga rs
+            } //*********************************************************************************************            
+            // </editor-fold>             
+            //----------------------------------------------------------    
+            // <editor-fold defaultstate="collapsed" desc="compareRSvalue">
+            else if (myRule.getRuleType().equalsIgnoreCase("compareRSvalue") || myRule.getRuleType().equalsIgnoreCase("campareRSvalue")) {// caso di regola che confronta un valore di riga rs
                 boolean confrontoNumerico = false;
                 String tipoConfronto = myRule.getTest();
                 if (myRule.getFieldTypeA().equalsIgnoreCase("INT")) {
@@ -298,7 +314,7 @@ public class smartEntity {
 [{"ruleType":"default","right":"31","limitUp":"true"}, 
 {"ruleType":"campareRSvalue","typeA":"rowfield","fieldA":"ultimo","fieldTypeA":"INT","test":"==", "typeB":"value","valueB":"0","right":"25","level":"10"}]
                  */
-                if (myRule.getTypeA().equalsIgnoreCase("rowfield")&& rs != null) {
+                if (myRule.getTypeA().equalsIgnoreCase("rowfield") && rs != null) {
 //                    System.out.println("A tipo rowfield. Cerco in field :" + myRule.getFieldA());
                     // cerco valore del field in rs
                     if (confrontoNumerico == true) {
@@ -353,7 +369,7 @@ public class smartEntity {
                         }
                     }
 
-                } else if (myRule.getTypeB().equalsIgnoreCase("rowfield")&& rs != null) {
+                } else if (myRule.getTypeB().equalsIgnoreCase("rowfield") && rs != null) {
 //                    System.out.println("B tipo rowfield. Cerco in field :" + myRule.getFieldB());
 
                     // System.out.println("tipo rowfield. Cerco in field :" + myRule.getFieldA());
@@ -395,7 +411,6 @@ public class smartEntity {
                 // Adesso eseguo il test*************************************************************
 //                System.out.println("confrontoNumerico:" + confrontoNumerico);
 //                System.out.println("tipoConfronto:" + tipoConfronto);
-
                 if (confrontoNumerico == true) {
                     if (tipoConfronto.equalsIgnoreCase("==")) {
 //                        System.out.println("valIntA =" + valIntA + ",  valIntB =" + valIntB);
@@ -512,89 +527,378 @@ public class smartEntity {
                     }
                 }
 
-            } //*********************************************************************************************            
-            else if (myRule.getRuleType().equalsIgnoreCase("campareTBSvalue")  ) {// caso di regola che confronta un valore di riga rs
-//                 System.out.println("lockRules:" + jj + ")  " + myRule.getTypeA());
+            } //*********************************************************************************************             
+            // </editor-fold>             
+            //----------------------------------------------------------    
+            // <editor-fold defaultstate="collapsed" desc="compareRSsize">
+            else if (myRule.getRuleType().equalsIgnoreCase("coampareRSsize") || myRule.getRuleType().equalsIgnoreCase("campareRSsize")) {// caso di regola che conteggia le righe in rs
+                boolean confrontoNumerico = true;
+                String tipoConfronto = myRule.getTest();
+                if (myRule.getFieldTypeA().equalsIgnoreCase("INT")) {
+                    confrontoNumerico = true;
+                }
 
-                if (myRule.getTypeA().equalsIgnoreCase("rowfield") && rs != null) {
-                    // System.out.println("tipo rowfield. Cerco in field :" + myRule.getFieldA());
-                    // cerco valore del field in rs
-                    if (myRule.getFieldTypeA().equalsIgnoreCase("INT")) {
-                        try {
-                            valIntA = rs.getInt(myRule.getFieldA());
+                /*
+[{"ruleType":"default","right":"31","limitUp":"true"}, 
+{"ruleType":"campareRSvalue","typeA":"rowfield","fieldA":"ultimo","fieldTypeA":"INT","test":"==", "typeB":"value","valueB":"0","right":"25","level":"10"}]
+                 */
+                if (myRule.getTypeA().equalsIgnoreCase("NofRows")) {
+//                    System.out.println("A tipo rowfield. Cerco in field :" + myRule.getFieldA());
+                    // cerco valore del field in rs 
 
-                        } catch (SQLException ex) {
-//                            Logger.getLogger(ShowItForm.class
-//                                    .getName()).log(Level.SEVERE, null, ex);
+                    valIntA = rowsCounter;
+
+                    try {
+                        valIntB = Integer.parseInt(myRule.getValueB());
+                        //  System.out.println("CONFRONTO-> rowfield:valIntA = " + valIntA + "  valIntB = " + valIntB + "  myRule.getRight() = " + myRule.getRight());
+                    } catch (Exception ex) {
+
+                    }
+
+                }
+//                System.out.println("campareRSsize:" + valIntA + " " + tipoConfronto + " " + valIntB);
+                // Adesso eseguo il test*************************************************************
+//                System.out.println("confrontoNumerico:" + confrontoNumerico);
+//                System.out.println("tipoConfronto:" + tipoConfronto);
+                if (confrontoNumerico == true) {
+                    if (tipoConfronto.equalsIgnoreCase("==")) {
+//                        System.out.println("valIntA =" + valIntA + ",  valIntB =" + valIntB);
+                        if (valIntA == valIntB) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+//                                System.out.println("prevale myRule =" +tempRight);
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
+                                    tempRight = myRule.getRight();
+                                    RuleLevel = myRule.getLevel();
+//                                    System.out.println("prevale myRule perchè piu permissiva =" +tempRight);
+                                }
+                            } else {
+                                // prevale tempRight
+//                                System.out.println("prevale la regola precedente =" +tempRight);
+                            }
                         }
-                    } else {
-                        try {
-                            valStringA = rs.getString(myRule.getFieldA());
+                    } else if (tipoConfronto.equalsIgnoreCase(">")) {
+                        if (valIntA > valIntB) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+//                                System.out.println("prevale myRule =" +tempRight);
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
+                                    tempRight = myRule.getRight();
+                                    RuleLevel = myRule.getLevel();
+//                                    System.out.println("prevale myRule perchè piu permissiva =" +tempRight);
+                                }
+                            } else {
+                                // prevale tempRight
+//                                System.out.println("prevale la regola precedente =" +tempRight);
+                            }
+                        }
+                    } else if (tipoConfronto.equalsIgnoreCase("<")) {
+                        if (valIntA < valIntB) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
+                                    tempRight = myRule.getRight();
+                                    RuleLevel = myRule.getLevel();
+                                }
+                            } else {
+                                // prevale tempRight
+                            }
+                        }
+                    } else if (tipoConfronto.equalsIgnoreCase(">=")) {
+                        if (valIntA >= valIntB) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
+                                    tempRight = myRule.getRight();
+                                    RuleLevel = myRule.getLevel();
+                                }
+                            } else {
+                                // prevale tempRight
+                            }
+                        }
+                    } else if (tipoConfronto.equalsIgnoreCase("<=")) {
+                        if (valIntA <= valIntB) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
+                                    tempRight = myRule.getRight();
+                                    RuleLevel = myRule.getLevel();
+                                }
+                            } else {
+                                // prevale tempRight
+                            }
+                        }
+                    }
 
-                        } catch (SQLException ex) {
-//                            Logger.getLogger(ShowItForm.class
-//                                    .getName()).log(Level.SEVERE, null, ex);
+                } else {
+                    if (tipoConfronto.equalsIgnoreCase("==")) {
+                        if (valStringB.equals(valStringA)) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
+                                    tempRight = myRule.getRight();
+                                    RuleLevel = myRule.getLevel();
+                                }
+                            } else {
+                                // prevale tempRight
+                            }
+                        }
+                    }
+                }
+                System.out.println("campareRSsize tempRight:" + tempRight);
+            } //*********************************************************************************************                
+            // </editor-fold>             
+            //----------------------------------------------------------    
+            // <editor-fold defaultstate="collapsed" desc="compareTBSvalue">
+            else if (myRule.getRuleType().equalsIgnoreCase("compareTBSvalue") || myRule.getRuleType().equalsIgnoreCase("campareTBSvalue")) {// caso di regola che confronta un valore di riga rs
+                boolean confrontoNumerico = true;
+                String tipoConfronto = myRule.getTest();
+                if (myRule.getFieldTypeA().equalsIgnoreCase("INT")) {
+                    confrontoNumerico = true;
+                }
+//                System.out.println("\n*\ncompareTBSvalue  :" + myRule.getTypeA());
+                if (myRule.getTypeA().equalsIgnoreCase("formField") || myRule.getTypeA().equalsIgnoreCase("rowField")) {
+
+//                    System.out.println("-----------------------------------this.sendToCRUD:" + this.sendToCRUD);
+                    String xValueInSTC = null;
+                    try {
+                        jsonTranslate myJT = new jsonTranslate();
+                        ArrayList<boundFields> readSTC = myJT.readSTC(this.sendToCRUD);
+//                        System.out.println("tipo formField. Cerco in TBS field :" + myRule.getFieldA());
+                        for (boundFields riga : readSTC) {
+//                            System.out.println("compareTBSvalue____ xMarker:" + riga.getMarker() + "  --> " + riga.getValue());
+                            if (riga.getMarker().equals(myRule.getFieldA())) {
+                                xValueInSTC = riga.getValue();
+                                break;
+                            }
+                        }
+
+                    } catch (Exception e) {
+                        System.out.println("compareTBSvalue____ err :" + e.toString());
+                    }
+                    if (xValueInSTC != null) {
+//                        System.out.println("myRule.getFieldTypeA():" + myRule.getFieldTypeA());
+
+                        // cerco valore del field in rs
+                        if (myRule.getFieldTypeA().equalsIgnoreCase("INT")) {
+                            try {
+                                valIntA = Integer.parseInt(xValueInSTC);
+//                                System.out.println("valIntA  :" + valIntA);
+                            } catch (Exception ex) {
+                            }
+                        } else {
+                            try {
+                                valStringA = xValueInSTC;
+                            } catch (Exception ex) {
+                            }
                         }
                     }
 
                 }
-
-                if (myRule.getTypeB().equalsIgnoreCase("value")) {
-                    // cerco valore del field in rs
-                    if (myRule.getFieldTypeA().equalsIgnoreCase("INT")) {
-                        try {
-                            valIntB = Integer.parseInt(myRule.getValueB());
-//                            System.out.println("CONFRONTO-> rowfield:valIntA = " + valIntA + "  valIntB = " + valIntB + "  myRule.getRight() = " + myRule.getRight());
-                            //-----
-                            if (valIntA == valIntB) {
-                                //VERIFICATA
-                                if (myRule.getLevel() > RuleLevel) {
-                                    //prevale myRule
+                if (confrontoNumerico == true) {
+                    if (tipoConfronto.equalsIgnoreCase("==")) {
+//                        System.out.println("valIntA =" + valIntA + ",  valIntB =" + valIntB);
+                        if (valIntA == valIntB) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+//                                System.out.println("prevale myRule =" +tempRight);
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
                                     tempRight = myRule.getRight();
                                     RuleLevel = myRule.getLevel();
-                                } else if (myRule.getLevel() == RuleLevel) {
-                                    //prevale la più permissiva
-                                    if (tempRight < myRule.getRight()) {
-                                        tempRight = myRule.getRight();
-                                        RuleLevel = myRule.getLevel();
-                                    }
-                                } else {
-                                    // prevale tempRight
+//                                    System.out.println("prevale myRule perchè piu permissiva =" +tempRight);
                                 }
+                            } else {
+                                // prevale tempRight
+//                                System.out.println("prevale la regola precedente =" +tempRight);
                             }
-
-                            //-----
-                        } catch (Exception ex) {
-
                         }
-                    } else {
-                        try {
-                            valStringB = myRule.getFieldB();
-                            if (valStringB.equals(valStringA)) {
-                                //VERIFICATA
-                                if (myRule.getLevel() > RuleLevel) {
-                                    //prevale myRule
+                    } else if (tipoConfronto.equalsIgnoreCase(">")) {
+                        if (valIntA > valIntB) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+//                                System.out.println("prevale myRule =" +tempRight);
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
                                     tempRight = myRule.getRight();
                                     RuleLevel = myRule.getLevel();
-                                } else if (myRule.getLevel() == RuleLevel) {
-                                    //prevale la più permissiva
-                                    if (tempRight < myRule.getRight()) {
-                                        tempRight = myRule.getRight();
-                                        RuleLevel = myRule.getLevel();
-                                    }
-                                } else {
-                                    // prevale tempRight
+//                                    System.out.println("prevale myRule perchè piu permissiva =" +tempRight);
                                 }
+                            } else {
+                                // prevale tempRight
+//                                System.out.println("prevale la regola precedente =" +tempRight);
                             }
-
-                        } catch (Exception ex) {
-
+                        }
+                    } else if (tipoConfronto.equalsIgnoreCase("<")) {
+                        if (valIntA < valIntB) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
+                                    tempRight = myRule.getRight();
+                                    RuleLevel = myRule.getLevel();
+                                }
+                            } else {
+                                // prevale tempRight
+                            }
+                        }
+                    } else if (tipoConfronto.equalsIgnoreCase(">=")) {
+                        if (valIntA >= valIntB) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
+                                    tempRight = myRule.getRight();
+                                    RuleLevel = myRule.getLevel();
+                                }
+                            } else {
+                                // prevale tempRight
+                            }
+                        }
+                    } else if (tipoConfronto.equalsIgnoreCase("<=")) {
+                        if (valIntA <= valIntB) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
+                                    tempRight = myRule.getRight();
+                                    RuleLevel = myRule.getLevel();
+                                }
+                            } else {
+                                // prevale tempRight
+                            }
                         }
                     }
 
+                } else {
+                    if (tipoConfronto.equalsIgnoreCase("==")) {
+                        if (valStringB.equals(valStringA)) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
+                                    tempRight = myRule.getRight();
+                                    RuleLevel = myRule.getLevel();
+                                }
+                            } else {
+                                // prevale tempRight
+                            }
+                        }
+                    }
                 }
 
-            } else if (myRule.getRuleType().equalsIgnoreCase("userInStandardGroup")) {//verifico se l'utente appartiene ad un gruppo
+////////                if (myRule.getTypeB().equalsIgnoreCase("value")) {
+////////                    // cerco valore del field in rs
+////////                    if (myRule.getFieldTypeA().equalsIgnoreCase("INT")) {
+////////                        try {
+////////                            valIntB = Integer.parseInt(myRule.getValueB());
+//////////                            System.out.println("CONFRONTO-> rowfield:valIntA = " + valIntA + "  valIntB = " + valIntB + "  myRule.getRight() = " + myRule.getRight());
+////////                            //-----
+////////                            if (valIntA == valIntB) {
+////////                                //VERIFICATA
+////////                                if (myRule.getLevel() > RuleLevel) {
+////////                                    //prevale myRule
+////////                                    tempRight = myRule.getRight();
+////////                                    RuleLevel = myRule.getLevel();
+////////                                } else if (myRule.getLevel() == RuleLevel) {
+////////                                    //prevale la più permissiva
+////////                                    if (tempRight < myRule.getRight()) {
+////////                                        tempRight = myRule.getRight();
+////////                                        RuleLevel = myRule.getLevel();
+////////                                    }
+////////                                } else {
+////////                                    // prevale tempRight
+////////                                }
+////////                            }
+////////
+////////                            //-----
+////////                        } catch (Exception ex) {
+////////                            
+////////                        }
+////////                    } else {
+////////                        try {
+////////                            valStringB = myRule.getFieldB();
+////////                            if (valStringB.equals(valStringA)) {
+////////                                //VERIFICATA
+////////                                if (myRule.getLevel() > RuleLevel) {
+////////                                    //prevale myRule
+////////                                    tempRight = myRule.getRight();
+////////                                    RuleLevel = myRule.getLevel();
+////////                                } else if (myRule.getLevel() == RuleLevel) {
+////////                                    //prevale la più permissiva
+////////                                    if (tempRight < myRule.getRight()) {
+////////                                        tempRight = myRule.getRight();
+////////                                        RuleLevel = myRule.getLevel();
+////////                                    }
+////////                                } else {
+////////                                    // prevale tempRight
+////////                                }
+////////                            }
+////////                            
+////////                        } catch (Exception ex) {
+////////                            
+////////                        }
+////////                    }
+////////                    
+////////                }
+            } // </editor-fold>             
+            //----------------------------------------------------------    
+            // <editor-fold defaultstate="collapsed" desc="userInStandardGroup">
+            else if (myRule.getRuleType().equalsIgnoreCase("userInStandardGroup")) {//verifico se l'utente appartiene ad un gruppo
                 //{"ruleType":"userInStandardGroup","test":"==", "valueB":"MEDICI","right":"17","level":"10"}
                 EVOuser myUser = new EVOuser(myParams, mySettings);
                 myUser.setTABLElinkUserGroups("archivio_correlazioni");
@@ -633,7 +937,10 @@ public class smartEntity {
                     }
 
                 }
-            } else if (myRule.getRuleType().equalsIgnoreCase("userInCustomGroup")) {//verifico se l'utente appartiene ad un gruppo
+            } // </editor-fold>             
+            //----------------------------------------------------------    
+            // <editor-fold defaultstate="collapsed" desc="userInCustomGroup">
+            else if (myRule.getRuleType().equalsIgnoreCase("userInCustomGroup")) {//verifico se l'utente appartiene ad un gruppo
                 //{"ruleType":"userInStandardGroup","test":"==", "valueB":"MEDICI","right":"17","level":"10"}
                 EVOuser myUser = new EVOuser(myParams, mySettings);
 
@@ -679,7 +986,10 @@ public class smartEntity {
                     }
 
                 }
-            } else if (myRule.getRuleType().equalsIgnoreCase("userInOldGroup")) {//verifico se l'utente appartiene ad un gruppo
+            } // </editor-fold>             
+            //----------------------------------------------------------    
+            // <editor-fold defaultstate="collapsed" desc="userInOldGroup">
+            else if (myRule.getRuleType().equalsIgnoreCase("userInOldGroup")) {//verifico se l'utente appartiene ad un gruppo
                 //{"ruleType":"userInOldGroup","test":"==", "valueB":"MEDICI","right":"17","level":"10"}
                 EVOuser myUser = new EVOuser(myParams, mySettings);
                 int diritto = -1;
@@ -710,6 +1020,8 @@ public class smartEntity {
 
                 }
             }
+// </editor-fold>             
+            //----------------------------------------------------------    
 
         }
         smartObjRight rowRights = new smartObjRight(tempRight);

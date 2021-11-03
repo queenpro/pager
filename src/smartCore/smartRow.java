@@ -563,12 +563,14 @@ public class smartRow {
         //stabilisco il colore di background 
         htmlCode += "<li id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-"
                 + KEYvalue + "-ROW\" "
-                + "class=\"branchAble unselectedBranch\" "
+                //                + "class=\"branchAble\" "
+
                 + ">"
                 //                + "<span class=\"folder\"> "
+                //                + "<table><tr><td>"
                 + "";
         //---------------------------------------------------------------------- 
-//        htmlCode += paintBranchSelector(rowNumber, KEYvalue); 
+        htmlCode += paintBranchSelector(rowNumber, KEYvalue);
         ArrayList<boundFields> rowValues = elaboraRigaRS(rs, actualRowRights);
         try {
             htmlCode += encodeNormalLeaf();
@@ -577,7 +579,147 @@ public class smartRow {
         }
 
 //        htmlCode += "</span>";
+//        htmlCode += "</td></tr></table>";
         htmlCode += "</li>";
+
+        return htmlCode;
+    }
+
+    public String encodeNormalLeaf() throws SQLException {
+        String htmlCode = "";
+
+        for (int obj = 0; obj < myForm.objects.size(); obj++) {
+
+            if (!myForm.objects.get(obj).CG.getType().equalsIgnoreCase("FORMBUTTON")) {
+                String triggeredStyle = feedTriggeredStyle(myForm.objects.get(obj), rs);
+                if (triggeredStyle != null && triggeredStyle.length() > 2) {
+                    //  System.out.println("Imposto lo stile da trigger come default: " + triggeredStyle);
+                    myForm.objects.get(obj).setTriggeredStyle(triggeredStyle);
+                } else {
+                    myForm.objects.get(obj).setTriggeredStyle("");
+                }
+
+//---INSERISCO L'OGGETTO-------------------                    
+                htmlCode += "<a  onclick=\"smartTreeClicked(this.id)\" "
+                        + " style=\" white-space: nowrap;display: inline-block;\""
+                        ////                        + "class=\"branchAble\" "
+                        + "id=\""
+                        //                        + myForm.getID() + "-" + myForm.getCopyTag() + "-" 
+                        + myForm.objects.get(obj).name + "-" + KEYvalue + "-PLACE\"  ";
+
+                htmlCode += ">";
+//------------------------------------------------- 
+                smartObjRight realObjRights = valutaRightsOggetto(myForm.objects.get(obj), rs);
+                smartObjRight actualObjectRights = joinRights(realObjRights, actualRowRights);
+                htmlCode += paintLeafObject(KEYvalue, myForm.objects.get(obj), actualObjectRights);
+//------------------------------------------------- 
+
+                htmlCode += "</a>";
+//----------------------                    
+//---CHIUDO IL TD-------------------                    
+//                htmlCode += "</span>";
+
+                //System.out.println("Fine oggetto:" + obj);
+            }
+        }
+//====END=ROW===================        
+        return htmlCode;
+    }
+
+    private String paintBranchSelector(int lineNumber, String KEYvalue) {
+        String htmlCode = "";
+//        System.out.println("paintRowSelector:" + myForm.getShowCounter());
+////////        if (myForm.getShowCounter() != null && myForm.getShowCounter().equalsIgnoreCase("FALSE")) {
+////////            htmlCode += "<span></span>";
+////////        } else {
+////////            // row selector-------------
+////////            String xLineNumber = "" + lineNumber;
+////////            if (lineNumber == 0) {
+////////                xLineNumber = "NEW";
+////////            }
+////////            try {
+////////                if (myForm.getVisualType() != null && myForm.getVisualType().equalsIgnoreCase("singleRow")) {
+////////                    xLineNumber = "UPD";
+////////                }
+////////            } catch (Exception e) {
+////////            }
+////////            htmlCode += "<a class=\"lineSelector\" "
+////////                    + " style=\" white-space: nowrap;display: inline-block;\""
+////////                    //+ " style=\"padding: 0;\""
+////////                    + "onClick=\"javascript:smartLeafSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\">"
+////////                    //                    + "<a id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL\" "
+////////                    //                    + "style=\""
+////////                    //                    + " height: inherit;"
+////////                    //                    + " padding: 1em;"
+////////                    //                    + "\">"
+////////                    + "<font size='1'><i><b>" + xLineNumber + "</b></i></font> "
+////////                    //                    + "</a>"
+////////                    + "</a>";
+////////        }
+
+        Connection conny = new EVOpagerDBconnection(myForm.myParams, myForm.mySettings).ConnLocalDataDB();
+        PreparedStatement ps = null;
+        ResultSet rs;
+        String SQLphrase = "";
+        int childsCounter = 0;
+        try {
+            SQLphrase = "SELECT * FROM TS_link_obj_fatherhood WHERE TS_link_obj_fatherhood.partAvalue = '" + KEYvalue + "' ";
+            System.out.println("SQLphrase: " + SQLphrase);
+            ps = conny.prepareStatement(SQLphrase);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                childsCounter++;
+            }
+
+            conny.close();
+        } catch (SQLException ex) {
+
+        }
+        htmlCode += " <a "
+                //                + "class=\"lineSelector\" "
+                + " style=\" white-space: nowrap;display: inline-block;\""
+                + "onClick=\"javascript:smartLeafSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\">";
+//               htmlCode +="<font size='1'><b>" + childsCounter + "</b></font> ";
+        if (childsCounter > 0) {
+            htmlCode += "<img src=\"media/treeIcons/arrowR.png\" alt=\"+\">";
+        } else {
+            htmlCode += "<img src=\"media/treeIcons/square.png\" alt=\"O\">";
+        }
+        htmlCode += " </a>"
+                + "";
+//                    try {
+//                        picps = conny.prepareStatement(SQLphrase);
+//                        picrs = picps.executeQuery();
+//                        while (picrs.next()) {
+//                            if (picrs != null) {
+//                                try {
+//                                    blob = picrs.getBlob(curObj.Origin.labelField);
+//                                    InputStream in = null;
+//                                    if (blob != null) {
+//                                        try {
+//                                            in = blob.getBinaryStream();
+//                                            image = ImageIO.read(in);
+//                                        } catch (IOException ex) {
+//                                            Logger.getLogger(ShowItForm.class.getName()).log(Level.SEVERE, null, ex);
+//                                        }
+//                                    }
+//                                } catch (SQLException ex) {
+//                                    // Logger.getLogger(ShowItForm.class.getName()).log(Level.SEVERE, null, ex);
+//                                }
+//
+//                            }
+//                            if (image != null) {
+//                                imageCode = getRowImageHtmlCode(image, curObj.Origin.valueField, myBox);
+//                            } else {
+//                                imageCode = "";
+//                            }
+//                        }
+//
+//                        conny.close();
+//                    } catch (SQLException ex) {
+//
+//                    }
+//                    
 
         return htmlCode;
     }
@@ -664,43 +806,6 @@ public class smartRow {
         }
 
         htmlCode += "</tr>";
-        return htmlCode;
-    }
-
-    public String encodeNormalLeaf() throws SQLException {
-        String htmlCode = "";
-
-        for (int obj = 0; obj < myForm.objects.size(); obj++) {
-
-            if (!myForm.objects.get(obj).CG.getType().equalsIgnoreCase("FORMBUTTON")) {
-                String triggeredStyle = feedTriggeredStyle(myForm.objects.get(obj), rs);
-                if (triggeredStyle != null && triggeredStyle.length() > 2) {
-                    //  System.out.println("Imposto lo stile da trigger come default: " + triggeredStyle);
-                    myForm.objects.get(obj).setTriggeredStyle(triggeredStyle);
-                } else {
-                    myForm.objects.get(obj).setTriggeredStyle("");
-                }
-
-//---INSERISCO L'OGGETTO-------------------                    
-                htmlCode += "<a class=\"branchAble\" id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + myForm.objects.get(obj).name + "-" + KEYvalue + "-PLACE\"  ";
-
-                htmlCode += ">";
-
-//------------------------------------------------- 
-                smartObjRight realObjRights = valutaRightsOggetto(myForm.objects.get(obj), rs);
-                smartObjRight actualObjectRights = joinRights(realObjRights, actualRowRights);
-                htmlCode += paintLeafObject(KEYvalue, myForm.objects.get(obj), actualObjectRights);
-//------------------------------------------------- 
-
-                htmlCode += "</a>";
-//----------------------                    
-//---CHIUDO IL TD-------------------                    
-//                htmlCode += "</span>";
-
-                //System.out.println("Fine oggetto:" + obj);
-            }
-        }
-//====END=ROW===================        
         return htmlCode;
     }
 
@@ -1508,37 +1613,6 @@ public class smartRow {
         }
 
         return ValueAssigned;
-    }
-
-    private String paintBranchSelector(int lineNumber, String KEYvalue) {
-        String htmlCode = "";
-//        System.out.println("paintRowSelector:" + myForm.getShowCounter());
-        if (myForm.getShowCounter() != null && myForm.getShowCounter().equalsIgnoreCase("FALSE")) {
-            htmlCode += "<span></span>";
-        } else {
-            // row selector-------------
-            String xLineNumber = "" + lineNumber;
-            if (lineNumber == 0) {
-                xLineNumber = "NEW";
-            }
-            try {
-                if (myForm.getVisualType() != null && myForm.getVisualType().equalsIgnoreCase("singleRow")) {
-                    xLineNumber = "UPD";
-                }
-            } catch (Exception e) {
-            }
-            htmlCode += "<span class=\"lineSelector\""
-                    //+ " style=\"padding: 0;\""
-                    + "onClick=\"javascript:smartLeafSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\">"
-                    + "<a id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL\" "
-                    + "style=\""
-                    + " height: inherit;"
-                    + " padding: 1em;"
-                    + "\"><font size='1'><i><b>" + xLineNumber + "</b></i></font> "
-                    + "</a></span>";
-        }
-
-        return htmlCode;
     }
 
     private String paintRowSelector(int lineNumber, String KEYvalue) {
@@ -2382,7 +2456,7 @@ public class smartRow {
                 htmlCode += getStyleHtmlCode(curObj, KEYvalue);
                 if (myForm.getShowCounter() != null && myForm.getShowCounter().equalsIgnoreCase("FALSE")) {
                     htmlCode += " onmouseup=\"javascript:objSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + curObj.name + "-" + KEYvalue + "')\"";
-                } else { 
+                } else {
                     htmlCode += " onMousedown=\"javascript:smartObjFocused(event, this)\" ";
                 }
                 htmlCode += " > #";

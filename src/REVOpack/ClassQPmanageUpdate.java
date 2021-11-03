@@ -7,14 +7,11 @@ package REVOpack;
 
 import REVOdbManager.EVOpagerParams;
 import REVOdbManager.Settings;
-import REVOpager.Database;
 import REVOpager.EVOpagerDBconnection;
 import REVOpager.QPfield;
 import REVOpager.QPtable;
-import REVOpager.Server;
-import REVOpager.field;
-import REVOpager.table;
 import REVOsetup.ErrorLogger;
+import REVOwebsocketManager.WShandler;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -34,6 +31,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import showIt.eventManager;
 
 /**
  *
@@ -587,6 +585,15 @@ public class ClassQPmanageUpdate {
         }
 
         public int normalizeFEtbContent() {
+            String tokenUsed = myParams.getCKtokenID();
+            String installationName = mySettings.getInstallationName(myParams);
+            System.out.println("\n-------\n installationName:" + installationName);
+            System.out.println("myParams.getCKtokenID():" + tokenUsed);
+            WShandler myWShandler = new WShandler(mySettings, installationName);
+            myWShandler.printClientsConnected();
+            myWShandler.printPeers();
+            myWShandler.sendToBrowser("status", null, myParams.getCKtokenID(), "Acquisizione aggiornamenti.");
+
             System.out.println("SONO IN normalizeFEtbContent: " + myParams.getCKprojectName() + "_" + myParams.getCKcontextID());
             getQPdatabaseSchema("gFE_only");
 
@@ -619,6 +626,7 @@ public class ClassQPmanageUpdate {
 
                     }
                     String localFEtableName = tabs.get(tbl).name + "_" + mySettings.getProjectName();
+//                    myWShandler.broadcast(myWShandler.getGlobalSession(), "status", "PIPPO", "", "Acquisizione aggiornamenti. Tabella " + localFEtableName);
 //                    System.out.println("\n=======================================\nsvuoto la tabella esistente (se esiste) :" + tabs.get(tbl).name);
                     SQLphrase = "TRUNCATE TABLE `" + localFEtableName + "`  ;";
 //                    System.out.println("SQLphrase :" + SQLphrase);
@@ -646,7 +654,7 @@ public class ClassQPmanageUpdate {
                     }
 //                    System.out.println("\n=======================================\nil numero di rows nella tabella è :" + totLines);
 
-                        System.out.println("RIPORTO IN LOCALE tabella:" + localFEtableName );
+//                    System.out.println("RIPORTO IN LOCALE tabella:" + localFEtableName);
                     for (int lns = 0; lns < totLines; lns++) {
                         int numRiga = lns + 1;
                         connectors = "[{\"door\":\"manageUpdate\","
@@ -774,7 +782,11 @@ public class ClassQPmanageUpdate {
 
                         }
 //                        System.out.println("LI RICOPIO IN LOCALE:" + statement.toString());
-                        System.out.println("RIPORTO IN LOCALE tabella:" + localFEtableName+" RIGA "+ numRiga+"/"+totLines);
+                        System.out.println("RIPORTO IN LOCALE tabella:" + localFEtableName + " RIGA " + numRiga + "/" + totLines);
+
+                        myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti. Tabella " + localFEtableName + " RIGA " + numRiga + "/" + totLines);
+
+//                        myWShandler.broadcast(myWShandler.getGlobalSession(), "status", "PIPPO", "", "Acquisizione aggiornamenti. Tabella " + localFEtableName + " RIGA " + numRiga + "/" + totLines);
                         try {
                             result = statement.executeUpdate();
                         } catch (Exception e) {
@@ -783,10 +795,18 @@ public class ClassQPmanageUpdate {
                         statement.close();
                     }
 
+//******************************************************************** 
+////                    myWShandler.printPeers();
+////                    myWShandler.printClientsConnected();
+////                    System.out.println("Il token in routine è  myParams.getCKtokenID(): " + myParams.getCKtokenID());
+////                    //broadcast(Session session, String type, String sender, String code, String message)
+//********************************************************************************                
                     {
 
                     }
-                }// chiude ciclo tabella
+                }// chiude ciclo tabella 
+
+                myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti frontend terminata.");
 
                 localconny.close();
             } catch (SQLException ex) {
@@ -992,6 +1012,16 @@ public class ClassQPmanageUpdate {
         }
 
         public int remakeDB() {
+
+            String tokenUsed = myParams.getCKtokenID();
+            String installationName = mySettings.getInstallationName(myParams);
+            System.out.println("\n-------\n installationName:" + installationName);
+            System.out.println("myParams.getCKtokenID():" + tokenUsed);
+            WShandler myWShandler = new WShandler(mySettings, installationName);
+            myWShandler.printClientsConnected();
+            myWShandler.printPeers();
+            myWShandler.sendToBrowser("status", null, myParams.getCKtokenID(), "Acquisizione aggiornamenti struttura database.");
+
 //            feed = "SONO IN EVO remakeDB. ";
 //            System.out.println(feed);
 //        int tabs = myDatabase.table.size();
@@ -1048,8 +1078,9 @@ public class ClassQPmanageUpdate {
                     }
 
                     int numFields = myTable.getFields().size();
+                    myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti struttura database. Tabella " + (1 + currentTable) + "/" + tabs.size());
 
-                    feed = "\n\n-----\n>> " + (1 + currentTable) + "/" + tabs.size()
+                    feed = "\n\n-----\nClassQPmanageUpdate>> " + (1 + currentTable) + "/" + tabs.size()
                             + " . AGGIORNAMENTO TABELLA  >" + tableName;
                     System.out.println(feed);
                     try {
@@ -1109,6 +1140,8 @@ public class ClassQPmanageUpdate {
                             System.out.println(feed);
                             feed = "943.SQLphrase: " + SQLphrase;
                             System.out.println(feed);
+                            myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti struttura database. <B>ERRORE</B>.");
+
                         }
                         if (Result >= 0) {
 //                            feed = ">> 2. CREATA TABELLA: " + SQLphrase;
@@ -1175,6 +1208,8 @@ public class ClassQPmanageUpdate {
                                     System.out.println(feed);
                                     feed = "ERRORE IN AGGIUNTA FIELD: " + ex.toString();
                                     System.out.println(feed);
+
+                                    myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti struttura database. <B>ERRORE IN AGGIUNTA FIELD</B>.");
                                 }
 
                             }
@@ -1210,6 +1245,7 @@ public class ClassQPmanageUpdate {
                             feed = "ERRORE IN CHANGE TABELLA: " + ex.toString();
                             System.out.println(feed);
                             Logger.getLogger(ClassProjectUpdate.class.getName()).log(Level.SEVERE, null, ex);
+                            myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti struttura database. <B>ERRORE IN CHANGE TABELLA</B>.");
 
                         } finally {
 
@@ -1225,6 +1261,8 @@ public class ClassQPmanageUpdate {
                 feed = "ROUTINE DI CHANGE TABELLA: " + SQLphrase;
                 feed = "ERRORE IN REMAKE DB: " + ex.toString();
                 Logger.getLogger(ClassProjectUpdate.class.getName()).log(Level.SEVERE, null, ex);
+                     myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti struttura database. <B>ERRORE IN REMAKE DB</B>.");
+
             }
 
             return 0;

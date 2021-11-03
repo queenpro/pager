@@ -18,8 +18,6 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package models;
 
 import java.util.ArrayList;
@@ -64,6 +62,9 @@ public class jsonTranslate {
                     JSONArray array = (JSONArray) obj;
                     int rows = 0;
                     for (Object riga : array) {
+                        TBSarray = null;
+                        xValue = null;
+                        xMarker = null;
                         rows++;
                         boundFields myBound = new boundFields();
                         // jsonObject = (JSONObject) jsonParser.parse(riga.toString());
@@ -86,6 +87,74 @@ public class jsonTranslate {
 //                        if (rows < 2) {
 //                            System.out.println(" xMarker:" + xMarker + " xValue:" + xValue);
 //                        }
+                    }
+                }
+            } catch (ParseException ex) {
+                Logger.getLogger(ShowItForm.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        return myList;
+    }
+
+    public ArrayList<boundFields> readSTC(String params) {
+        /*
+         costruisce una lista di oggetti a partire da una stringa
+         contenente coppie label:valore;label:valore
+         */
+//        System.out.println("SONO IN readSTC");
+
+        ArrayList<boundFields> myList = new ArrayList<boundFields>();
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject;
+        String TBSarray = null;
+        String xValue = null;
+        String xMarker = null;
+        String xType = null;
+        if (params != null && params.length() > 0) {
+            String tbsJson = "{\"STC\":" + params + "}";
+
+            try {
+                jsonObject = (JSONObject) jsonParser.parse(tbsJson);
+                TBSarray = jsonObject.get("STC").toString();
+                if (TBSarray != null && TBSarray.length() > 0) {
+                    JSONParser parser = new JSONParser();
+                    Object obj;
+
+                    obj = parser.parse(TBSarray);
+                    JSONArray array = (JSONArray) obj;
+                    int rows = 0;
+                    for (Object riga : array) {
+                        xValue = "";
+                        xMarker = "";
+                        xType = "";
+
+                        rows++;
+                        boundFields myBound = new boundFields();
+                        // jsonObject = (JSONObject) jsonParser.parse(riga.toString());
+                        jsonObject = (JSONObject) riga;
+                        try {
+                            xMarker = jsonObject.get("childMarker").toString();
+                            xMarker = xMarker.trim();
+                        } catch (Exception e) {
+                        }
+                        try {
+                            xValue = jsonObject.get("value").toString();
+                            xValue = xValue.trim();
+                        } catch (Exception e) {
+                        }
+                        try {
+                            xType = jsonObject.get("childType").toString();
+                            xType = xType.trim();
+                        } catch (Exception e) {
+                        }
+//                        System.out.println("readSTC____ xMarker:" + xMarker + "  --> " + xValue);
+                        if (xValue != null && xMarker != null) {
+                            myBound.setValue(xValue);
+                            myBound.setMarker(xMarker);
+                            myBound.setType(xType);
+                            myList.add(myBound);
+                        }
                     }
                 }
             } catch (ParseException ex) {

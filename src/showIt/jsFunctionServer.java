@@ -3376,12 +3376,19 @@ public class jsFunctionServer {
                 + "                 if (targetPosition && targetPosition.length>0){\n"
                 + "                     document.getElementById(targetPosition).innerHTML = htmlCode ;\n"
                 + "                 }\n"
-                + "             }else if(myarg.action=='repaintForm'){\n"//2021-03-18
+////////                + "             }else if(myarg.action=='repaintForm'){\n"//2021-03-18 MODIFICATA IL 2021-10-21 con uoterHTML
+////////                + "                 var targetPosition = myarg.target;\n"
+////////                + "                 console.log(\"repaintForm_targetPosition: \"+targetPosition );\n"
+////////                + "                 var htmlCode =   decodeURIComponent(myarg.htmlCode);\n"
+////////                + "                 if (targetPosition && targetPosition.length>0){\n"
+////////                + "                     document.getElementById(targetPosition).innerHTML = htmlCode ;\n"
+////////                + "                 }\n"
+                 + "             }else if(myarg.action=='repaintForm'){\n"//2021-03-18
                 + "                 var targetPosition = myarg.target;\n"
                 + "                 console.log(\"repaintForm_targetPosition: \"+targetPosition );\n"
                 + "                 var htmlCode =   decodeURIComponent(myarg.htmlCode);\n"
                 + "                 if (targetPosition && targetPosition.length>0){\n"
-                + "                     document.getElementById(targetPosition).innerHTML = htmlCode ;\n"
+                + "                     document.getElementById(targetPosition).outerHTML = htmlCode ;\n"
                 + "                 }\n"
                 + "             }else if(myarg.action=='refreshForm'){\n"
                 + "                 var target = myarg.target;\n"
@@ -4240,6 +4247,10 @@ public class jsFunctionServer {
                 + "if (browType==\"KEY\"){"//incarde5e1-X-KEYfieldValue
                 + "                        var localValue = document.getElementById(browFormName+\"-KEYfieldValue\").value;\n"
                 + "}"
+                 + "else if (browType==\"FORMBUTTON\"){"//lavag78b9b-X-contenitori-lavag78b9b-X
+                + "                        console.log (\"cerco localValue in : \"+browFormName+\"-\"+browField+\"-\"+browFormName);"
+                + "                        var localValue = document.getElementById(browFormName+\"-\"+browField+\"-\"+browFormName).value;\n"
+                + "}"
                 + "                        console.log (\"localValue: \"+localValue);"
                 + "                    } catch (err) {\n"
                 + "                        var localValue = \"null\";\n"
@@ -4367,10 +4378,10 @@ public class jsFunctionServer {
                 + "        var browForm = browArgs[0];\n"
                 + "        var browType = browArgs[1];\n"
                 + "        var browField = browArgs[2];\n"
-                + "              console.log (\"browType: \"+browType);"//incarde5e1-X
-                + "              console.log (\"browField: \"+browField);"//incarde5e1-X
-                + "              console.log (\"browForm: \"+browForm);"//incarde5e1-X
-                + "              console.log (\"Cerco un value da elemento: \"+browForm + \"-X-ID\");"//incarde5e1-X
+                + "              console.log (\"getSmartTBS-->browType: \"+browType);"//incarde5e1-X
+                + "              console.log (\"getSmartTBS-->browField: \"+browField);"//incarde5e1-X
+                + "              console.log (\"getSmartTBS-->browForm: \"+browForm);"//incarde5e1-X
+                + "              console.log (\"getSmartTBS-->Cerco un value da elemento: \"+browForm + \"-X-ID\");"//incarde5e1-X
 
                 + "          try {\n"
                 + "              var browFormName = document.getElementById(browForm + \"-X-ID\").value;\n" //incarichiLotti-X-ID
@@ -4378,6 +4389,10 @@ public class jsFunctionServer {
 
                 + "if (browType==\"KEY\"){"//incarde5e1-X-KEYfieldValue
                 + "                        var localValue = document.getElementById(browFormName+\"-KEYfieldValue\").value;\n"
+                + "}"
+                + "else if (browType==\"FORMBUTTON\"){"//lavag78b9b-X-contenitori-lavag78b9b-X
+                + "                        console.log (\"cerco localValue in : \"+browFormName+\"-\"+browField+\"-\"+browFormName);"
+                + "                        var localValue = document.getElementById(browFormName+\"-\"+browField+\"-\"+browFormName).value;\n"
                 + "}"
                 + "                        console.log (\"localValue: \"+localValue);"
                 + "                    } catch (err) {\n"
@@ -5698,6 +5713,15 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "\n";
         // </editor-fold>
         //-------------------------------------------------------------
+        // <editor-fold defaultstate="collapsed" desc="smartFUNCTION smartTreeClicked"> 
+        dbCode += "function smartTreeClicked(e)\n"
+                + "{\n"
+                + "var objID= e;"
+                + "console.log(\"smartTreeClicked \"+objID);"
+                + "}\n"
+                + "\n";
+        // </editor-fold>
+        //-------------------------------------------------------------
         // <editor-fold defaultstate="collapsed" desc="smartFUNCTION getSmartChildrenList"> 
         dbCode += "function getSmartChildrenList(formID, copyTag,rowID)\n"
                 + "{\n"
@@ -5719,7 +5743,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + ""
                 + "}\n"
                 + "\n";
-        // </editor-fold>
+        // </editor-fold>        
         //-------------------------------------------------------------
         // <editor-fold defaultstate="collapsed" desc="smartFUNCTION suggestSmartList"> 
         dbCode += "function suggestSmartList(event,jarguments)\n"

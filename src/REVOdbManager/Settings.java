@@ -16,8 +16,16 @@
  */
 package REVOdbManager;
 
+import REVOpager.EVOpagerDBconnection;
 import REVOpager.Server;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import models.TomcatGaiaHost;
+import showIt.eventManager;
 
 /**
  *
@@ -148,7 +156,7 @@ public class Settings {
         this.setRevolution_DATABASE_USER(newUser);
         this.setRevolution_DATABASE_PW(newPW);
 
-        System.out.println("@@@@@chargeHost>>>" + this.getData_DATABASE_USER() + " - QPserver:" + this.getQP_centralManagerURL() + " - ");
+//        System.out.println("@@@@@chargeHost>>>" + this.getData_DATABASE_USER() + " - QPserver:" + this.getQP_centralManagerURL() + " - ");
     }
 
     public void printSettings(String mittente) {
@@ -868,5 +876,30 @@ public class Settings {
 
     public void setSoftwareTitle(String softwareTitle) {
         this.softwareTitle = softwareTitle;
+    }
+    
+    
+    
+    public String getInstallationName(EVOpagerParams myParams){
+        String serverName="";
+        Connection QPconny = new EVOpagerDBconnection(myParams,this).ConnLocalQueenpro();
+                        PreparedStatement ps;
+                       String SQLphrase = "SELECT * FROM definitions WHERE ID='*SERVERNAME*'";
+                        try {
+                            ps = QPconny.prepareStatement(SQLphrase);
+                            ResultSet rs = ps.executeQuery();
+                            while (rs.next()) {
+                                serverName = rs.getString("definition");
+                            }
+                        } catch (SQLException ex) {
+                            Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        if (serverName == null || serverName.equalsIgnoreCase("NULL")) {
+                            serverName = "";
+                        }
+                        String installationName =  getProjectName() + "-" + serverName;
+        
+        
+        return installationName;
     }
 }

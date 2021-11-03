@@ -209,12 +209,12 @@ public class eventManager {
 // cerco una direttiva chiamata alle funzioni javascript   
         jsFunctionServer JSfs = new jsFunctionServer(myParams, mySettings);
         dbCode = myDirective.getDirective("gaia.inclusions");
-        if (dbCode!=null && !dbCode.trim().equals("")){
-        HtmlCode += (dbCode);
+        if (dbCode != null && !dbCode.trim().equals("")) {
+            HtmlCode += (dbCode);
         }
         HtmlCode += "<link rel=\"stylesheet\" href=\"stylesheet.css\" type=\"text/css\" charset=\"utf-8\" />\n";
         HtmlCode += "<link rel=\"stylesheet\" href=\"gaia.css\" type=\"text/css\" charset=\"utf-8\" />\n";
-        HtmlCode += "<script type=\"text/javascript\" src=\"external/nicEdit/nicEdit.js\"></script>\n"; 
+        HtmlCode += "<script type=\"text/javascript\" src=\"external/nicEdit/nicEdit.js\"></script>\n";
         HtmlCode += "<script>";
 //        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Carico gli script JS dal DB.");
         //dbCode = myDirective.getDirective("gaia.variables"); 
@@ -1993,7 +1993,7 @@ public class eventManager {
         request.setResponse((Object) HtmlCode);
         return request;
     }
- 
+
     public IncomingRequest newAccountForm(IncomingRequest request) {
 
         String extension = findExtension();
@@ -2514,23 +2514,23 @@ public class eventManager {
     }
 
     public String QPfrontendUpdate() {
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n***************\nSONO IN frontendUpdate  :\n******************");
+        System.out.println("\n***************\nSONO IN frontendUpdate  :\n******************");
         String CKprojectName = mySettings.getProjectName();
         String CKprojectGroup = this.myParams.getCKprojectGroup();
         String CKcontextID = this.myParams.getCKcontextID();
-
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "-->CKprojectName :" + CKprojectName);
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "-->CKprojectGroup :" + CKprojectGroup);
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "-->CKcontextID :" + CKcontextID);
+        String CKtokenID = myParams.getCKtokenID();
+        System.out.println("-->CKprojectName :" + CKprojectName);
+        System.out.println("-->CKprojectGroup :" + CKprojectGroup);
+        System.out.println("-->CKcontextID :" + CKcontextID);
         String HtmlCode = "";
         String extension = "";
         if (CKcontextID != null && !CKcontextID.equalsIgnoreCase("null")) {
             extension = CKcontextID;
         } else {
             extension = findExtension();
-            el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n-->projectUpdate  trova in queenpro la voce CKextension :" + extension);
+            System.out.println("\n-->projectUpdate  trova in queenpro la voce CKextension :" + extension);
         }
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n-->projectUpdate  trova in queenpro la voce CKextension :" + extension);
+        System.out.println("\n-->projectUpdate  TOKEN DA BROWSER:" + myParams.getCKtokenID());
 
         EVOpagerParams myParams = new EVOpagerParams();
 
@@ -2538,7 +2538,9 @@ public class eventManager {
         myParams.setCKprojectGroup(CKprojectGroup);
         myParams.setCKcontextID(extension);
         myParams.setCKprojectName(mySettings.getProjectName());
-
+        if (CKtokenID != null && CKtokenID.length() > 0) {
+            myParams.setCKtokenID(CKtokenID);
+        }
         CKprojectName = mySettings.getProjectName();
         CKprojectGroup = this.myParams.getCKprojectGroup();
         CKcontextID = this.myParams.getCKcontextID();
@@ -2856,7 +2858,7 @@ public class eventManager {
 
         return myForm;
     }
- 
+
     public IncomingRequest getGroups(IncomingRequest request) {
         //devo creare elenco dei gruppi in base a formID e object name, compilando 
         //le righe in base a KEYvalue
