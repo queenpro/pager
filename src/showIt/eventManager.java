@@ -165,12 +165,30 @@ public class eventManager {
 //        System.out.println("firstForm ID ricavato da getFormInformationsFromDB: " + myForm.getID()); 
 
         System.out.println("\n\nfirstForm  : " + myForm.getType());
-        String firstForm = "";
-
-        firstForm = myForm.paintForm().getHtmlCode();
-
         String formHtmlCode = "";
         String formID = "";
+        String firstForm = "";
+        if (myForm.getType().equalsIgnoreCase("SMARTPANEL")) {
+            smartForm mySmartForm = new smartForm("", myParams, mySettings);
+            mySmartForm.setAbstractTextCode(myForm.getAbstractTextCode());
+            mySmartForm.setName(myForm.getName());
+            mySmartForm.setID("");
+            mySmartForm.setFather("");
+            mySmartForm.setFatherFilters("");
+            mySmartForm.setLoadType("{\"type\":\"SMARTPANEL\","
+                    + "\"visualType\":\"FULLFORM\","
+                    + "\"firstRow\":\"1\","
+                    + "\"NofRows\":\"50\","
+                    + "\"currentPage\":\"1\","
+                    + "\"visualFilter\":\"\"}");
+            mySmartForm.setMyParams(myParams);
+            mySmartForm.setMySettings(mySettings);
+            mySmartForm.buildSchema();
+            smartForm.smartFormResponse myFormResponse = mySmartForm.paintForm();
+            firstForm = myFormResponse.getHtmlCode();
+        } else {
+            firstForm = myForm.paintForm().getHtmlCode();
+        }
         try {
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject) jsonParser.parse(firstForm);
@@ -187,7 +205,6 @@ public class eventManager {
 
         } catch (org.json.simple.parser.ParseException pe) {
         }
-
         WindowTitle = "<title>"
                 //                + "MAIN FRAME : " 
                 + request.getMySettings().getProjectName().toUpperCase()
@@ -376,7 +393,9 @@ public class eventManager {
                 + "</div>\n"
                 + "</div>";
 
-        HtmlCode += " <div id = \"contextmenu\" class=\"contxtmenu\"  onmouseout=\"javascript:setPosition('hide');\"></div>";
+        HtmlCode += " <div id = \"contextmenu\" "
+                + "class=\"contxtmenu\"  "
+                + "onmouseout=\"javascript:setTreeContextMenuPosition('hide','','');\"></div>";
         HtmlCode += "<div id=\"info-box\" class=\"infobox\" style=\"display:none\"></div>\n";
         HtmlCode += "<script>"
                 + "$(document).ready(function() {   });\n"

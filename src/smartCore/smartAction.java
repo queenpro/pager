@@ -33,8 +33,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -186,6 +188,7 @@ public class smartAction {
     public void makeCRUDobject(JSONObject Xconnector) {
 
         connector = Xconnector;
+        System.out.println("makeCRUDobject ---> : " + connector.toString());
         myCrud = new CRUDorder(myParams, mySettings);
 
         try {
@@ -269,6 +272,15 @@ public class smartAction {
         }
         try {
             myCrud.setCellID(connector.get("cellID").toString());
+        } catch (Exception e) {
+        }
+
+        try {
+            myCrud.setNodeName(connector.get("nodeName").toString());
+        } catch (Exception e) {
+        }
+        try {
+            myCrud.setFatherNodeName(connector.get("fatherNodeName").toString());
         } catch (Exception e) {
         }
 
@@ -423,7 +435,30 @@ public class smartAction {
                     actionResponse = new JSONObject();
                     actionResponse = WSRloadChildren(connector);
 
-                    System.out.println("resolveAction--->done EVENTO LOADCHILDREN: " + actionResponse.toString());
+                    System.out.println("deployAction--->done EVENTO LOADCHILDREN: " + actionResponse.toString());
+                } else // </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="LOADTREEBRANCH">
+                if (event.equalsIgnoreCase("LOADTREEBRANCH")) {
+                    System.out.println("resolveAction--->EVENTO LOADTREEBRANCH " + connector.toString());
+
+                    actionResponse = new JSONObject();
+                    actionResponse = WSRloadTreeBranch(connector);
+                    
+                    
+                    
+                    //         
+//        gate myGate = new gate();
+//        JSONObject Jaction = new JSONObject();
+//        Jaction.put("action", "PAINTBRANCH");
+//        Jaction.put("CONNECTOR", (connector));
+//        Jaction.put("DATA", encodeURIComponent(data.toString()));
+//        myGate.actions.add(Jaction);
+//        
+//       JSONObject    actionResponse = myGate.insertAction_packResponse(myParams, mySettings);
+
+                    
+
+                    System.out.println("resolveAction--->done EVENTO LOADTREEBRANCH: " + actionResponse.toString());
                 } else // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="GETSUGGESTEDLIST">
                 if (event.equalsIgnoreCase("GETSUGGESTEDLIST")) {
@@ -459,14 +494,18 @@ public class smartAction {
 // </editor-fold>    
                 // <editor-fold defaultstate="collapsed" desc="CELLCHANGED">
                 if (event.equalsIgnoreCase("CELLCHANGED")) { //---> COMPORTA UN CRUD
-                    System.out.println("resolveAction--->EVENTO CELLCHANGED ");
+                    System.out.println("deployAction--->EVENTO CELLCHANGED ");
                     makeCRUDobject(connector);
                     System.out.println("\n\n*****\nsono in smartAction e sto per esegiore il CRUD " + myCrud.getOperation());
 //                    UUID idOne = null;
 //                    idOne = UUID.randomUUID();
 //                    connector.put("opToken", idOne);
-                    String CRUDrepsonse = myCrud.executeCRUD();
-
+                    String CRUDrepsonse = null;
+                    try {
+                        CRUDrepsonse = myCrud.executeCRUD();
+                    } catch (Exception e) {
+                    }
+                    System.out.println("deployAction--->concluso  executeCRUD");
                     JSONParser parser = new JSONParser();
                     JSONObject Rjson = (JSONObject) parser.parse(CRUDrepsonse);
                     String newID = "";
@@ -485,115 +524,137 @@ public class smartAction {
                         String action = "SHOWADDEDROW";
                         // <editor-fold defaultstate="collapsed" desc="caso SMARTTREE">
                         if (myCrud.getFormType() != null && myCrud.getFormType().equalsIgnoreCase("SMARTTREE")) {
+                            String nodeName = (String) connector.get("nodeName");
+                            System.out.println("smartAction --->ADD nodeName: " + nodeName);
+
                             action = "SHOWADDEDLEAF";
+                            String fatherNodeObject = "";
+                            String arrayToRead = "CHILDautolinks";
+                            if (nodeName.endsWith("-ROOT")) {
+                                arrayToRead = "ROOTautolinks";
+                                fatherNodeObject = "";
+                            } else {
+                                String[] xParts = nodeName.split("-");
+                                List<String> nodeNameElements = Arrays.asList(xParts);
+                                if (nodeNameElements.size() > 2) {
+                                    fatherNodeObject = nodeNameElements.get(2).toString();
+                                    System.out.println("smartAction --->fatherNodeObject: " + fatherNodeObject);
+                                }
+                            }
                             // ho appena eseguito crud su un leaf di SMARTTREE
-                            // devo analizzare il FORMPANEL INFO compilato in GaiaEngineSetter per estrapolare {"autolinks":[{"linkTab":"TS_link_obj_tipi","partAvalue":"ID","partBvalue":"automobili","partAtab ":"TS_objects","partAvalueField":"ID","partBtab":"TS_tipi","partBvalueField":"ID","partAstatus":"1","partBstatus":"1","superStatus":"1"}]} 
+                            // devo analizzare il FORMPANEL INFO compilato in GaiaEngineSetter per estrapolare 
+                            //IN CASO DI ROOT {"autolinks":[{"linkTab":"TS_link_obj_tipi","partAvalue":"ID","partBvalue":"automobili","partAtab ":"TS_objects","partAvalueField":"ID","partBtab":"TS_tipi","partBvalueField":"ID","partAstatus":"1","partBstatus":"1","superStatus":"1"}]} 
                             String formPanelArrayTXT = myCrud.getMyForm().getGes_formPanel();
                             JSONParser parser1 = new JSONParser();
                             JSONArray PNLjson = (JSONArray) parser1.parse(formPanelArrayTXT);
                             for (Object righe : PNLjson) {
                                 JSONObject riga = (JSONObject) righe;
-                                JSONArray ALjson = (JSONArray) riga.get("autolinks");
-                                for (Object Xautolink : ALjson) {
-                                    JSONObject Tlink = (JSONObject) Xautolink;
+                                try {
+                                    JSONArray ALjson = (JSONArray) riga.get(arrayToRead);
+                                    if (ALjson != null && ALjson.size() > 0) {
+                                        for (Object Xautolink : ALjson) {
+                                            JSONObject Tlink = (JSONObject) Xautolink;
 
-                                    if (Tlink != null) {
-                                        int Astatus = 1;
-                                        int Bstatus = 1;
-                                        int superStatus = 1;
-                                        correlazione myLink = new correlazione();
+                                            System.out.println("smartAction --->Tlink: " + Tlink.toString());
+                                            if (Tlink != null) {
+                                                int Astatus = 1;
+                                                int Bstatus = 1;
+                                                int superStatus = 1;
+                                                correlazione myLink = new correlazione();
 
-                                        try {
-                                            myLink.setLinkTab(Tlink.get("linkTab").toString());
-                                        } catch (Exception e) {
-                                        }
-                                        try {
-                                            String partAmarker = Tlink.get("partAvalue").toString();
-                                            myLink.setPartAvalue(newID);
+                                                try {
+                                                    myLink.setLinkTab(Tlink.get("linkTab").toString());
+                                                } catch (Exception e) {
+                                                }
+                                                //"partAvalue":"@@@FATHERNODE@@@","partBvalue":"@@@ID@@@"
+                                                try {
+                                                    String partAvalue = Tlink.get("partAvalue").toString();
+                                                    partAvalue = partAvalue.replace("@@@ID@@@", newID);
+                                                    partAvalue = partAvalue.replace("@@@FATHERNODE@@@", fatherNodeObject);
+                                                    myLink.setPartAvalue(partAvalue);
 
-                                        } catch (Exception e) {
-                                        }
-                                        try {
-                                            myLink.setPartBvalue(Tlink.get("partBvalue").toString());
-                                        } catch (Exception e) {
-                                        }
-                                        try {
-                                            myLink.setPartAtab(Tlink.get("partAtab").toString());
-                                        } catch (Exception e) {
-                                        }
-                                        try {
-                                            myLink.setPartAvalueField(Tlink.get("partAvalueField").toString());
-                                        } catch (Exception e) {
-                                        }
-                                        try {
-                                            myLink.setPartBtab(Tlink.get("partBtab").toString());
-                                        } catch (Exception e) {
-                                        }
-                                        try {
-                                            myLink.setPartBvalueField(Tlink.get("partBvalueField").toString());
-                                        } catch (Exception e) {
-                                        }
-                                        try {
-                                            myLink.setPartAstatus(Tlink.get("partAstatus").toString());
-                                            Astatus = Integer.parseInt(myLink.getPartAstatus());
-                                        } catch (Exception e) {
-                                        }
-                                        try {
-                                            myLink.setPartBstatus(Tlink.get("partBstatus").toString());
-                                            Bstatus = Integer.parseInt(myLink.getPartBstatus());
-                                        } catch (Exception e) {
-                                        }
-                                        try {
-                                            myLink.setSuperStatus(Tlink.get("superStatus").toString());
-                                            superStatus = Integer.parseInt(myLink.getSuperStatus());
+                                                } catch (Exception e) {
+                                                }
+                                                try {
+                                                    String partBvalue = Tlink.get("partBvalue").toString();
+                                                    partBvalue = partBvalue.replace("@@@ID@@@", newID);
+                                                    partBvalue = partBvalue.replace("@@@FATHERNODE@@@", fatherNodeObject);
+                                                    myLink.setPartBvalue(partBvalue);
 
-                                        } catch (Exception e) {
+                                                } catch (Exception e) {
+                                                }
+                                                try {
+                                                    myLink.setPartAtab(Tlink.get("partAtab").toString());
+                                                } catch (Exception e) {
+                                                }
+                                                try {
+                                                    myLink.setPartAvalueField(Tlink.get("partAvalueField").toString());
+                                                } catch (Exception e) {
+                                                }
+                                                try {
+                                                    myLink.setPartBtab(Tlink.get("partBtab").toString());
+                                                } catch (Exception e) {
+                                                }
+                                                try {
+                                                    myLink.setPartBvalueField(Tlink.get("partBvalueField").toString());
+                                                } catch (Exception e) {
+                                                }
+                                                try {
+                                                    myLink.setPartAstatus(Tlink.get("partAstatus").toString());
+                                                    Astatus = Integer.parseInt(myLink.getPartAstatus());
+                                                } catch (Exception e) {
+                                                }
+                                                try {
+                                                    myLink.setPartBstatus(Tlink.get("partBstatus").toString());
+                                                    Bstatus = Integer.parseInt(myLink.getPartBstatus());
+                                                } catch (Exception e) {
+                                                }
+                                                try {
+                                                    myLink.setSuperStatus(Tlink.get("superStatus").toString());
+                                                    superStatus = Integer.parseInt(myLink.getSuperStatus());
+
+                                                } catch (Exception e) {
+                                                }
+                                                System.out.println("\n****\nsmartAction --->DEVO LINKARE SULLA TABELLA : " + myLink.getLinkTab());
+
+                                                Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
+                                                PreparedStatement ps = null;
+                                                ResultSet rs;
+                                                String linkerQuery = "INSERT INTO " + myLink.getLinkTab() + "( `superStatus`, `partAtab`, `partAvalueField`, `partAvalue`, `partAstatus`, `partBtab`,"
+                                                        + " `partBvalueField`, `partBvalue`, `partBstatus` "
+                                                        + ") VALUES ("
+                                                        + " ?,?,?,?,?,?,?,?,?) ";
+
+                                                ps = conny.prepareStatement(linkerQuery);
+                                                ps.setInt(1, superStatus);
+                                                ps.setString(2, myLink.getPartAtab());
+                                                ps.setString(3, myLink.getPartAvalueField());
+                                                ps.setString(4, myLink.getPartAvalue());
+                                                ps.setInt(5, Astatus);
+                                                ps.setString(6, myLink.getPartBtab());
+                                                ps.setString(7, myLink.getPartBvalueField());
+                                                ps.setString(8, myLink.getPartBvalue());
+                                                ps.setInt(9, Bstatus);
+
+                                                System.out.println(" linkerQuery : " + ps.toString());
+                                                try {
+                                                    int i = ps.executeUpdate();
+                                                    System.out.println(" esito inserimento: " + i);
+                                                } catch (Exception e) {
+                                                    System.out.println(" errore626 : " + e.toString());
+                                                }
+                                            }
                                         }
-                                        System.out.println("\n***\nsmartAction --->DEVO LINKARE SULLA TABELLA : " + myLink.getLinkTab());
-
-                                        Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
-                                        PreparedStatement ps = null;
-                                        ResultSet rs;
-                                        String linkerQuery = "INSERT INTO " + myLink.getLinkTab() + "( `superStatus`, `partAtab`, `partAvalueField`, `partAvalue`, `partAstatus`, `partBtab`,"
-                                                + " `partBvalueField`, `partBvalue`, `partBstatus` "
-                                                + ") VALUES ("
-                                                + " ?,?,?,?,?,?,?,?,?) ";
-
-                                        ps = conny.prepareStatement(linkerQuery);
-                                        ps.setInt(1, superStatus);
-                                        ps.setString(2, myLink.getPartAtab());
-                                        ps.setString(3, myLink.getPartAvalueField());
-                                        ps.setString(4, myLink.getPartAvalue());
-                                        ps.setInt(5, Astatus);
-                                        ps.setString(6, myLink.getPartBtab());
-                                        ps.setString(7, myLink.getPartBvalueField());
-                                        ps.setString(8, myLink.getPartBvalue());
-                                        ps.setInt(9, Bstatus);
-                                        int i = ps.executeUpdate();
                                     }
+                                } catch (Exception ee) {
+
                                 }
-
                             }
-
-//
-//        String formID = "";
-//        String objID = "";
-//        String copyTag = "";
-//        String keyValue = "";
-//        String params = "";
-//        String valueKEY = "";
-//        String newValue = "";
-//        String fatherKEYvalue = "";
-//        String fatherKEYtype = "";
-//        String fatherForm = "";
-//        String fatherCopyTag = "";
-//        String tbs = "";
-//        String STC = "";
-                            String leaf = makeLeafRefreshOrder(connector);
-                            Rjson.put("code", leaf);
+                            System.out.println("smartAction --->vado a costruire la nuova riga leaf ");
+                            JSONObject newLeaf = makeLeafAddedJson(connector);
+                            Rjson.put("code", newLeaf);
                             CRUDrepsonse = Rjson.toString();
-                            System.out.println("smartAction --->leaf: " + leaf);
-
+                            System.out.println("smartAction --->leaf: " + newLeaf);
                         }
 // </editor-fold>
 //                        String htmlCode = "";
@@ -646,8 +707,8 @@ public class smartAction {
                     smartForm mySmartForm = new smartForm(myGate, myParams, mySettings);
                     mySmartForm.buildSchema();
                     boolean found = false;
-                    
-                    System.out.println("Cerco routine in oggetto: "+myGate.getRifObj());
+
+                    System.out.println("Cerco routine in oggetto: " + myGate.getRifObj());
                     for (smartObject object : mySmartForm.objects) {
                         if (object.name.equalsIgnoreCase(myGate.getRifObj())) {
                             String objActionParams = object.actionParams;
@@ -664,7 +725,7 @@ public class smartAction {
                         }
                     }
                     if (found == false) {
-                        System.out.println("Non trovato oggetto, cerco nei Form objects "+mySmartForm.formObjects.size() );
+                        System.out.println("Non trovato oggetto, cerco nei Form objects " + mySmartForm.formObjects.size());
                         for (smartObject object : mySmartForm.formObjects) {
                             if (object.name.equalsIgnoreCase(myGate.getRifObj())) {
                                 String objActionParams = object.actionParams;
@@ -704,7 +765,7 @@ public class smartAction {
                 if (event.equalsIgnoreCase("OpenSecForm")) {
                     // quando premo il pulsante mi comporto come se caricassi ichildren di un form
                     // semplicemente prendo i dati sui childs da actyionParams {"formToLoad":"registrazionePallet","destDiv":"R"}
-//                    System.out.println("resolveAction---> EVENTO OpenSecForm: " + connector.toString());
+                    System.out.println("resolveAction---> EVENTO OpenSecForm: " + connector.toString());
                     actionResponse = new JSONObject();
                     actionResponse = WSRloadSecondaryForms(connector);
                     System.out.println("resolveAction--->done EVENTO SECFORM: " + actionResponse.toString());
@@ -728,7 +789,7 @@ public class smartAction {
 // </editor-fold>
         } catch (Exception e1) {
         }
-
+        System.out.println("smartAction --->actionResponse: " + actionResponse);
         return actionResponse;
     }
 
@@ -1007,7 +1068,6 @@ public class smartAction {
 ////////        System.out.println("fatherCopyTag:" + fatherCopyTag);
 ////////        System.out.println("tbs:" + tbs);
 ////////        System.out.println("STC:" + STC);
-
         String targetElement = formID + "-" + copyTag + "-" + objID + "-" + keyValue;
         String rowToRepaint = formID + "-" + copyTag + "-" + keyValue + "-ROW";
 
@@ -1112,7 +1172,120 @@ public class smartAction {
         return myJObj;
     }
 
-    public String makeLeafRefreshOrder(JSONObject connector) {
+    public JSONObject makeLeafAddedJson(JSONObject connector) {
+        System.out.println("<---------->\nmakeLeafAddedJson   " + connector.toString());
+        JSONObject leafJson = new JSONObject();
+        String formID = "";
+        String objID = "";
+        String copyTag = "";
+        String keyValue = "";
+        String params = "";
+        String valueKEY = "";
+        String newValue = "";
+        String fatherKEYvalue = "";
+        String fatherKEYtype = "";
+        String fatherForm = "";
+        String fatherCopyTag = "";
+        String tbs = "";
+        String STC = "";
+        String nodeName = "";
+        try {
+            formID = connector.get("formID").toString();
+        } catch (Exception e) {
+        }
+        try {
+            copyTag = connector.get("copyTag").toString();
+        } catch (Exception e) {
+        }
+        try {
+            objID = connector.get("rifObj").toString();
+        } catch (Exception e) {
+        }
+        try {
+            keyValue = connector.get("keyValue").toString();
+        } catch (Exception e) {
+        }
+        try {
+            valueKEY = connector.get("cellName").toString();
+        } catch (Exception e) {
+        }
+        try {
+            newValue = connector.get("newValue").toString();
+        } catch (Exception e) {
+        }
+        try {
+            fatherKEYvalue = connector.get("fatherKEYvalue").toString();
+        } catch (Exception e) {
+        }
+        try {
+            fatherKEYtype = connector.get("fatherKEYtype").toString();
+        } catch (Exception e) {
+        }
+        try {
+            fatherForm = connector.get("fatherForm").toString();
+        } catch (Exception e) {
+        }
+        try {
+            fatherCopyTag = connector.get("fatherCopyTag").toString();
+        } catch (Exception e) {
+        }
+        try {
+            tbs = connector.get("tbs").toString();
+        } catch (Exception e) {
+        }
+        try {
+            STC = connector.get("STC").toString();
+        } catch (Exception e) {
+        }
+        try {
+            nodeName = connector.get("nodeName").toString();
+        } catch (Exception e) {
+        }
+
+        String rowToRepaint = formID + "-" + copyTag + "-" + keyValue + "-ROW";
+
+        System.out.println("makeLeafAddedJson ---------->rowToRepaint: " + rowToRepaint);
+        String HtmlCode = "";
+        smartForm mySmartForm = new smartForm(formID, myParams, mySettings);
+        mySmartForm.setID(formID);
+        mySmartForm.setType("SMARTTREE");
+        mySmartForm.setFatherKEYvalue(fatherKEYvalue);
+        mySmartForm.setFatherKEYtype(fatherKEYtype);
+        mySmartForm.setFather(fatherForm);
+        mySmartForm.setFatherCopyTag(fatherCopyTag);
+        mySmartForm.setInfoReceived(tbs);
+        mySmartForm.setCopyTag(copyTag);
+        mySmartForm.setSendToCRUD(STC);
+        mySmartForm.setLoadType("{\"type\":\"SMARTTREE\",\"visualType\":\"SINGLEROW\"}");
+//        System.out.println("Costruito SMARTTREE... vado in buildSchema");
+        mySmartForm.loadPagingInstructions();
+        mySmartForm.buildSchema();
+        System.out.println("mySmartForm.getName:" + mySmartForm.getName());
+        System.out.println("Concluso buildSchema. verifico presenza routine onn change per oggetto groupchecker");
+        String AfterProcessByObjectRoutine = "";
+        for (int kk = 0; kk < mySmartForm.getObjects().size(); kk++) {
+            if (mySmartForm.getObjects().get(kk).getName().equalsIgnoreCase(objID)) {
+                params = mySmartForm.getObjects().get(kk).CG.getParams();
+                AfterProcessByObjectRoutine = mySmartForm.getObjects().get(kk).routineOnChange;
+            }
+        }
+        // adesso devo ridisegnare la row a cui appartiene il targertElement
+        System.out.println("makeLeafAddedJson ---------->rowToRepaint: " + rowToRepaint);
+        System.out.println("makeLeafAddedJson ---------->nodeName: " + nodeName);
+
+        mySmartForm.setCurKEYvalue(keyValue);
+        System.out.println("makeLeafAddedJson Query used : " + mySmartForm.queryUsed);
+        if (nodeName.endsWith("-ROOT")) {
+        } else {
+            mySmartForm.setQuery("SELECT * FROM " + mySmartForm.mainTable + " ");
+        }
+
+        leafJson = mySmartForm.paintTreeNewLeaf();
+        System.out.println("makeLeafAddedJson leafJson: " + leafJson);
+        return leafJson;
+    }
+
+    public String OLDmakeLeafRefreshOrder(JSONObject connector) {
 
         String formID = "";
         String objID = "";
@@ -1188,7 +1361,6 @@ public class smartAction {
 ////////        System.out.println("fatherCopyTag:" + fatherCopyTag);
 ////////        System.out.println("tbs:" + tbs);
 ////////        System.out.println("STC:" + STC);
-
         String rowToRepaint = formID + "-" + copyTag + "-" + keyValue + "-ROW";
 
         String HtmlCode = "";
@@ -1360,8 +1532,157 @@ public class smartAction {
         return HtmlCode;
     }
 
-    private JSONObject WSRloadChildren(JSONObject connector) {
+    private JSONObject WSRloadTreeBranch(JSONObject connector) {
+        System.out.println("WSRloadTreeBranch connector:" + connector.toString());
+        String formName = connector.get("formName").toString();
+        //dal form devo ricavare keyField e nome del campo in adding row
 
+        String objName = connector.get("objName").toString();
+
+        int objLevel = 0;
+        try {
+            String xobjLevel = connector.get("objLevel").toString();
+
+            System.out.println("WSRloadTreeBranch xobjLevel:" + xobjLevel);
+            objLevel = Integer.parseInt(xobjLevel);
+        } catch (Exception e) {
+        }
+
+        JSONObject data = new JSONObject();
+
+        System.out.println("WSRloadTreeBranch formName:" + formName);
+        System.out.println("WSRloadTreeBranch objName:" + objName);
+        System.out.println("WSRloadTreeBranch objLevel:" + objLevel);
+        //autom30e1a-X-ALFAXXXX4ecea29a-ROW
+
+        String senderFromID = "";
+        String senderCopyTag = "";
+        String senderObjID = "";
+        String senderFormMainTable = "";
+        String[] items = objName.split("-");
+        List<String> itemList = Arrays.asList(items);
+        if (itemList.size() > 2) {
+            senderFromID = itemList.get(0);
+            senderCopyTag = itemList.get(1);
+            senderObjID = itemList.get(2);
+        }
+
+        smartForm myForm = new smartForm(senderFromID, myParams, mySettings);
+        myForm.setCopyTag(senderCopyTag);
+//        myForm.setSendToCRUD("");
+        myForm.buildSchema();
+        myForm.loadFormSettings();
+        senderFormMainTable = myForm.getMainTable();
+//        myForm.getFormPanel(myForm.getGes_formPanel());
+        System.out.println("WSRloadTreeBranch objName:" + objName);
+        String arrayToRead = "CHILDautolinks";
+        String formPanelArrayTXT = myForm.getGes_formPanel();
+        System.out.println("WSRloadTreeBranch formPanelArrayTXT:" + formPanelArrayTXT);
+        String tabellaLink = "";
+        JSONParser parser1 = new JSONParser();
+        JSONArray PNLjson;
+        String fieldID = "ID";
+        String fieldValue = "value";
+        JSONArray childs = new JSONArray();
+        try {
+            PNLjson = (JSONArray) parser1.parse(formPanelArrayTXT);
+            for (Object righe : PNLjson) {
+                JSONObject riga = (JSONObject) righe;
+                try {
+                    JSONArray ALjson = (JSONArray) riga.get(arrayToRead);
+                    if (ALjson != null && ALjson.size() > 0) {
+                        for (Object Xautolink : ALjson) {
+                            JSONObject Tlink = (JSONObject) Xautolink;
+                            if (Tlink != null) {
+                                try {
+                                    tabellaLink = Tlink.get("linkTab").toString();
+                                } catch (Exception e) {
+                                }
+                                try {
+                                    fieldID = Tlink.get("fieldID").toString();
+                                } catch (Exception e) {
+                                }
+                                try {
+                                    fieldValue = Tlink.get("fieldValue").toString();
+                                } catch (Exception e) {
+                                }
+                            }
+
+                            //----------------------
+                            Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalFE();
+                            String SQLphrase = "";
+
+                            JSONObject childrow = new JSONObject();
+                            try {
+                                Statement s = conny.createStatement();
+
+                                SQLphrase = "SELECT " + senderFormMainTable + ".* FROM " + senderFormMainTable + " "
+                                        + "JOIN " + tabellaLink + " ON " + tabellaLink + ".partAvalue = '" + senderObjID + "' AND " + tabellaLink + ".partBvalue = " + senderFormMainTable + ".ID\n"
+                                        + "WHERE 1";
+
+                                System.out.println("getChildrenLeafs: " + SQLphrase);
+                                ResultSet rs = s.executeQuery(SQLphrase);
+                                while (rs.next()) {
+                                    childrow = new JSONObject();
+                                    String objID = rs.getString(fieldID);
+                                    senderFromID = itemList.get(0);
+                                    senderCopyTag = itemList.get(1);
+                                    childrow.put("ID", senderFromID + "-" + senderCopyTag + "-" + objID + "-ROW");
+                                    childrow.put("value", rs.getString(fieldValue));
+                                    childs.add(childrow);
+                                    System.out.println("childrow: " + childrow.toString());
+                                }
+                            } catch (SQLException ex) {
+
+                                System.out.println("error in line 1596:" + ex.toString());
+                            }
+                            try {
+                                conny.close();
+                            } catch (SQLException ex1) {
+                                Logger.getLogger(smartAction.class.getName()).log(Level.SEVERE, null, ex1);
+                            }
+                        }
+                    }
+                } catch (Exception ee) {
+                    System.out.println("error : " + ee.toString());
+                }
+            }
+        } catch (ParseException ex) {
+            Logger.getLogger(smartAction.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.out.println("\n****\nsmartAction --->DEVO LINKARE SULLA TABELLA : " + tabellaLink);
+        String addEnabled = "true";
+        if (objLevel > 2) {
+            addEnabled = "false";
+        }
+
+        data.put("values", childs);
+        data.put("node", objName);
+        data.put("keyField", objName);
+        data.put("objName", "");
+        data.put("addEnabled", addEnabled);
+
+        String action = "PAINTBRANCH";
+        JSONObject actionResponse = new JSONObject();
+        JSONObject outPayload = new JSONObject();
+        outPayload.put("ACTION", action);
+        outPayload.put("CONNECTOR", (connector));
+        outPayload.put("DATA", encodeURIComponent(data.toString()));
+        JSONObject clientParams = myParams.makeJSONobjParams();
+        
+
+        //-----------------------------------
+        actionResponse.put("ip", "0000");
+        actionResponse.put("TYPE", "wsResponse");
+        actionResponse.put("payload", outPayload);
+        actionResponse.put("clientParams", clientParams);
+
+        System.out.println("WSRloadTreeBranch:" + actionResponse.toString());
+        return actionResponse;
+    }
+
+    private JSONObject WSRloadChildren(JSONObject connector) {
+  System.out.println("\n++++\nWSRloadChildren : " + connector.toString());
         String formName = connector.get("formName").toString();
         Connection FEconny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalFE();
         String SQLphrase = "";
@@ -1442,25 +1763,47 @@ public class smartAction {
     }
 
     public JSONObject WSRloadChild(childLink myChild, JSONObject connector) throws SQLException {
+        //WebsocketResponse
         JSONObject itemjObj = new JSONObject();
+        
+        String Name = myChild.getRifChild();
+       String ID = myChild.getRifChildID();
+       String Type = "SMARTTABLE";
+       String FatherKEYvalue = getJSONarg(connector,"selectedRowID") ;//connector.get("selectedRowID").toString();
+       String FatherKEYtype = "VARCHAR";
+       String Father =getJSONarg(connector,"formID") ;// connector.get("formID").toString();
+       String FatherCopyTag = getJSONarg(connector,"copyTag") ;//connector.get("copyTag").toString();
+       String InfoReceived = getJSONarg(connector,"tbs") ;//connector.get("tbs").toString();
+       String CopyTag = getJSONarg(connector,"copyTag") ;//connector.get("copyTag").toString();
+        
+        System.out.println("Name:" + Name);
+        System.out.println("ID:" + ID);
+        System.out.println("Type:" + Type);
+        System.out.println("FatherKEYvalue:" + FatherKEYvalue);
+        System.out.println("FatherKEYtype:" + FatherKEYtype);
+        System.out.println("Father:" + Father);
+        System.out.println("FatherCopyTag:" + FatherCopyTag);
+        System.out.println("InfoReceived:" + InfoReceived);
+        System.out.println("CopyTag:" + CopyTag);
+        
 
         smartForm mySmartForm = new smartForm(myChild.getRifChildID(), myParams, mySettings);
-        mySmartForm.setName(myChild.getRifChild());
-        mySmartForm.setID(myChild.getRifChildID());
-        mySmartForm.setType("SMARTTABLE");
-        mySmartForm.setFatherKEYvalue(connector.get("selectedRowID").toString());
-        mySmartForm.setFatherKEYtype("VARCHAR");
-        mySmartForm.setFather(connector.get("formID").toString());
-        mySmartForm.setFatherCopyTag(connector.get("copyTag").toString());
-        mySmartForm.setInfoReceived(connector.get("tbs").toString());
-        mySmartForm.setCopyTag(connector.get("copyTag").toString());
+        mySmartForm.setName(Name);
+        mySmartForm.setID(ID);
+        mySmartForm.setType(Type);
+        mySmartForm.setFatherKEYvalue(FatherKEYvalue);
+        mySmartForm.setFatherKEYtype(FatherKEYtype);
+        mySmartForm.setFather(Father);
+        mySmartForm.setFatherCopyTag(FatherCopyTag);
+        mySmartForm.setInfoReceived(InfoReceived);
+        mySmartForm.setCopyTag(CopyTag);
 
         // il keyValue è dato dalla riga EVIDENZIATA
         // però se sto cliccando un pulsante deve valere la riga del pulsante !!!
         // come ho implementato ?
 //                                mySmartForm.setCurKEYvalue(selectedRowID);
 //                                mySmartForm.setCurKEYtype(""); 
-        mySmartForm.setSendToCRUD(connector.get("tbs").toString());
+        mySmartForm.setSendToCRUD(getJSONarg(connector,"tbs"));//connector.get("tbs").toString());
         mySmartForm.setLoadType("{\"type\":\"SMARTTABLE\",\"visualType\":\"FULLFORM\"}");
         System.out.println("VADO IN SMARTTABLE, getVisualType:" + mySmartForm.getVisualType());
 
@@ -1469,18 +1812,47 @@ public class smartAction {
         System.out.println("Prima devo eseguire:" + mySmartForm.getGes_routineOnLoad());
 
         //*****************************************************
+        System.out.println(" mySmartForm.getType():" + mySmartForm.getType());
+        String action = "REFRESHFORM";
+        String DATA = "";
+
         smartFormResponse myFormResponse = mySmartForm.paintForm();
+        String fW = mySmartForm.formWidth;
+        String fH = mySmartForm.formHeight;
+        
+        if (fW!=null && fW.length()>0){
+            fW =fW.replaceAll("px", "");
+            fW=fW.trim();
+        }
+         if (fH!=null && fH.length()>0){
+            fH =fH.replaceAll("px", "");
+            fH=fH.trim();
+        }
+         System.out.println("TREE FORM SIZE:::::" + fW+" x "+fH);
+        
         String htmlCode = myFormResponse.getHtmlCode();
         htmlCode = encodeURIComponent(htmlCode);
+
+        if (mySmartForm.getType().equalsIgnoreCase("SMARTTREE")) {
+            action = "POPULATETREE";
+            DATA = mySmartForm.getFormResponse().getDataJSON().toString();
+            DATA = encodeURIComponent(DATA);
+        }
         String destDiv = "";
-        destDiv += "CH-" + connector.get("formID").toString() + "-" + connector.get("copyTag").toString() + "-" + myChild.getPosition();
-//        System.out.println("destDiv: " + destDiv);
+        
+        String formID= getJSONarg(connector,"formID");
+        String copyTag= getJSONarg(connector,"copyTag");
+        
+        destDiv += "CH-" + formID + "-" + copyTag + "-" + myChild.getPosition();
+        System.out.println("destDiv: " + destDiv);
 
         JSONObject outPayload = new JSONObject();
-        outPayload.put("ACTION", "REFRESHFORM");
+        outPayload.put("ACTION", action);
         outPayload.put("DESTDIV", destDiv);
         outPayload.put("CODE", htmlCode);
-
+        outPayload.put("DATA", DATA);
+        outPayload.put("W", fW);
+        outPayload.put("H", fH);
         itemjObj.put("ip", "0000");
         itemjObj.put("TYPE", "wsResponse");
         itemjObj.put("payload", outPayload);
@@ -1492,19 +1864,30 @@ public class smartAction {
 
         String rifObj = connector.get("rifObj").toString();//"rifObj":"daRegistrare",
         System.out.println("WSRloadSecondaryForms rifObj:" + rifObj);
+        System.out.println("connector:" + connector.toString());
+//
+        String formID = getJSONarg(connector, "formID");//"formID":"gestifa003",
+        String copyTag = getJSONarg(connector, "copyTag");
+        String keyValue = getJSONarg(connector, "keyValue");//"keyValue":"panelElement",
 
-//        String formID = connector.get("formID").toString();//"formID":"gestifa003",
-//        String copyTag = connector.get("copyTag").toString();   
-//        String keyValue = connector.get("keyValue").toString();//"keyValue":"panelElement",
+        System.out.println(" formID: " + formID);
+        System.out.println(" copyTag: " + copyTag);
+        System.out.println(" keyValue: " + keyValue);
         String actionParams = "";
         Connection FEconny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalFE();
         String SQLphrase = "";
-//        System.out.println("VAdo in loadFORMparams");
+        System.out.println("VAdo in loadFORMparams");
         smartForm myForm = loadFORMparams(connector);
-//        System.out.println("VAdo in buildSchema");
+        System.out.println("done");
+        if (keyValue.equalsIgnoreCase("PANELelement")) {
+            formID = getJSONarg(connector, "rifForm");
+            myForm.setID(formID);
+            System.out.println(" formID: " + formID);
+        }
+        System.out.println("VAdo in buildSchema");
         myForm.buildSchema();
 
-//        System.out.println(" Schema oggetti: "+myForm.objects.size());
+        System.out.println(" Schema oggetti: " + myForm.objects.size());
         for (smartObject object : myForm.objects) {
             System.out.println("FORM OBJECT:" + object.name);
             if (object.name.equalsIgnoreCase(rifObj)) {
@@ -1546,6 +1929,7 @@ public class smartAction {
                     if (myChild.position == null || myChild.position == "null" || myChild.position == "") {
                         myChild.position = "B";
                     }
+                    System.out.println("DA CARICARE: " + myChild.getRifChild());
                     myChilds.add(myChild);
                 } catch (ParseException ex) {
                     System.out.println("ERROR: " + ex.toString());
@@ -1581,17 +1965,16 @@ public class smartAction {
             }
 
         }
-
+        System.out.println("DA CARICARE: " + myChilds.size() + " FORM.");
         JSONArray myChildsArray = new JSONArray();
         for (int child = 0; child < myChilds.size(); child++) {
             //CICLO PER OGNI CHILD
             childLink myChild = myChilds.get(child);
             SQLphrase = "SELECT * FROM " + mySettings.getLocalFE_forms() + " WHERE `name`='" + myChild.getRifChild() + "' ";
+            System.out.println("DA CARICARE SQLphrase: " + SQLphrase);
             try {
                 Statement s;
-
                 s = FEconny.createStatement();
-
                 ResultSet rs = s.executeQuery(SQLphrase);
                 while (rs.next()) {
                     myChild.setQuery(rs.getString("query"));
@@ -1602,6 +1985,14 @@ public class smartAction {
                         myChild.setRoutineAfterLoad(rs.getString("ges_routineAfterLoad"));
                     } catch (Exception e) {
                     }
+                    
+                    myChilds.get(child).setQuery(myChild.getQuery());
+                    myChilds.get(child).setRifChildID(myChild.getRifChildID());
+                    myChilds.get(child).setRoutineBeforeLoad(myChild.getRoutineBeforeLoad());
+                    myChilds.get(child).setType(myChild.getType());
+                    myChilds.get(child).setRoutineAfterLoad(myChild.getRoutineAfterLoad());
+                    
+                    
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(smartAction.class.getName()).log(Level.SEVERE, null, ex);
@@ -1621,10 +2012,11 @@ public class smartAction {
         myJObj.put("ip", "0000");
         myJObj.put("TYPE", "wsChildsPrerequisites");
 //        myJObj.put("CHILDREN", myChildsArray);
-
+        System.out.println("Esco da WSRloadSecondaryForms: " + myJObj.toString());
         return myJObj;
     }
-public String makeFormRefreshOrder(JSONObject connector) {
+
+    public String makeFormRefreshOrder(JSONObject connector) {
         System.out.println("\nSONO IN makeFormRefreshOrder.");
         String formID = "";
         String objID = "";
@@ -1793,6 +2185,7 @@ public String makeFormRefreshOrder(JSONObject connector) {
 
         return htmlCode;
     }
+
     public String makeFormRepaintOrder(JSONObject connector) {
         System.out.println("\nSONO IN makeFormRefreshOrder.");
         String formID = "";

@@ -18,8 +18,6 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package lanCom;
 
 import java.io.BufferedReader;
@@ -70,7 +68,6 @@ public class HTTPsender {
 
 //        System.out.println("message = " + sj.toString());
         // byte[] out = jmessage.getBytes(StandardCharsets.UTF_8);
-
         int length = out.length;
         URL url;
         String response = "";
@@ -80,7 +77,7 @@ public class HTTPsender {
         URLConnection con = null;
         try {
             con = url.openConnection();
-            con.setConnectTimeout(1000);
+            con.setConnectTimeout(500);
             HttpURLConnection http = (HttpURLConnection) con;
             try {
                 http.setRequestMethod("POST");
@@ -94,24 +91,26 @@ public class HTTPsender {
                 http.connect();
             } catch (Exception ex) {
                 Logger.getLogger(HTTPsender.class.getName()).log(Level.WARNING, "QP DEVICE NOT FOUND.", false);
+                System.out.println("HTTP SENDER NO CONNECTION");
                 return "NO CONNECTION";
             }
             try (OutputStream os = http.getOutputStream()) {
                 os.write(out);
+                BufferedReader br = new BufferedReader(new InputStreamReader((http.getInputStream())));
+                StringBuilder sb = new StringBuilder();
+                String output;
+                while ((output = br.readLine()) != null) {
+                    sb.append(output);
+                }
+                response = sb.toString();
+
             } catch (Exception e) {
                 Logger.getLogger(HTTPsender.class.getName()).log(Level.SEVERE, "ERRORE 69" + e, false);
             }
-            BufferedReader br = new BufferedReader(new InputStreamReader((http.getInputStream())));
-            StringBuilder sb = new StringBuilder();
-            String output;
-            while ((output = br.readLine()) != null) {
-                sb.append(output);
-            }
-//return sb.toString();
-            response = sb.toString();
+
 //            System.out.println("Ricevuta risposta:" + response);
         } catch (IOException ex) {
-            System.out.println("ERROR SENDING TO " + url.toString()+":" + ex.toString());
+            System.out.println("ERROR SENDING TO " + url.toString() + ":" + ex.toString());
             Logger.getLogger(HTTPsender.class.getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -121,8 +120,7 @@ public class HTTPsender {
     }
 
     public String sendHTTP(String Address, String Port, String Message) {
-        
-        
+
 //        System.out.println("\n\nINVIO HTTP SU " + Address + ":" + Port);
         HTTPsender httpSender = new HTTPsender();
         String resp = "";
@@ -133,14 +131,14 @@ public class HTTPsender {
         }
         return resp;
     }
-     public String sendHTTP(String Address, String Port,String page, String Message) {
-        
-        
+
+    public String sendHTTP(String Address, String Port, String page, String Message) {
+
 //        System.out.println("\n\nINVIO HTTP SU " + Address + ":" + Port);
         HTTPsender httpSender = new HTTPsender();
         String resp = "";
         try {
-            resp = httpSender.send(Address + ":" + Port+"/"+page, Message);
+            resp = httpSender.send(Address + ":" + Port + "/" + page, Message);
         } catch (MalformedURLException ex) {
             System.out.println("\n\nERRORE INVIO HTTP SU" + Address + " : " + Message);
         }

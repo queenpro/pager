@@ -89,6 +89,9 @@ public class CRUDorder {
     String AfterOperationRoutineOnNew;
     String AfterOperationRoutineOnDelete;
 
+    String nodeName;
+    String fatherNodeName;
+
     public String printParams() {
 
         String params = "";
@@ -119,6 +122,8 @@ public class CRUDorder {
         System.out.println("routineOnChange:" + routineOnChange);
         System.out.println("mainTable:" + mainTable);
         System.out.println("ActionParams:" + ActionParams);
+        System.out.println("nodeName:" + nodeName);
+        System.out.println("fatherNodeName:" + fatherNodeName);
         System.out.println("---------------------------------");
         return params;
     }
@@ -129,6 +134,22 @@ public class CRUDorder {
 
     public void setMyForm(ShowItForm myForm) {
         this.myForm = myForm;
+    }
+
+    public String getNodeName() {
+        return nodeName;
+    }
+
+    public void setNodeName(String nodeName) {
+        this.nodeName = nodeName;
+    }
+
+    public String getFatherNodeName() {
+        return fatherNodeName;
+    }
+
+    public void setFatherNodeName(String fatherNodeName) {
+        this.fatherNodeName = fatherNodeName;
     }
 
     public String getFormType() {
@@ -518,19 +539,6 @@ public class CRUDorder {
             this.setCellType("T");
         }
 
-        //myParams.printParams();
-        //      this.printParams();
-        //  if (newValue!=null && newValue.length()>0)    newValue = newValue.replaceAll("'", "''");
-////////        //ShowItForm ATTENZIONE! 2011-10-15 ho spostato le prossime righe all'inizio e le trasformerò in routine a sè stante
-////////        myForm = new ShowItForm(this.getFormID(), myParams, mySettings);
-////////        if (this.getFormName() != null) {
-////////            myForm.setName(this.getFormName());
-////////        }
-////////        // se conosco il nome questo prevale sull'ID e l'ID viene invece ricavato di conseguenza dal DB
-////////
-////////        myForm.setCopyTag(this.getFormCopyTag());
-////////        myForm.setSendToCRUD(this.getSendToCRUD());
-////////        myForm.buildSchema();
         this.formType = myForm.getType(); //per gestire il tipo tree
 
         String SQLphrase = "";
@@ -542,7 +550,19 @@ public class CRUDorder {
 
 //            System.out.println("\n-----------------\nSONO IN ExecuteCRUD\nCerco le info in base al nome del form:" + myForm.getName());
             myForm.getFormInformationsFromDB();
-
+            if (this.formType != null && this.formType.equalsIgnoreCase("SMARTTREE")
+//                    && this.getOperation().equalsIgnoreCase("ADD")
+                    ) {
+                System.out.println("STO PER ESEGUIRE CRUD SU TREE: "); 
+                for (int oo = 0; oo < myForm.objects.size(); oo++) {
+                    if (myForm.objects.get(oo).AddingRow_enabled > 0) {
+                        cellName = myForm.objects.get(oo).getName();
+                        System.out.println("CellName trovato: " + cellName);
+                        break;
+                    }
+                }
+//                printParams();
+            }
             //myForm.printVals();
             String dbTable = myForm.getMainTable();
             String formType = myForm.getType();
@@ -590,8 +610,8 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
             this.setAfterOperationRoutineOnChange(routineOnFormChange);
             if ((this.getAfterOperationRoutineOnChange() != null || this.getAfterOperationRoutineOnChange().length() > 4)
                     && (this.getRoutineOnChange() == null || this.getRoutineOnChange().length() < 5)) {
-            System.out.println("[CRUD]routineOnFormChange:" + routineOnFormChange);
-                
+                System.out.println("[CRUD]routineOnFormChange:" + routineOnFormChange);
+
                 this.setRoutineOnChange(routineOnFormChange);
             }
 
@@ -949,6 +969,8 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                     jsonAnswer.put("routineResponse", "");
                     jsonAnswer.put("newID", pKEYvalue);
                     jsonAnswer.put("afterHour", JSafterHour);
+                    jsonAnswer.put("nodeName", nodeName);
+                    jsonAnswer.put("fatherNodeName", fatherNodeName);
 
 //                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"ADD\",\"code\":\"OK\",\"newID\":\"" + pKEYvalue + "\",\"afterHour\":\"" + JSafterHour + "\"}";
 //                    answer = jsonAnswer;

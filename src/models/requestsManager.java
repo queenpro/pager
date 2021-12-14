@@ -64,7 +64,7 @@ public class requestsManager {
 
     public IncomingRequest processRequest() {
 
-        System.out.println("SONO IN PROCESS REQUEST:");
+//        System.out.println("SONO IN PROCESS REQUEST:");
         String responseType = this.Irequest.getResponseType();
         String connectors = this.Irequest.getConnectors();
         String paramsJSON = this.Irequest.getParams();
@@ -99,10 +99,10 @@ public class requestsManager {
         eventManager myEvent = new eventManager(Irequest.getMyParams(), Irequest.mySettings);
 
         for (int jj = 0; jj < myConnectors.size(); jj++) {
-            System.out.println("\n---------\n"
-                    + "CONNECTOR : door=" + myConnectors.get(jj).getDoor()
-                    + "\t event=" + myConnectors.get(jj).getEvent()
-                    + "\tkeyValue=" + myConnectors.get(jj).getKeyValue());
+//            System.out.println("\n---------\n"
+//                    + "CONNECTOR : door=" + myConnectors.get(jj).getDoor()
+//                    + "\t event=" + myConnectors.get(jj).getEvent()
+//                    + "\tkeyValue=" + myConnectors.get(jj).getKeyValue());
 
             Irequest.setMyGate(myConnectors.get(jj));
 //            System.out.println("Irequest keyValue:" + Irequest.getMyGate().getKeyValue());

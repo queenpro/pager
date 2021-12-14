@@ -56,7 +56,7 @@ public class TomcatGaiaHost {
     public TomcatGaiaHost(String XprjectName) {
         this.projectName = XprjectName;
 
-        System.out.println("\n<<<<<<< TomcatGaiaHost XprjectName:" + XprjectName);
+//        System.out.println("\n<<<<<<< TomcatGaiaHost XprjectName:" + XprjectName);
         try {
             getConfigPath();
             try {
@@ -83,7 +83,7 @@ public class TomcatGaiaHost {
         }
         path = pth + separator + "GaiaSettings.txt";
 
-        System.out.println("\n>>>>>>>>> user.dir:" + pth + "     >>>>>>>>> ConfigPath:" + path);
+//        System.out.println("\n>>>>>>>>> user.dir:" + pth + "     >>>>>>>>> ConfigPath:" + path);
         return path;
     }
 
@@ -94,7 +94,7 @@ public class TomcatGaiaHost {
             fis = new FileInputStream(path);
             if (fis != null) {
                 data = IOUtils.toString(fis, "UTF-8");
-                System.out.println("\n>>>>>>>>> data:" + data);
+//                System.out.println("\n>>>>>>>>> data:" + data);
             } else {
                 System.out.println("\n>>>>>>>>>ERROR: CONFIG DATA NOT FOUND IN:" + path);
                 System.out.println("TRY TO MAKE IT:" + path);
@@ -108,7 +108,7 @@ public class TomcatGaiaHost {
         } catch (IOException ex) {
             System.out.println("\ngetConfigData>>>>>>>>>FILE NOT REACHABLE");
         }
-        if (data == null) {
+        if (data == null || data.length()<=0) {
 
             try {
                 File myObj = new File(path);

@@ -97,7 +97,10 @@ public class WShandler {
         this.mySettings = mySettings;
 //          timer.scheduleAtFixedRate(() -> heartBeat(GlobalSession), 0, 1, TimeUnit.SECONDS);
     }
-
+ public WShandler(Settings mySettings, EVOpagerParams myParams) { 
+         this.handlerID =  mySettings.getInstallationName(myParams); 
+        this.mySettings = mySettings;
+    }
     public WShandler(Settings mySettings, String hndlrID) {
         this.handlerID = hndlrID;
         this.mySettings = mySettings;
@@ -230,7 +233,7 @@ public class WShandler {
 //        System.out.println("RAMsessionID :" + RAMsessionID + "   RAMclientID :" + RAMclientID);
 //        System.out.println("SENTsessionID :" + RAMsessionID + "   SENTclientID :" + RAMclientID);
 //
-//        System.out.println("MESSAGGIO: " + decodedMessage);
+        System.out.println("MESSAGGIO: " + decodedMessage);
         String tokenReceived = "";
         String MessageTypeReceived = "";
         String paramsReceived = "";
@@ -824,7 +827,7 @@ public class WShandler {
                 answerJSON.put("clientId", clientId);
                 answerJSON.put("sessionID", session.getId());
 //============ASSEGNO IL TOKEN AL DESTINATARIO=========================
-                this.sendToPeer("heatbeat", answerJSON, session.getId(), message);
+                this.sendToPeer("heartbeat", answerJSON, session.getId(), message);
 //============ASSEGNO IL TOKEN AL DESTINATARIO=========================        
 
             } else // </editor-fold>
@@ -850,9 +853,9 @@ public class WShandler {
                 myResponse.setDecodedMessage(decodedMessage);
                 myResponse.setMyAction(myAction);
 
-//                System.out.println("**WSHANDLER**DOOR:  " + myAction.getDoor());
-//                System.out.println("**WSHANDLER**EVENT: " + myAction.getEvent());
-//                System.out.println("**WSHANDLER**Childs().size: " + myAction.getMyChilds().size());
+                System.out.println("**WSHANDLER**DOOR:  " + myAction.getDoor());
+                System.out.println("**WSHANDLER**EVENT: " + myAction.getEvent());
+                System.out.println("**WSHANDLER**Childs().size: " + myAction.getMyChilds().size());
             }
 // </editor-fold>
         }

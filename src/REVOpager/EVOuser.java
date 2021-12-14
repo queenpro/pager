@@ -1097,7 +1097,7 @@ public class EVOuser {
     }
 
     public int verifyUserTimeout() {
-        System.out.println("\n*\nSONO IN verifyUserTimeout.Verifico per " + myParams.getCKtokenID());
+//        System.out.println("\n*\nSONO IN verifyUserTimeout.Verifico per " + myParams.getCKtokenID());
         if (myParams.getCKtokenID().startsWith("OVER_")) {
             System.out.println("\n*\nSONO IN verifyUserTimeout. Nego accesso per token consumato.");
             return 0;
@@ -1132,7 +1132,7 @@ public class EVOuser {
                 sto = rs.getString("infoValue");
                 break;
             }
-            System.out.println("userSessionTimeout: " + sto);
+//            System.out.println("userSessionTimeout: " + sto);
 
             try {
                 sessionTimeout = Integer.parseInt(sto);

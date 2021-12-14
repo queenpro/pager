@@ -91,8 +91,7 @@ public class gate {
     public String fieldID = "";
     public String table = "";
     public String query = "";
-    
-    
+
     public String addingNewID = "";
 
     public String KeyField = "";
@@ -206,17 +205,43 @@ public class gate {
 
     }
 
-    public void insertAction_repaintFormByName(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XkeyValue) {
-          System.out.println("\n ---SONO IN insertAction_repaintFormByName"  );
+    public void insertAction_synoptic(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XrifObj, String XkeyValue, String htmlCode) {
+
+        String destTarget = XformID + "-" + XCopyTag + "-" + XrifObj + "-" + XkeyValue + "-SYNOPTIC";
+        System.out.println("SYNOPTIC destTarget: " + destTarget);
+        JSONObject action = new JSONObject();
+        action.put("action", "synoptic");
+        action.put("target", destTarget);// spazio destDiv da refreshare
+        action.put("htmlCode", htmlCode);// codice html
+        this.actions.add(action);
+
+    }
+
+    public void insertAction_StopSynoptic(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XrifObj, String XkeyValue) {
+
+        String destTarget = XformID + "-" + XCopyTag + "-" + XrifObj + "-" + XkeyValue;
+        System.out.println("STOPsynoptic destTarget: " + destTarget);
+        JSONObject action = new JSONObject();
+        action.put("action", "STOPsynoptic");
+        action.put("target", destTarget);// spazio destDiv da refreshare
+        action.put("htmlCode", "");// codice html
+        this.actions.add(action);
+
+    }
+
+    public void insertAction_repaintFormByName(EVOpagerParams myParams, Settings mySettings, String YformID, String XCopyTag, String XkeyValue) {
+        System.out.println("\n ---SONO IN insertAction_repaintFormByName");
         // XkeyValue sarò la riga evidenziata
         String XhtmlCode = "";
-        XformID = formIDfromName(myParams, mySettings, XformID);
-          JSONObject connector = loadConnector();
+        String XformID = "";
+        XformID = formIDfromName(myParams, mySettings, YformID);
+        JSONObject connector = loadConnector();
         connector.put("formID", XformID);
         connector.put("copyTag", XCopyTag);
-        try{
-        connector.put("keyValue", XkeyValue);
-        }catch(Exception e){}
+        try {
+            connector.put("keyValue", XkeyValue);
+        } catch (Exception e) {
+        }
 //////        
 ////////        connector.put("formName", this.getFormName());
 ////////        connector.put("valueKEY", this.getPrimaryFieldName());
@@ -245,11 +270,17 @@ public class gate {
         } catch (ParseException ex) {
 
         }
-        String destTarget = "FRAME-"+this.getFormName() + "-" + this.getCopyTag();
+        String destTarget = "FRAME-" + this.getFormName() + "-" + this.getCopyTag();
+        if (!YformID.equalsIgnoreCase(this.getFormName())) {
+            destTarget = "FRAME-" + YformID + "-" + this.getCopyTag();
+        }
+        
+        System.out.println(" this.getFormName() :" + this.getFormName()+" YformID :" + YformID+" destTarget :" + destTarget);
         JSONObject action = new JSONObject();
         action.put("action", "repaintForm");
         action.put("target", destTarget);// spazio destDiv da refreshare
         action.put("htmlCode", XhtmlCode);// codice html
+
         actions.add(action);
 
     }
@@ -2293,7 +2324,15 @@ public class gate {
                             myLine.setValue(jsonObject.get("value").toString());
                         } catch (Exception e) {
                         }
-                        argList.add(myLine);
+                        boolean found = false;
+                        for (int y = 0; y < argList.size(); y++) {
+                            if (argList.get(y).getLabel().equalsIgnoreCase(myLine.getLabel())) {
+                                found = true;
+                            }
+                        }
+                        if (found == false) {
+                            argList.add(myLine);
+                        }
                     }
                     //sendToCRUD
                     for (int y = 0; y < argList.size(); y++) {
@@ -2319,8 +2358,7 @@ public class gate {
 ////////        System.out.println("fatherKEYvalue  fatherKEYvalue:" + myGate.getFatherKEYvalue());
 ////////        System.out.println("fatherKEYtype  fatherKEYtype:" + myGate.getFatherKEYtype());
 ////////        System.out.println("getKeyValue  getKeyValue:" + myGate.getKeyValue());
-////////        System.out.println("getKeyValue  getCurPage:" + myGate.getCurPage());
-////////
+////////        System.out.println("getKeyValue  getCurPage:" + myGate.getCurPage()); 
 ////////        System.out.println("newValue  newValue:" + myGate.newValue);
 ////////        System.out.println("tbs  TBS:" + myGate.TBS);
 ////////        System.out.println("STC  sendToCRUD:" + myGate.sendToCRUD);
