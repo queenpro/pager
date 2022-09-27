@@ -97,10 +97,12 @@ public class WShandler {
         this.mySettings = mySettings;
 //          timer.scheduleAtFixedRate(() -> heartBeat(GlobalSession), 0, 1, TimeUnit.SECONDS);
     }
- public WShandler(Settings mySettings, EVOpagerParams myParams) { 
-         this.handlerID =  mySettings.getInstallationName(myParams); 
+
+    public WShandler(Settings mySettings, EVOpagerParams myParams) {
+        this.handlerID = mySettings.getInstallationName(myParams);
         this.mySettings = mySettings;
     }
+
     public WShandler(Settings mySettings, String hndlrID) {
         this.handlerID = hndlrID;
         this.mySettings = mySettings;
@@ -657,7 +659,7 @@ public class WShandler {
 //                System.out.println("\n\n\n\n\n\n->CERCO tra i peers quello che mi ha mandato \nl'handshake:" + tokenReceived);
 //                System.out.println(">: " + clientsConnected.get(jj).tokenAssigned);
                     if (this.clientsConnected.get(jj).getTokenAssigned().equals(tokenReceived)) {
-                        System.out.println(">[" + senderClient.sessionID + "]TROVATO CLIENT IN DB ! " + this.clientsConnected.get(jj).getTokenAssigned());
+                        System.out.println("deviceHandshake>[" + senderClient.sessionID + "]TROVATO CLIENT IN DB ! " + this.clientsConnected.get(jj).getTokenAssigned());
                         System.out.println("sessionID>[SENDER:" + senderClient.sessionID + "] [RAM:" + this.clientsConnected.get(jj).getSessionID() + "] ");
 
                         this.clientsConnected.get(jj).setClientParams(new EVOpagerParams());
@@ -720,7 +722,7 @@ public class WShandler {
 //                System.out.println("\n\n\n\n\n\n->CERCO tra i peers quello che mi ha mandato \nl'handshake:" + tokenReceived);
 //                System.out.println(">: " + clientsConnected.get(jj).tokenAssigned);
                     if (this.clientsConnected.get(jj).getTokenAssigned().equals(tokenReceived)) {
-                        System.out.println(">[" + senderClient.sessionID + "]TROVATO CLIENT IN DB ! " + this.clientsConnected.get(jj).getTokenAssigned());
+                        System.out.println("QPBappHandshake>[" + senderClient.sessionID + "]TROVATO CLIENT IN DB ! " + this.clientsConnected.get(jj).getTokenAssigned());
                         System.out.println("sessionID>[SENDER:" + senderClient.sessionID + "] [RAM:" + this.clientsConnected.get(jj).getSessionID() + "] ");
 
                         this.clientsConnected.get(jj).setClientParams(new EVOpagerParams());
@@ -781,7 +783,7 @@ public class WShandler {
 //                System.out.println(">: " + clientsConnected.get(jj).tokenAssigned);
                         if (this.clientsConnected.get(jj).getTokenAssigned().equals(tokenReceived)) {
                             tokenfound = true;
-                            System.out.println(">[" + senderClient.sessionID + "]TROVATO CLIENT IN DB ! " + this.clientsConnected.get(jj).getTokenAssigned());
+                            System.out.println("serverHandshake>[" + senderClient.sessionID + "]TROVATO CLIENT IN DB ! " + this.clientsConnected.get(jj).getTokenAssigned());
                             System.out.println("sessionID>[SENDER:" + senderClient.sessionID + "] [RAM:" + this.clientsConnected.get(jj).getSessionID() + "] ");
 
                             this.clientsConnected.get(jj).setClientParams(new EVOpagerParams());
@@ -1080,6 +1082,8 @@ public class WShandler {
         }
         Connection accountConny = new EVOpagerDBconnection(myParams, mySettings).ConnAccountDB();
         SQLphrase = "SELECT * FROM  archivio_operatori  WHERE alive < -10";
+
+//        System.out.println("\n\nremoveBadGuests-->" + this.handlerID + ">SQLphrase:" + SQLphrase);
         String DBrecorded = "";
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ITALY);
         Date recordedDate = null;
@@ -1390,6 +1394,53 @@ public class WShandler {
     }
 //noMessage
 
+    public void sendToPeerByName(String destination, String type, JSONObject payload) {
+        String senderName = "***GAIAWEB SERVER***";
+//            el.log(PROJECT_ID, "APP-WS: sendToPeer from " + senderName + " to " + sess.getId() + ":" + message);
+        JSONObject obj = new JSONObject();
+        obj.put("ip", "000");
+        obj.put("SENDER", senderName);
+        obj.put("TYPE", type);
+        obj.put("payload", payload);// contiene clientPoint:oggetto JSON con clientID, sessionID e token appena assegnato
+        obj.put("priority", "0");
+        obj.put("duration", "3");
+        String destinationID = "";
+        String tokenToUse = "";
+        String userToUse = "";
+        String passwordToUse = "";
+        for (WSclient client : clientsConnected) {
+            if (client.clientID.equalsIgnoreCase(destination)) {
+                destinationID = client.getSessionID();
+                tokenToUse = client.tokenAssigned;
+                userToUse = client.getUserID();
+                passwordToUse = client.getUserPassword();
+            }
+                   }
+        for (Session sess : peers) {
+            if (destinationID == sess.getId()) {
+//                System.out.println("INVIO AL PEER " + destinationID + " messaggio TYPE:" + type + " con payload=" + payload);
+                try {
+                    sess.getBasicRemote().sendText(obj.toJSONString());
+                } catch (IOException ioe) {
+                    try {
+                        sleep(10);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(WShandler.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    try {
+                        sess.getBasicRemote().sendText(obj.toJSONString());
+                    } catch (IOException ie) {
+//                        System.out.println(ie.getMessage());
+                        parseClose(destinationID);// rimuove il peer non raggiungibile
+                    }
+                    parseClose(destinationID);// rimuove il peer non raggiungibile
+                }
+                break;
+            }
+        }
+    }
+//noMessage
+
     public void popolaContextList() {
 //        System.out.println("#popolaContextList I TOKEN VALIDI IN RAM SONO:" + clientsConnected.size());
 
@@ -1435,7 +1486,7 @@ public class WShandler {
 //        System.out.println("\n");
 //        printClientsConnected();
         for (int jj = 0; jj < contesti.size(); jj++) {
-//            System.out.println("\n<" + this.handlerID + ">CONTESTO:" + contesti.get(jj).getContextID());
+            System.out.println("\n<" + this.handlerID + ">CONTESTO:" + contesti.get(jj).getContextID());
 
             if (contesti.get(jj).getContextID() != null) {
 
@@ -1465,7 +1516,7 @@ public class WShandler {
                 }
 
 //                System.out.println("<" + this.handlerID + ">SESSIONI SALVATE SU DATABASE:");
-                SQLphrase = "SELECT * FROM `archivio_sessions` WHERE 1 ";
+                SQLphrase = "SELECT * FROM archivio_sessions WHERE 1 ";
                 try {
 //                    System.out.println("-SQLphrase" + SQLphrase);
                     ps = accountConny.prepareStatement(SQLphrase);
@@ -1473,10 +1524,10 @@ public class WShandler {
                     int line = 0;
                     while (rs.next()) {
                         line++;
-                        String Session = rs.getString("sessionID");
-                        String Client = rs.getString("clientID");
+//                        String Session = rs.getString("sessionID");
+//                        String Client = rs.getString("clientID");
                         String dbToken = rs.getString("token");
-                        String User = rs.getString("user");
+//                        String User = rs.getString("user");
 //                        System.out.println("" + line + " . User: " + User + " . Client: " + dbToken + ". Token: " + dbToken);
                         int found = 0;
                         for (int kk = 0; kk < clientsConnected.size(); kk++) {
@@ -1488,7 +1539,7 @@ public class WShandler {
                         }
                         if (found == 0) {
                             toErase.add(dbToken);// cìè in DB ma non in RAM
-//                            System.out.println("toErase: " + dbToken);
+                            System.out.println("toErase: " + dbToken);
                         } else {
                             toUpdate.add(dbToken);// c'è in RAM e IN DB
 //                            System.out.println("toUpdate: " + dbToken);
@@ -1506,7 +1557,6 @@ public class WShandler {
                         SQLphrase = "DELETE FROM archivio_sessions WHERE token = '" + toErase.get(xx) + "' ";
                         ps = accountConny.prepareStatement(SQLphrase);
                         int i = ps.executeUpdate();
-
                     }
                 } catch (SQLException ex) {
                     System.out.println("ERROR. " + ex.toString());
@@ -1574,7 +1624,7 @@ public class WShandler {
                                         + "NOW(),  "
                                         + "'" + user + "') ";
 
-                                System.out.println("<" + this.handlerID + ">INSERISCO TOKEN ->SQLphrase:" + SQLphrase);
+//                                System.out.println("<" + this.handlerID + ">INSERISCO TOKEN ->SQLphrase:" + SQLphrase);
                                 ps = accountConny.prepareStatement(SQLphrase);
                                 int i = ps.executeUpdate();
                             } catch (SQLException ex) {
@@ -1721,7 +1771,7 @@ public class WShandler {
 //                    System.out.println("client.clientID> " + client.clientID + "  CONTIENE " + searched + "  ---> SESSION ID:" + client.getSessionID());
                     clientID = client.getSessionID();
                     break;
-                }  
+                }
 
             }
         }

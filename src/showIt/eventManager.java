@@ -30,6 +30,11 @@ import REVOpager.EVOpagerDBconnection;
 import REVOpager.EVOuser;
 import REVOsetup.EVOsetup;
 import REVOsetup.ErrorLogger;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.Rectangle;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -50,6 +55,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -57,17 +63,20 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import models.CRUDorder;
 import models.IncomingRequest;
 import models.Linker;
 import models.SelectListLine;
 import models.logEvent;
+import models.objectLayout;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import showIt.ShowItForm;
 import showIt.jsFunctionServer;
 import smartCore.smartForm;
+import static smartCore.smartRow.makeRoundedCorner;
 
 /**
  *
@@ -168,7 +177,7 @@ public class eventManager {
         String formHtmlCode = "";
         String formID = "";
         String firstForm = "";
-        if (myForm.getType().equalsIgnoreCase("SMARTPANEL")) {
+        if (myForm.getType() != null && myForm.getType().equalsIgnoreCase("SMARTPANEL")) {
             smartForm mySmartForm = new smartForm("", myParams, mySettings);
             mySmartForm.setAbstractTextCode(myForm.getAbstractTextCode());
             mySmartForm.setName(myForm.getName());
@@ -217,7 +226,7 @@ public class eventManager {
         HtmlCode += "<head>";
         HtmlCode += WindowTitle;
         HtmlCode += " <meta charset=\"utf-8\">\n"
-                + " <meta http-equiv=\"Content-Security-Policy\"  content=\"connect-src * 'unsafe-inline';\">\n";
+                + " <meta http-equiv=\"Content-Security-Policy\"  content=\"connect-src * 'unsafe-inline';name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n";
         // </editor-fold>   
 // cerco una direttiva chiamata gaia.css
         EVOpagerDirectivesManager myDirective = new EVOpagerDirectivesManager(request.getMyParams(), request.getMySettings());
@@ -314,25 +323,36 @@ public class eventManager {
         HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-keyValue\" value=\"\">\n");
         HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-args\" value=\"\">\n");
         HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"master-params\" value=\"" + encodeURIComponent(myParams.makeJSONparams()) + "\">\n");
+//==================================================================================================
 
-        HtmlCode += ("<TABLE style=\"height: 100px; width:100%;"
-                //                + "table-layout:fixed; "
-                + "background-color: white;\"><TR>");
+        HtmlCode += ("<DIV  "
+                + "style=\"height: 75px; width:100%; "
+                + "padding: 2px; "
+                + "z-index: 99;"
+                + " position: fixed; top: 0; overflow: hidden;\n"
+                + "  background-color: white; vertical-align: text-top;\n"
+                + "  width: 100%;"
+                + "display:block;\">");
+        HtmlCode += ("<TABLE "
+                + "style=\"height: 75px; width:100%;"
+                //                + "padding: 0px;\n"
+                //                + " position: fixed; top: 0; \" "
+                + "background-color: white;vertical-align: text-top;\"><TR>");
 
         //---SESSION SPACE con ACCOUNT MANAGER-----------
         HtmlCode += ("<TD style=\"width:20%;align:right;overflow:hidden;white-space:nowrap;\">");
         HtmlCode += ("<DIV id=\"SessionSpace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
         HtmlCode += ("</TD>");
         //---TITLE BAR SPACE -----------
-        HtmlCode += ("<TD style=\"width:40%;align:right;overflow:hidden;white-space:nowrap;\">");
-        HtmlCode += ("<DIV id=\"titleBarSpace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
+        HtmlCode += ("<TD style=\"width:40%;align:right;overflow:hidden;white-space:nowrap;vertical-align: top;\">");
+        HtmlCode += ("<DIV id=\"titleBarSpace\" style=\"height:50px;width:100%; vertical-align: text-top; display:block;\"> </DIV>");
         HtmlCode += ("</TD>");
 
         //---LIGHTHOUSE CONNECTION SPACE -----------
         HtmlCode += ("<TD style=\"width:20%;align:left;overflow:hidden;white-space:nowrap;\">");
         HtmlCode += ("<DIV id=\"LHWSspace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
         HtmlCode += ("</TD>");
-//---LOCAL SERVER CONNECTION SPACE -----------
+        //---LOCAL SERVER CONNECTION SPACE -----------
         HtmlCode += ("<TD style=\"width:20%;align:left;overflow:hidden;white-space:nowrap;\">");
         HtmlCode += ("<DIV id=\"WSspace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
         HtmlCode += ("</TD>");
@@ -340,8 +360,16 @@ public class eventManager {
                 + "<TR  style=\"border-bottom: 1px solid red\"><TD></TD></TR>"
                 + "</TABLE>");
 
+        HtmlCode += ("</DIV>");
+//==================================================================================================
+        HtmlCode += ("<DIV  "
+                + "style=\"height: 100px; width:100%; "
+                //                + "padding: 16px;\n"
+                + "  margin-top: 80px;"
+                + "display:block;\""
+                + ">");
         HtmlCode += (" <TABLE style=\"height: 100px; width:100%;"
-                //                + "table-layout:fixed; "
+                //                + " position: fixed; top: 100; \" "
                 + "background-color: white;\"><TR>");
         HtmlCode += ("<TD style=\"height: 100%; width:100%;\">");
         //***********************************************    
@@ -365,16 +393,16 @@ public class eventManager {
         HtmlCode += (" <div id=\"mainBottomSpace\" ></div>\n");
         HtmlCode += ("</TD></TR> ");
         HtmlCode += ("</TABLE>");
-
-        //-------------------------------------------------------------
+        HtmlCode += ("</DIV>");
+//==================================================================================================
         HtmlCode += "<div id=\"snackbar\"></div>";
 
-        HtmlCode += " <div id=\"splashPanel\" class=\"modalDialog\" "
-                + " >\n"
+        HtmlCode += " <div id=\"splashPanel\" class=\"modalDialog\" >\n"
                 + "     <div><a href=\"#close\" title=\"Close\" class=\"close\">X</a>\n"
                 + "         <div id=\"selectors\"><p></p></div>"
                 + "     </div>\n"
-                + "</div>";
+                + "     </div>\n";
+
         HtmlCode += ""
                 + "<div class=\"lightbox\" id=\"dropPanel\">\n"
                 + "  <figure>\n"
@@ -822,7 +850,12 @@ public class eventManager {
                             + "";
                     el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Tento invio mail " + dest);
                     EmailSessionBean mailer = new EmailSessionBean();
-                    mailer.SendEmail(dest, oggetto, body);
+                    try {
+                        mailer.SendEmail(dest, oggetto, body);
+                    } catch (Exception e) {
+                        System.out.println("Errore in invio mail-->  " + e.toString());
+                    }
+                    System.out.println("INVIO CONCLUSO.  ");
                 } else {
 //                    code = "ERR";
 //                    mess = "Errore in invio mail.";
@@ -986,8 +1019,8 @@ public class eventManager {
 
         myParams = request.getMyParams();
         mySettings = request.getMySettings();
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\n---\nconfirmNewPassword-->email = " + email);
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "confirmNewPassword-->token = " + token);
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\n---\nconfirmNewPassword-->email = " + email);
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "confirmNewPassword-->token = " + token);
 
         String sender = null;
         String operation = "PWconfirmationResponse";
@@ -995,12 +1028,12 @@ public class eventManager {
         String mess = "";
         String newID = "";
         String action = "login";
-        ErrorLogger el;
-        el = new ErrorLogger(myParams, mySettings);
+//        ErrorLogger el;
+//        el = new ErrorLogger(myParams, mySettings);
         String CKprojectName = mySettings.getProjectName();
         String CKprojectGroup = this.myParams.getCKprojectGroup();
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "confirmNewPassword-->CKprojectName = " + CKprojectName);
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "confirmNewPassword-->CKprojectGroup = " + CKprojectGroup);
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "confirmNewPassword-->CKprojectName = " + CKprojectName);
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "confirmNewPassword-->CKprojectGroup = " + CKprojectGroup);
 
         String HtmlCode = "";
         String extension = "";
@@ -1022,7 +1055,7 @@ public class eventManager {
 
         Connection accountConny = new EVOpagerDBconnection(myParams, mySettings).ConnAccountDB();
 
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "confirmNewPassword SQLphrase: " + SQLphrase);
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "confirmNewPassword SQLphrase: " + SQLphrase);
         int lines = 0;
 
         String DBrecorded = "";
@@ -1091,7 +1124,7 @@ public class eventManager {
                     SQLphrase = "UPDATE " + tabOperatori + " SET password = "
                             + "AES_ENCRYPT('" + password + "', '" + pwKEY + "') "
                             + "WHERE " + IDfield + "='" + tempUserID + "' ";
-                    System.out.println("SQLphrase=" + SQLphrase);
+//                    System.out.println("SQLphrase=" + SQLphrase);
 
                     ps = accountConny.prepareStatement(SQLphrase);
                     int i = ps.executeUpdate();
@@ -1219,10 +1252,29 @@ public class eventManager {
         return HtmlCode;
     }
 
+    public IncomingRequest siteOfflineForm(IncomingRequest request) {
+        String HtmlCode = "";
+        HtmlCode += ("<!DOCTYPE html>");
+        HtmlCode += ("<html>");
+        HtmlCode += ("<head>");
+        HtmlCode += ("<title>" + mySettings.getSoftwareTitle() + " - Badge</title>"
+                + "<meta http-equiv=\"cache-control\" content=\"no-cache\">\n"
+                + "<meta http-equiv=\"expires\" content=\"0\">\n"
+                + "<meta http-equiv=\"pragma\" content=\"no-cache\">");
+        HtmlCode += ("<body onload=\"startup()\" style=\"  width: 100%;  \">"
+                + "<link rel=\"stylesheet\" href=\"stylesheet.css\" type=\"text/css\" charset=\"utf-8\" />");
+        HtmlCode += ("IL SERVIZIO E' IN FASE DI MANUTENZIONE. RIPROVARE PIU' TARDI.");
+        HtmlCode += ("</body>");
+
+        HtmlCode += ("</html>");
+        request.setResponse((Object) HtmlCode);
+        return request;
+    }
+
     public IncomingRequest loginForm(IncomingRequest request) {
         el = new ErrorLogger(myParams, mySettings);
         el.setPrintOnScreen(false);
-        el.setPrintOnLog(true);
+        el.setPrintOnLog(false);
         el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n----\n");
         el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "COSTRUZIONE LOGIN FORM " + request.getMyGate().getType());
         myParams = request.getMyParams();
@@ -1260,10 +1312,10 @@ public class eventManager {
                 }
             }
         }
-
+        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "tornato da ricerca extension : " + extension);
         EVOpagerDirectivesManager myManager = new EVOpagerDirectivesManager(request.getMyParams(), mySettings);
         String ExpireDate = myManager.getEvoDirective("ExpireDate");
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "tornato da ricerca Expire date: " + ExpireDate);
+        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "tornato da ricerca ExpireDate : " + ExpireDate);
 
         if (ExpireDate == null) {
             ExpireDate = "2014-01-01";
@@ -1351,14 +1403,19 @@ public class eventManager {
 //----------------------------------------------------------   
         HtmlCode += ("function goLogin(goType)\n"
                 + "{\n"
+                + "var username=\"\";"
+                + "var pass=\"\";"
                 //+ "alert (\"LOGIN\");"
                 + "if (goType==\"pincode\"){"
-                + "     var username=document.getElementById(\"pincodeusername\").value;"
-                + "     var pass=document.getElementById(\"pincode\").value;"
+                + "      username=document.getElementById(\"pincodeusername\").value;"
+                + "      pass=document.getElementById(\"pincode\").value;"
                 + "}else{"
-                + "     var username=document.getElementById(\"username\").value;"
-                + "     var pass=document.getElementById(\"pass\").value;"
+                + "      username=document.getElementById(\"username\").value;"
+                + "      pass=document.getElementById(\"pass\").value;"
                 + "}"
+                //                + "console.log(\"goType: \" + goType);"
+                //                + "console.log(\"username: \" + username);"
+                //                + "console.log(\"pass: \" + pass);"
                 + "var portalParams= document.getElementById(\"portalParams\").value;"
                 + "var xmlhttp;\n"
                 + "if (window.XMLHttpRequest)\n"
@@ -1378,20 +1435,23 @@ public class eventManager {
                 + "window.location=newPage;"
                 + "   }\n"
                 + "  }\n"
-                + "var params='\"params\":'+ portalParams;"
-                + "var connectors='\"connectors\":[{\"door\":\"AccountManager\","
+                + "if( !username || username.length<2 ){"
+                + " alert(\"Occorre compilare il nome utente.  -->\"+username);"
+                + "}else{"
+                + " var params='\"params\":'+ portalParams;"
+                + " var connectors='\"connectors\":[{\"door\":\"AccountManager\","
                 + "     \"event\":\"Login\","
                 + "     \"type\":\"'+goType+'\","
                 + "     \"pass\":\"'+pass+'\","
                 + "     \"username\":\"'+username+'\"}]';"
-                + "var utils='\"responseType\":\"text\"';"
-                + "var gp='{'+utils+','+params+','+connectors+'}';"
-                + "gp=encodeURIComponent(gp);"
+                + " var utils='\"responseType\":\"text\"';"
+                + " var gp='{'+utils+','+params+','+connectors+'}';"
+                + " gp=encodeURIComponent(gp);"
                 + " xmlhttp.open(\"POST\",\"portal\",true);\n"
                 + " xmlhttp.setRequestHeader(\"Content-type\",\"application/x-www-form-urlencoded\");\n"
                 + " xmlhttp.send(\"target=requestsManager&gp=\" + encodeURIComponent(gp));\n"
+                + " }\n"
                 + "}\n"
-                + ""
                 + "");
 
 //----------------------------------------------------------   
@@ -1481,12 +1541,13 @@ public class eventManager {
         HtmlCode += ("function startup()\n"
                 + "{\n"
                 + "document.getElementById(\"portalParams\").value= JSON.stringify(PORTALparams);"
-                + "EVOcom();\n"
+                //                + "EVOcom();\n"
                 + "populateHeader(\"title\");\n"
                 + "populateHeader(\"version\");\n"
                 + "}\n"
-                + "</SCRIPT>");
-        HtmlCode += "<SCRIPT>"
+                + ""
+                + "");
+        HtmlCode += ""
                 + "function showDetails(){"
                 + "var Xvisible= document.getElementById(\"serverResponse\").style.display;\n"
                 + "if (Xvisible == \"none\"){"
@@ -1605,7 +1666,9 @@ public class eventManager {
                 accessByPincode = false;
                 accessByAccount = true;
             }
-
+////////System.out.println("mySettings.getAccessType():"+mySettings.getAccessType());
+////////System.out.println("accessByPincode:"+accessByPincode);
+////////System.out.println("accessByAccount:"+accessByAccount);
 //           el.log(myParams.getCKprojectName()+myParams.getCKcontextID()+"eventManager","mySettings.getAccessType():" + mySettings.getAccessType());
 //           el.log(myParams.getCKprojectName()+myParams.getCKcontextID()+"eventManager","accessByPincode:" + accessByPincode);
 //           el.log(myParams.getCKprojectName()+myParams.getCKcontextID()+"eventManager","accessByAccount:" + accessByAccount);
@@ -1614,19 +1677,23 @@ public class eventManager {
                 HtmlCode += "<TR> <TD><a  class= \"myAreaButton\" id= \"pincodeLoginToggler\" style=\"width:500px;\" "
                         + " onClick=\"javascript:togglePincodeLogin()\">PINCODE LOCAL LOGIN</a> </TD></TR>";
                 HtmlCode += "<TR><TD><DIV id=\"pincodeLoginSpace\" style=\"display:block;  \" >";
+                HtmlCode += "<form  method=\"post\" action=\"javascript:goLogin('pincode')\"><TABLE>";
 
-                HtmlCode += "<TABLE>";
+//                HtmlCode += "<TABLE>";
                 HtmlCode += "<tr>";
                 HtmlCode += ("<td colspan = \"4\" class=\"mydiv\" >Accesso facilitato: inserire l'USERNAME prescelto e il relativo PINCODE.</TD>");
                 HtmlCode += "</tr><tr>";
                 HtmlCode += ("<td class=\"mydiv\" >Username:  <input type='text' name='pincodeusername'  id='pincodeusername'></TD>");
-                HtmlCode += ("<td class=\"mydiv\">Pincode: <input type='password' name='pincode' id='pincode'></TD>");
+                HtmlCode += ("<td class=\"mydiv\">Pincode: <input type='password' name='pincode' id='pincode' "
+                        //                        + "onchange='goLogin(this.id)'"
+                        + "></TD>");
                 HtmlCode += ("<td class=\"mydiv\"><input type='hidden' name='event' id='event' value='pincodelogin'></TD>");
 
-                HtmlCode += ("<td><a class=\"myButton\" "
+                HtmlCode += ("<td class=\"mydiv\"><input type='submit' VALUE='Accesso con PIN' style='display:none;'></TD>");
+                HtmlCode += ("<td><a class=\"myButton\" id= \"pincodeBtn\" "
                         + " onClick=\"javascript:goLogin('pincode')\">Accesso con PIN</a></TD>");
                 HtmlCode += ("</tr>");
-                HtmlCode += ("</TABLE>");
+                HtmlCode += ("</TABLE></FORM>");
                 HtmlCode += ("</DIV></TD> </TR>");
             }
             //---------------------------
@@ -1646,18 +1713,19 @@ public class eventManager {
                     HtmlCode += "style=\"display:block;  \" ";
                 }
                 HtmlCode += ">";
-                HtmlCode += "<TABLE>";
+                HtmlCode += "<form  method=\"post\" action=\"javascript:goLogin('mailpassword')\"><TABLE>";
                 HtmlCode += "<tr>";
                 HtmlCode += ("<td  colspan = \"4\"class=\"mydiv\" >Per accedere inserire l'INDIRIZZO MAIL usato per la registrazione e la relativa PASSWORD.</TD>");
                 HtmlCode += "</tr><tr>";
                 HtmlCode += ("<td class=\"mydiv\" >Email:  <input type='text' name='username'  id='username'></TD>");
                 HtmlCode += ("<td class=\"mydiv\">Password: <input type='password' name='pass' id='pass'></TD>");
                 HtmlCode += ("<td class=\"mydiv\"><input type='hidden' name='event' id='event' value='login'></TD>");
+                HtmlCode += ("<td class=\"mydiv\"><input type='submit' VALUE='Accesso con Account' style='display:none;'></TD>");
 
-                HtmlCode += ("<td><a class=\"myButton\" "
+                HtmlCode += ("<td><a class=\"myButton\"  id= \"passBtn\"  "
                         + " onClick=\"javascript:goLogin('mailpassword')\">Accesso con Account</a></TD>");
                 HtmlCode += ("</tr>");
-                HtmlCode += ("</TABLE>");
+                HtmlCode += ("</TABLE></FORM>");
                 HtmlCode += ("</DIV></TD> </TR>");
             }
 
@@ -1708,9 +1776,28 @@ public class eventManager {
         if (mySettings.getUpdateMode() == null || !mySettings.getUpdateMode().equalsIgnoreCase("oldMysql")) {
             HtmlCode += "<INPUT type=\"hidden\" value=\"ACCOUNT@" + mySettings.getGaiaHost().getPwType() + " - " + mySettings.getGaiaHost().getDbUsername() + " > " + mySettings.getData_DATABASE_USER() + "\" >";
             HtmlCode += "<INPUT type=\"hidden\" value=\"QP@" + mySettings.getQP_centralManagerURL() + "\" >";
-
+            HtmlCode += ("<td><a "
+                    //                    + "class=\"myButton\" "
+                    + "style = \" position: fixed; bottom: 0; width: 100%;\" id= \"CREDITS @QUEENPRO.COM\" "
+                    + " onClick=\"javascript:EVOcom()\">Credits @queenpro.eu</a></TD>");
         }
         HtmlCode += ("</body>");
+//        HtmlCode+="<SCRIPT>"
+//                 + "var XpincodeLogin = document.getElementById(\"pincode\");\n" 
+//                + "XpincodeLogin.addEventListener(\"keyup\", function(event) {\n" 
+//                + "  if (event.keyCode === 13) {\n" 
+//                + "    event.preventDefault();\n" 
+//                + "    document.getElementById(\"pincodeBtn\").click();\n"
+//                + "  }\n"
+//                + "});"
+//                + "var XpassLogin = document.getElementById(\"pass\");\n" 
+//                + "XpincodeLogin.addEventListener(\"keyup\", function(event) {\n" 
+//                + "  if (event.keyCode === 13) {\n" 
+//                + "    event.preventDefault();\n" 
+//                + "    document.getElementById(\"passBtn\").click();\n"
+//                + "  }\n"
+//                + "});"
+//                + "</SCRIPT>";
         HtmlCode += ("</html>");
         request.setResponse((Object) HtmlCode);
         return request;
@@ -1756,7 +1843,7 @@ public class eventManager {
 
         EVOpagerDirectivesManager myManager = new EVOpagerDirectivesManager(request.getMyParams(), mySettings);
         String ExpireDate = myManager.getEvoDirective("ExpireDate");
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "tornato da ricerca Expire date: " + ExpireDate);
+        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "tornato da ricerca definition: " + ExpireDate);
 
         if (ExpireDate == null) {
             ExpireDate = "2010-01-01";
@@ -2744,13 +2831,7 @@ public class eventManager {
 
     public IncomingRequest DeleteFileFromFS(IncomingRequest request) {
         String HtmlCode = "";
-////////        EVOpagerDirectivesManager myManager = new EVOpagerDirectivesManager(myParams, mySettings);
-////////        String OSbasepath = myManager.getDirective("uploadBasePath");
-////////        String nomeContesto = "";
-////////        String slash = OSbasepath.substring(0, 1);
-////////        if (myParams.getCKcontextID() != null && myParams.getCKcontextID().length() > 0) {
-////////            nomeContesto = myParams.getCKcontextID() + slash;
-////////        }
+
         el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\n********\n-------\nENTRO IN DeleteFileFromFS");
         String name = "";
 
@@ -3561,12 +3642,16 @@ public class eventManager {
                 + " </td>"
                 + "<td>"
                 //-----
-                + "<TABLE  style = \"border: 1px solid black;border-collapse: collapse;\">"
-                + "<tr>" + "<td>"
+                + "<TABLE  style = \"border: 0px solid black;border-collapse: collapse;\">"
+                + "<tr>"
+                + "<td>"
+                + "<span style=\"width:100px; font-family: 'Verdana', Georgia, sans-Serif;font-size:xx-small;\" id=\"busyLine\"></span>\n"
+                + "</td>"
+                + "<td>"
                 + "<span style=\"width:100px; font-family: 'Verdana', Georgia, sans-Serif;font-size:xx-small;\" id=\"ledLine\"></span>\n"
                 + "</td>"
                 + "<td>"
-                + "LOCAL:<span style=\"width:100px; font-family: 'Verdana', Georgia, sans-Serif;font-size:xx-small;\" id=\"statusLine\"></span>\n"
+                + "<span style=\"width:100px; font-family: 'Verdana', Georgia, sans-Serif;font-size:xx-small;\" id=\"statusLine\"></span>\n"
                 + " </td>"
                 + "</tr></table>"
                 //-----                
@@ -3635,17 +3720,77 @@ public class eventManager {
         return request;
     }
 
+    public String getRowImageHtmlCode(BufferedImage image) {
+        int imgw = 40;
+        int imgh = 40;
+        try {
+            imgw = image.getWidth();
+            imgh = image.getHeight();
+        } catch (Exception e) {
+
+        }
+        String picCode = getRowImageHtmlCode(image, imgw, imgh);
+
+        return picCode;
+    }
+
+    public String getRowImageHtmlCode(BufferedImage image, int W, int H) {
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        String picCode = "";
+        String imageString = null;
+        int radio = 10;
+        if (image != null) {
+            try {
+                int HH = (int) image.getWidth();
+                if (HH > 20) {
+                    radio = HH / 2;
+                }
+            } catch (Error e) {
+            }
+            BufferedImage Rimage = makeRoundedCorner(image, radio);
+            try {
+
+                ImageIO.write(Rimage, "gif", bos);
+                byte[] imageBytes = bos.toByteArray();
+                imageString = Base64.getEncoder().encodeToString(imageBytes);
+                bos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            imageString = "";
+        }
+        int imgw = W;
+        int imgh = H;
+
+        picCode += "<img src=\"data:image/gif;base64," + imageString + "\" alt=\"" + "" + "\"";
+        picCode += "   width=\"" + imgw + "px\" heigth=\"" + imgh + "px\" ";
+        picCode += " />";
+//        System.out.println("picCode:\n" + picCode);
+        return picCode;
+    }
+
     public IncomingRequest populateTitleBar(IncomingRequest request) {
-        String HtmlCode = "";
-//        Settings mySettings = new Settings();
+        String HtmlCode = "";  //        Settings mySettings = new Settings();
         String title = mySettings.getSoftwareTitle();
+        EVOpagerDirectivesManager myDirective = new EVOpagerDirectivesManager(myParams, mySettings);
+        BufferedImage myLogo = null;
+        myLogo = myDirective.getDirectiveMediaBI("softwareLogo");
+        Rectangle bs;
+        bs = new Rectangle(70, 70);
+        String imageCode = getRowImageHtmlCode(myLogo, 60, 60);
         HtmlCode += (""
                 + "<TABLE border = \"0\">"
                 + "<tr><td>"
                 + "<table><tr>"
-                + "<td style=\"font-size: 400%;font-style: oblique;font-weight: bold;\">"
+                + "<td style=\"vertical-align: top; font-size: 400%;font-style: oblique;font-weight: bold;\">"
+                + imageCode
+                + " </td>"
+                + "<td style=\"vertical-align: top; font-size: 400%;font-style: oblique;font-weight: bold;\">"
                 + title
-                + " </td></tr>"
+                + " </td>"
+                + "</tr>"
                 + "</TABLE> ");
 
         System.out.println("title:" + title);
@@ -3747,16 +3892,28 @@ public class eventManager {
         logEvent myEvent = new logEvent();
         myEvent.setType("Login");
         String tabOperatori = mySettings.getAccount_TABLEoperatori();
-        el.setPrintOnScreen(true);
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\nEvent Manager LOGIN; username:" + request.getMyGate().getUsername() + " - pass:" + request.getMyGate().getPassword());
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "getAccessType:" + mySettings.getAccessType());
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "remoteIP:" + request.getRemoteIP());
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "getAdminConfirmationRequested:" + mySettings.getAdminConfirmationRequested() + " ");
+//        el.setPrintOnScreen(true);
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\nEvent Manager LOGIN; username:" + request.getMyGate().getUsername() + " - pass:" + request.getMyGate().getPassword());
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "getAccessType:" + mySettings.getAccessType());
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "remoteIP:" + request.getRemoteIP());
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "getAdminConfirmationRequested:" + mySettings.getAdminConfirmationRequested() + " ");
 
         String pass = request.getMyGate().getPassword();
         String username = request.getMyGate().getUsername();
         String remoteIP = request.getRemoteIP();
-        myEvent.setRemoteIP(remoteIP);
+        String XRealIP = request.getXRealIP();
+        String XForwardedFor = request.getXForwardedFor();
+        System.out.println("XRealIP:" + XRealIP);
+        System.out.println("XForwardedFor:" + XForwardedFor);
+        System.out.println("remoteIP:" + remoteIP);
+        if (XRealIP != null) {
+            myEvent.setRemoteIP(XRealIP);
+        } else if (XForwardedFor != null) {
+            myEvent.setRemoteIP(XForwardedFor);
+        } else {
+            myEvent.setRemoteIP(remoteIP);
+        }
+        System.out.println("USED CLIENT IP :" + myEvent.getRemoteIP());
 
         /*
          posso accettare
@@ -4005,7 +4162,31 @@ public class eventManager {
              } catch (Exception e) {
             el.log(myParams.getCKprojectName()+myParams.getCKcontextID()+"eventManager","EVO catcher : errore nella fase di backup.\n");
              }*/
+            Connection accountConny = new EVOpagerDBconnection(myParams, mySettings).ConnAccountDB();
+            String SQLphrase = "INSERT INTO `archivio_operatoriTokens`("
+                    + "`token`, `rifUser`,  `updated`, `jsessionID`, "
+                    + "`remoteIP`, `loggedStatus`, `projectGroup`, `projectName`, `contextID`"
+                    + ") VALUES ("
+                    + "?,?,now(),?,?,?,?,?,?)";
 
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+
+            try {
+                ps = accountConny.prepareStatement(SQLphrase);
+                ps.setString(1, "OVER_" + myParams.getCKtokenID());
+                ps.setString(2, username);
+                ps.setString(3, "BadCredentials");
+                ps.setString(4, remoteIP);
+                ps.setInt(5, -2);
+                ps.setString(6, myParams.getCKprojectGroup());
+                ps.setString(7, mySettings.getProjectName());
+                ps.setString(8, myParams.getCKcontextID());
+//                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\nINSERIMENTO TOKEN.\n" + ps.toString());
+                int i = ps.executeUpdate();
+            } catch (SQLException ex) {
+                Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
 
         myParams.setLoginResult(esito);

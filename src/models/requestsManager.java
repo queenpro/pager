@@ -20,6 +20,7 @@
  */
 package models;
 
+import REVOdbManager.EVOpagerDirectivesManager;
 import REVOdbManager.EVOpagerParams;
 import showIt.eventManager;
 import smartCore.smartForm;
@@ -147,8 +148,25 @@ public class requestsManager {
                     System.out.println("SESSIONE NON VALIDA:" + Irequest.getMyGate().getDoor());
                     System.out.println(" >" + Irequest.getMyGate().getEvent());
                     Irequest.getMyGate().setForm("");
+                    EVOpagerDirectivesManager myManager = new EVOpagerDirectivesManager(Irequest.myParams, Irequest.mySettings);
+                    String ApplicationWebURL = myManager.getDirective("ApplicationWebURL");
+                    if (ApplicationWebURL == null || ApplicationWebURL.equalsIgnoreCase("null")) {
+                        ApplicationWebURL = Irequest.mySettings.getProjectName();
+                    }
 
-                    String risposta = "{\"ACTION\":\"LOGOUT\",\"respOK\":\"logout\",\"MESSAGE\":\"INVALID SESSION\",\"DESCRIPTION\":\"SESSIONE SCADUTA, RIESEGUIRE IL LOGIN.\"}";
+////////                    String overPage = "<!DOCTYPE html>\n"
+////////                            + "<html>\n"
+////////                            + "   <head>\n"
+////////                            + "      <title>SESSIONE SCADUTA</title>\n"
+////////                            + "      <meta http-equiv = \"refresh\" content = \"2; url = "+localWebserverBaseURL+"\" />\n"
+////////                            + "   </head>\n"
+////////                            + "   <body>\n"
+////////                            + "      <p>SESSIONE SCADUTA, RIESEGUIRE IL LOGIN.</p>\n"
+////////                            + "   </body>\n"
+////////                            + "</html>"; 
+                    String link = "<a href='" + ApplicationWebURL + "'>LOGIN</a>";
+
+                    String risposta = "{\"ACTION\":\"LOGOUT\",\"respOK\":\"logout\",\"MESSAGE\":\"INVALID SESSION\",\"DESCRIPTION\":\"SESSIONE SCADUTA, RIESEGUIRE IL " + link + ".\"}";
                     Irequest.setResponse(risposta);
                     return Irequest;
                 }
@@ -268,8 +286,19 @@ public class requestsManager {
             // <editor-fold defaultstate="collapsed" desc="AccountManager">
             if (Irequest.getMyGate().getDoor().equalsIgnoreCase("AccountManager")) {
                 if (Irequest.getMyGate().getEvent().equalsIgnoreCase("LoginForm")) {
+                    EVOpagerDirectivesManager myManager = new EVOpagerDirectivesManager(Irequest.myParams, Irequest.mySettings);
+                    String siteSuspended = myManager.getDirective("siteSuspended");
+                    if (siteSuspended != null && siteSuspended.equalsIgnoreCase("TRUE")) {
+                        System.out.println("vado in siteOfflineForm ");
+                        Irequest.getMyGate().setControlNeeded(false);
+                        Irequest = myEvent.siteOfflineForm(Irequest);
+                    } else {
+                        System.out.println("vado in LoginForm ");
+                        Irequest.getMyGate().setControlNeeded(false);
+                        Irequest = myEvent.loginForm(Irequest);
+                    }
+                } else if (Irequest.getMyGate().getEvent().equalsIgnoreCase("siteOfflineForm")) {
                     System.out.println("vado in LoginForm ");
-
                     Irequest.getMyGate().setControlNeeded(false);
                     Irequest = myEvent.loginForm(Irequest);
                 } else if (Irequest.getMyGate().getEvent().equalsIgnoreCase("quickLoginForm")) {
@@ -432,6 +461,24 @@ public class requestsManager {
                                 + "\"currentPage\":\"1\","
                                 + "\"visualFilter\":\"\"}");
                         System.out.println("VADO IN clickedObject-->SMARTTREE, getVisualType:" + mySmartForm.getVisualType());
+                        mySmartForm.paintForm();//questo mette il codice html in mySmartForm.formResponse
+                        System.out.println("PaintForm eseguito");
+
+                        formResponse.setGes_routineOnLoad(mySmartForm.formResponse.getGes_routineOnLoad());
+                        formResponse.setHtmlCode(mySmartForm.formResponse.getHtmlCode());
+                        Irequest.getMyGate().setGes_routineOnLoad(formResponse.ges_routineOnLoad);
+                        Irequest.setResponse(formResponse.HtmlCode);
+                        System.out.println("Esco con Door=" + Irequest.getMyGate().getDoor());
+                        System.out.println("formResponse.HtmlCode=" + formResponse.HtmlCode);
+                    } else if (myForm.getType().equalsIgnoreCase("SMARTCALENDAR")) {
+                        smartForm mySmartForm = loadSmartFORMfromGATE();
+                        mySmartForm.setLoadType("{\"type\":\"SMARTCALENDAR\","
+                                + "\"visualType\":\"FULLFORM\","
+                                + "\"firstRow\":\"1\","
+                                + "\"NofRows\":\"50\","
+                                + "\"currentPage\":\"1\","
+                                + "\"visualFilter\":\"\"}");
+                        System.out.println("VADO IN clickedObject-->SMARTCALENDAR, getVisualType:" + mySmartForm.getVisualType());
                         mySmartForm.paintForm();//questo mette il codice html in mySmartForm.formResponse
                         System.out.println("PaintForm eseguito");
 
@@ -817,12 +864,11 @@ public class requestsManager {
                     //
 
                     //    .. vediamo se trovo il nome del form e riesco a risalire alla query corretta per la picture
-                    System.out.println("\n\n\nRICHIESTA renderPic (riga 700 di requestManager)");
-                    System.out.println("fatherForm:" + Irequest.getMyGate().fatherForm);
-                    System.out.println("formName:" + Irequest.getMyGate().formName);
-                    System.out.println("formToLoad:" + Irequest.getMyGate().formToLoad);
-                    System.out.println("formID:" + Irequest.getMyGate().formID);
-
+//////                    System.out.println("\n\n\nRICHIESTA renderPic (riga 700 di requestManager)");
+//////                    System.out.println("fatherForm:" + Irequest.getMyGate().fatherForm);
+//////                    System.out.println("formName:" + Irequest.getMyGate().formName);
+//////                    System.out.println("formToLoad:" + Irequest.getMyGate().formToLoad);
+//////                    System.out.println("formID:" + Irequest.getMyGate().formID);
                     String union = " WHERE ";
                     try {
                         if (Irequest.getMyGate().getTable() != null
@@ -836,7 +882,7 @@ public class requestsManager {
                             + " FROM " + Irequest.getMyGate().getTable()
                             + union + Irequest.getMyGate().getKeyField()
                             + "='" + Irequest.getMyGate().getCurrentKEY() + "'";
-                    System.out.println("PIC SQLphrase fromDB: " + SQLphrase);
+//                    System.out.println("PIC SQLphrase fromDB: " + SQLphrase);
 
                     Blob blob = null;
                     try {

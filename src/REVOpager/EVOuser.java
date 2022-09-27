@@ -1227,7 +1227,7 @@ public class EVOuser {
                     PreparedStatement ps;
                     SQLphrase = "UPDATE `archivio_operatoriTokens` SET `loggedStatus`= 0, `token`= 'OVER_" + myParams.getCKtokenID() + "'  "
                             + "WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
-                    System.out.println("\n*\nverifyUserTimeout-->SONO IN logout." + SQLphrase);
+//                    System.out.println("\n*\nverifyUserTimeout-->SONO IN logout." + SQLphrase);
                     ps = accountConny.prepareStatement(SQLphrase);
                     int i = ps.executeUpdate();
                     accountConny.close();

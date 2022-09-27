@@ -34,6 +34,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -428,14 +429,14 @@ public class CRUDorder {
                 linkFieldUNO = couples.get(0);
                 linkFieldMOLTI = couples.get(1);
             }
-            System.out.println("var operation=" + operation);
-            System.out.println("var cellName=" + cellName);
-            System.out.println("var primaryFieldValue=" + primaryFieldValue);
-            System.out.println("var filterValue=" + filterValue);
-            System.out.println("var newValue=" + newValue);
-            System.out.println("var linkTable=" + linkTable);
-            System.out.println("var linkFieldUNO=" + linkFieldUNO);
-            System.out.println("var linkFieldMOLTI=" + linkFieldMOLTI);
+//            System.out.println("var operation=" + operation);
+//            System.out.println("var cellName=" + cellName);
+//            System.out.println("var primaryFieldValue=" + primaryFieldValue);
+//            System.out.println("var filterValue=" + filterValue);
+//            System.out.println("var newValue=" + newValue);
+//            System.out.println("var linkTable=" + linkTable);
+//            System.out.println("var linkFieldUNO=" + linkFieldUNO);
+//            System.out.println("var linkFieldMOLTI=" + linkFieldMOLTI);
 
             if (this.getNewValue().equalsIgnoreCase("TRUE")) {
                 // inserisco riga se non esiste
@@ -487,7 +488,7 @@ public class CRUDorder {
 
     }
 
-    public smartForm buildMySmartForm() {
+    public smartForm buildMySmartForm() { //USATA SOLO PER ROUTINE BEFORE/AFTER
         smartForm mySmartForm = new smartForm(this.getFormID(), myParams, mySettings);
         if (this.getFormName() != null) {
             mySmartForm.setName(this.getFormName());
@@ -496,8 +497,735 @@ public class CRUDorder {
 
         mySmartForm.setCopyTag(this.getFormCopyTag());
         mySmartForm.setSendToCRUD(this.getSendToCRUD());
-        mySmartForm.buildSchema();
+        mySmartForm.loadSettingsAndPanel();
+
+//        mySmartForm.buildSchema();
+        String routineAfter = mySmartForm.getRoutineAfterUpdate();
+        System.out.println("buildMySmartForm-->routineAfterUpdate: " + routineAfter);
         return mySmartForm;
+    }
+
+    public String executeSmartCRUD() {
+        //---buildMyForm();
+        myForm = new ShowItForm(this.getFormID(), myParams, mySettings);
+        if (this.getFormName() != null) {
+            myForm.setName(this.getFormName());
+        }
+        // se conosco il nome questo prevale sull'ID e l'ID viene invece ricavato di conseguenza dal DB
+
+        myForm.setCopyTag(this.getFormCopyTag());
+        myForm.setSendToCRUD(this.getSendToCRUD());
+//        myForm.buildSchema();
+        myForm.buildSmartSchemaLight();
+        System.out.println("executeSmartCRUD-->getQuery:" + myForm.getQuery());
+        System.out.println("executeSmartCRUD-->getSendToCRUD:" + myForm.getSendToCRUD());
+
+        //-----------------------
+        JSONObject jsonAnswer = new JSONObject();
+        logEvent myEvent = new logEvent();
+        myEvent.setType("CRUD");
+        myEvent.setUser(myParams.getCKuserID());
+        myEvent.setToken(myParams.getCKtokenID());
+
+        String errorMessage = "";
+        String answer = "";
+        String pKEY = "";
+        String pKEYtype = "";
+        String pKEYvalue = "";
+//        System.out.println("INIZIO CRUD value:" + this.getNewValue());
+        String newHtmlCode = "";
+        Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
+        if (this.getNewValue() != null) {
+            String autovalue = null;
+            try {
+                autovalue = java.net.URLDecoder.decode(this.getNewValue(), "UTF-8");
+                this.setNewValue(autovalue);
+            } catch (UnsupportedEncodingException ex) {
+                Logger.getLogger(CRUDorder.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                autovalue = java.net.URLDecoder.decode(this.getNewValue(), "UTF-8");
+                this.setNewValue(autovalue);
+            } catch (UnsupportedEncodingException ex) {
+                Logger.getLogger(CRUDorder.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+//        System.out.println("armoinizzato value:" + this.getNewValue());
+        if (this.getCellType() == null || this.getCellType() == "") {
+            this.setCellType("T");
+        }
+
+        this.formType = myForm.getType(); //per gestire il tipo tree
+
+        String SQLphrase = "";
+        String whereClause = "";
+
+        // Cerco in FE_forms la mainTable di questo Form
+        try {
+            Statement s = conny.createStatement();
+
+//            System.out.println("\n-----------------\nSONO IN ExecuteCRUD\nCerco le info in base al nome del form:" + myForm.getName());
+            myForm.getFormInformationsFromDB();
+            if (this.formType != null && this.formType.equalsIgnoreCase("SMARTTREE")) {
+                System.out.println("STO PER ESEGUIRE CRUD SU TREE: ");
+                for (int oo = 0; oo < myForm.objects.size(); oo++) {
+                    if (myForm.objects.get(oo).AddingRow_enabled > 0) {
+                        cellName = myForm.objects.get(oo).getName();
+                        System.out.println("CellName trovato: " + cellName);
+                        break;
+                    }
+                }
+//                printParams();
+            }
+            //myForm.printVals();
+            String dbTable = myForm.getMainTable();
+            String formType = myForm.getType();
+            JSONParser jsonParser = new JSONParser();
+            JSONObject jsonObject = null;
+            String afterDel = "";
+            String routineOnFormChange = "";
+            String routineOnUpdateObj = "";
+            String routineOnNew = "";
+            for (int oo = 0; oo < myForm.objects.size(); oo++) {
+                System.out.println("oggetto:" + myForm.objects.get(oo).getID() + " --->" + myForm.objects.get(oo).getName());
+                if (myForm.objects.get(oo).getID().equals(cellID) || myForm.objects.get(oo).getName().equals(cellName)) {
+                    String ActionParamsDB = myForm.objects.get(oo).getActionParams();
+                    System.out.println("Durante il crud trovato oggetto scaturente:" + myForm.objects.get(oo).name + " ---> " + myForm.objects.get(oo).getRoutineOnChange());
+                    routineOnUpdateObj = myForm.objects.get(oo).getRoutineOnChange();
+//                    System.out.println("ActionParamsDBa:" + ActionParamsDB);
+                    this.setActionParams(ActionParamsDB);
+                    break;
+                }
+            }
+            /*
+questo sopra apre una strada im portante per i controlli diurante un CRUD perchè accedo ai valori dell'oggetto
+direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare anche i diritti per il form e l'identità di chi oepra
+             */
+            if (myForm.getGes_topBar() != null && myForm.getGes_topBar().length() > 1) {
+                try {
+                    jsonObject = (JSONObject) jsonParser.parse(myForm.getGes_topBar());
+                    try {
+                        afterDel = jsonObject.get("actionsAfterDel").toString();
+                    } catch (Exception e) {
+                    }
+                    jsonObject = (JSONObject) jsonParser.parse(myForm.getGes_topBar());
+                    try {
+                        routineOnNew = jsonObject.get("routineOnNew").toString();
+                    } catch (Exception e) {
+                    }
+                    try {
+                        routineOnFormChange = jsonObject.get("routineOnFormChange").toString();
+                    } catch (Exception e) {
+                    }
+                } catch (ParseException ex) {
+                    Logger.getLogger(CRUDorder.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            System.out.println("[CRUD]routineOnNew:" + routineOnNew);
+            this.setAfterOperationRoutineOnNew(routineOnNew);
+            this.setAfterOperationRoutineOnChange(routineOnFormChange);
+            if ((this.getAfterOperationRoutineOnChange() != null || this.getAfterOperationRoutineOnChange().length() > 4)
+                    && (this.getRoutineOnChange() == null || this.getRoutineOnChange().length() < 5)) {
+                System.out.println("[CRUD]routineOnFormChange:" + routineOnFormChange);
+                this.setRoutineOnChange(routineOnFormChange);
+            }
+
+//            for (int jj = 0; jj < myForm.objects.size(); jj++) {
+//                System.out.println("OBJECT:" + myForm.objects.get(jj).name + "\t ->" + myForm.objects.get(jj).Content.getActualModifiable());
+//                System.out.println("OBJECT:" + myForm.objects.get(jj).name + "\t ->" + myForm.objects.get(jj).Content.getThisRowModifiable());
+//
+//            }
+            String actionPassed = "";
+            System.out.println("executeSmartCRUD-->[CRUD]myForm.getRefreshOnUpdate():" + myForm.getRefreshOnUpdate());
+            if (myForm.getRefreshOnUpdate() != null && myForm.getRefreshOnUpdate().equalsIgnoreCase("TRUE")) {
+                actionPassed = "repaintRow";
+            }
+
+
+            /*
+            VERIFICHE DA IMPLEMENTARE:
+            1. esistenza utente e token valido con sessione aperta
+            2. in base al FORM, analisi dei diritti di scrittura sul form e sul singolo object
+             */
+            if (this.getPrimaryFieldType() != null && this.getPrimaryFieldType().length() > 2
+                    && (this.getPrimaryFieldType().substring(0, 3).equalsIgnoreCase("INT")
+                    || this.getPrimaryFieldType().substring(0, 3).equalsIgnoreCase("FLO")
+                    || this.getPrimaryFieldType().substring(0, 3).equalsIgnoreCase("BIT"))) {
+                pKEYtype = "INT";
+                whereClause = " WHERE " + this.getPrimaryFieldName() + " = " + this.getPrimaryFieldValue() + " ;";
+            } else {
+                whereClause = " WHERE " + this.getPrimaryFieldName() + " = \"" + this.getPrimaryFieldValue() + "\";";
+            }
+
+            myEvent.setEventCode(this.getOperation());
+//----------------------------------------------------------    
+            // <editor-fold defaultstate="collapsed" desc="DEL">   
+            //DEL///////////////////////////////////////////////////////////////                
+            if (this.getOperation().equalsIgnoreCase("DEL")) {
+                SQLphrase = "DELETE FROM `" + dbTable + "`  " + whereClause;
+//                System.out.println("DEL:SQLphrase:" + SQLphrase);
+
+                myEvent.setInfo1(SQLphrase);
+                int Result = s.executeUpdate(SQLphrase);
+
+                if (Result > 0) {
+                    jsonAnswer = new JSONObject();
+                    jsonAnswer.put("sender", "CRUD");
+                    jsonAnswer.put("operation", "DEL");
+                    jsonAnswer.put("code", "OK");
+                    jsonAnswer.put("mess", "DELETED");
+                    jsonAnswer.put("routineResponse", afterDel);
+
+                    // String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"DEL\",\"code\":\"OK\",\"mess\":\"DELETED\",\"routineResponse\":" + afterDel + "}";
+//                    answer = jsonAnswer;
+                } else {
+                    jsonAnswer = new JSONObject();
+                    jsonAnswer.put("sender", "CRUD");
+                    jsonAnswer.put("operation", "DEL");
+                    jsonAnswer.put("code", "ERR");
+                    jsonAnswer.put("mess", "ERROR WHILE DELETING.");
+                    jsonAnswer.put("routineResponse", "");
+//                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"DEL\",\"code\":\"ERR\",\"mess\":\"ERROR WHILE DELETING.\"}";
+//                    answer = jsonAnswer;
+                }
+                System.out.println("DEL:answer:" + answer);
+
+            } else // </editor-fold>    
+            // <editor-fold defaultstate="collapsed" desc="ADD">   
+            //ADD/////////////////////////////////////////////////////////////// 
+            if (this.getOperation().equalsIgnoreCase("ADD")) {
+                //prima di uscire dovrò sapere quale key è stata usata o assegnata
+                // per compilare la nuova riga
+                //quondi interrogo lo schema per conoscere le caratteristiche
+                ArrayList<schema_column> columns = getFormColumns(dbTable);
+
+////////                Connection schemaconny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalSchema();
+////////
+////////                Statement schemast = schemaconny.createStatement();
+////////                // Statement localSt = localconny.createStatement();
+////////                SQLphrase = "SELECT * FROM COLUMNS\n"
+////////                        + "           WHERE TABLE_NAME = '" + dbTable + "'\n"
+////////                        + "             AND TABLE_SCHEMA = '" + mySettings.getProjectDBextendedName(myParams) + "' ORDER BY ORDINAL_POSITION;";
+//////////                System.out.println("ADD: SCHEMA SQLphrase=" + SQLphrase);
+////////
+////////                ResultSet schemars = schemast.executeQuery(SQLphrase);
+////////                int i = 0;
+////////                /* 
+////////                 String IS_NULLABLE[]=new String[100]; // ES. 'YES' oppure 'NO'
+////////                 String COLUMN_KEY[]=new String[100]; // ES. 'PRI'=PRIMARY
+////////                 String EXTRA[]=new String[100]; // ES. 'auto_increment'
+////////                 */
+////////
+////////                ArrayList<schema_column> columns = new ArrayList<schema_column>();
+////////                while (schemars.next()) {
+////////                    i++;
+////////                    schema_column column = new schema_column();
+////////                    column.setCOLUMN_NAME(schemars.getString("COLUMN_NAME"));
+//////////                    System.out.println("CRUD ORDER reperita colonna " + column.getCOLUMN_NAME());
+////////                    column.setCOLUMN_DEFAULT(schemars.getString("COLUMN_DEFAULT"));
+////////                    column.setCOLUMN_KEY(schemars.getString("COLUMN_KEY"));
+////////                    column.setDATA_TYPE(schemars.getString("DATA_TYPE"));
+////////                    column.setEXTRA(schemars.getString("EXTRA"));
+////////                    column.setIS_NULLABLE(schemars.getString("IS_NULLABLE"));
+////////                    column.setCOLUMN_TYPE(schemars.getString("COLUMN_TYPE"));
+////////                    column.setORDINAL_POSITION(schemars.getInt("ORDINAL_POSITION"));
+////////
+////////                    BigDecimal result = schemars.getBigDecimal("CHARACTER_MAXIMUM_LENGTH");
+////////                    column.setCHARACTER_MAXIMUM_LENGTH(result == null ? null : result.toBigInteger());
+////////
+////////                    column.setNUMERIC_PRECISION(schemars.getInt("NUMERIC_PRECISION"));
+////////
+////////                    columns.add(column);
+////////                    //System.out.println("inglobata colonna "+ column.getCOLUMN_NAME());                  
+////////                }
+////////                schemaconny.close();
+                //===CERCO LO SCHEMA PER INDIVIDUARE COLONNA PRIMARIA E ALTRE CARATTERISTICHE
+                for (int jj = 0; jj < columns.size(); jj++) {
+                    //System.out.println("Colonna [" + jj + "] = '" + columns.get(jj).getCOLUMN_NAME() + "' -COLUMN_KEY:" + columns.get(jj).getCOLUMN_KEY() + " - EXTRA:" + columns.get(jj).getEXTRA());
+                    if (columns.get(jj).getCOLUMN_KEY() != null
+                            && columns.get(jj).getCOLUMN_KEY().length() > 2
+                            && columns.get(jj).getCOLUMN_KEY().substring(0, 3).equalsIgnoreCase("PRI")) {
+                        //System.out.println("Colonna primaria");
+                        pKEY = columns.get(jj).getCOLUMN_NAME();
+                        this.setPrimaryFieldName(pKEY);
+
+                        pKEYtype = "VARCHAR";
+                        if (columns.get(jj).getDATA_TYPE()!=null && columns.get(jj).getDATA_TYPE().length()>2 && columns.get(jj).getDATA_TYPE().substring(0, 3).equalsIgnoreCase("INT")) {
+                            pKEYtype = "INT";
+                        }
+                        if (columns.get(jj).getEXTRA().equalsIgnoreCase("auto_increment")) {
+                            pKEYtype = "AUTOINCREMENT";
+                        }
+//                        System.out.println("pKEY:" + pKEY + "   -   pKEYtype:" + pKEYtype);
+                    }
+                }
+
+                ArrayList<boundFields> boundFieldList = new ArrayList<boundFields>();
+
+                // <editor-fold defaultstate="collapsed" desc="ANALIZZO filterSequence">   
+                System.out.println("\nADD================\n2.ANALIZZO filterSequence:" + this.getFilterSequence());
+                //analizzo la filterSequence per aggiungere i campi autocompilati
+
+                if (this.getFilterSequence() != null && this.getFilterSequence().length() > 0) {
+                    String filters = this.getFilterSequence();
+                    this.setFilterSequence(filters + " ; ");
+
+                    String[] QUERYphrase = this.getFilterSequence().split(";");
+                    List<String> QUERYparts = Arrays.asList(QUERYphrase);
+                    if (QUERYparts.size() > 1) {
+
+                        for (int jj = 0; jj < QUERYparts.size(); jj++) {
+
+                            System.out.println("blocco " + jj + " : " + QUERYparts.get(jj).toString());
+                            String[] LINEphrase = QUERYparts.get(jj).toString().split("=");
+                            List<String> LINEparts = Arrays.asList(LINEphrase);
+                            if (LINEparts.size() > 1) {
+                                boundFields myField = new boundFields();
+                                myField.setMarker(LINEparts.get(0));
+                                myField.setValue(LINEparts.get(1));
+
+                                String valoreDefault = LINEparts.get(1);
+
+                                // ora applico sostituzioni al valoreDefault in base ai dati sendToCRUD
+                                System.out.println("ora applico sostituzioni al valoreDefault in base ai dati sendToCRUD " + valoreDefault);
+                                valoreDefault = standardReplace(valoreDefault, null);
+                                System.out.println("diventa " + valoreDefault);
+
+                                myField.setValue(valoreDefault);
+                                if (!myField.getMarker().contains(".")) {// se il campo proviene da un'altra tabella non lo inserisco
+                                    boundFieldList.add(myField);
+                                }
+
+                                System.out.println("aggiunto da filtersequence:" + myField.getMarker() + " =" + valoreDefault);
+                            }
+                        }
+
+                    }
+                    // oltre alle sostituzioni con i campi facciop anche le sostituzioni standard       
+
+                }
+// </editor-fold>    
+                // <editor-fold defaultstate="collapsed" desc="Cerco field con DEFAULT VALUE">   
+                boundFields myField = new boundFields();
+
+                //   3.inoltre voglio aggiungere campi compilati dal valore di default impostato in evolution es. $$$NOW$$$ o $$$KEY$$$
+                int FlagPanelFIlter = 0;
+//                System.out.println("\n3.Cerco negli oggetti i field con DEFAULT VALUE");
+
+                SQLphrase = "SELECT * FROM " + mySettings.getLocalFE_objects() + " WHERE rifForm = '" + this.getFormID() + "'";
+//                System.out.println("SQLphrase" + SQLphrase);
+                ResultSet rs = s.executeQuery(SQLphrase);
+
+                try {
+                    while (rs.next()) {
+                        // parso tutti gli Oggetti dello schema FEobjects e cerco quelli con default Value
+                        String fieldName = rs.getString("name");
+                        String defVal = rs.getString("defaultValue");
+                        if (defVal != null && !defVal.equalsIgnoreCase("NULL") && defVal.length() > 0) {
+                            if (defVal.startsWith("@@@INCR")) {
+                                int Xincr = 1;
+                                String incr = defVal.replace("@@@", "");
+                                incr = incr.replace("INCR", "");
+                                Xincr = Integer.parseInt(incr);
+                                System.out.println("5DEVO INCREMENTARE" + Xincr);
+                                // ho il fieldName e la query. Cerco il valore massimo e lo increwmento di Xincr
+//                                System.out.println("executeSmartCRUD-->getQuery:" + myForm.getQuery());
+//                                System.out.println("executeSmartCRUD-->getSendToCRUD:" + myForm.getSendToCRUD());
+                                int maxfound = 0;
+                                String SQLphrase2 = myForm.getQuery();
+                                try {
+                                     
+                                    SQLphrase2 = replaceMarkers(myForm.getQuery(), decodeURLstring(myForm.getSendToCRUD()));
+                                    System.out.println("executeSmartCRUD-->SQLphrase2:" + SQLphrase2);
+                                    Statement s2 = conny.createStatement();
+                                    ResultSet rs2 = s2.executeQuery(SQLphrase2);
+                                    while (rs2.next()) {
+                                        int vv = rs2.getInt(fieldName);
+                                        if (vv > maxfound) {
+                                            maxfound = vv;
+                                        }
+                                    }
+                                } catch (SQLException ex) {
+                                    System.out.println("errorMessage 845:" + ex.toString() + "_");
+                                }
+                                maxfound += Xincr;
+                                defVal = "" + maxfound;
+//                                System.out.println("maxfound: " + maxfound);
+                            }
+                            // questo oggetto ha un default value indicato !
+//                            System.out.println("OGGETTO " + fieldName + " DEFAULT=" + defVal);
+                            int flag = 0;
+                            //controllo se fa parte della boundFieldList esistente
+                            for (int jj = 0; jj < boundFieldList.size(); jj++) {
+                                if (fieldName.equalsIgnoreCase(boundFieldList.get(jj).getMarker())) {
+                                    flag++;
+                                }
+                            }
+                            if (fieldName.equalsIgnoreCase(this.getCellName())) {
+                                // controllo che non sia proprio il campo che sto aggiornando    
+                                flag++;
+                            }
+
+                            if (flag == 0) {
+                                String radix = newValue;
+
+//                                System.out.println("579 prima=" + defVal);
+                                defVal = standardReplace(defVal, radix);
+//                                System.out.println("579 dopo=" + defVal);
+
+                                if (this.getNewValue().equalsIgnoreCase("PANELFILTER")) {
+                                    FlagPanelFIlter++;
+                                }
+
+                                // sostituisco i valori da FUNZIONE @@@xxx@@@
+                                /*   customFunction myfuncs = new customFunction(this.getNewValue());
+                                 System.out.println(">>CERCO LE FUNZIONI A PARTIRE DAL NUOVO VALORE: " + this.getNewValue());
+                                 for (int kk = 0; kk < myfuncs.getFunctions().size(); kk++) {
+                                 String funzione = myfuncs.getFunctions().get(kk);
+                                 //    System.out.println(">>SOSTITUISCO: "+"@@@"+funzione+"@@@");
+                                 //   System.out.println(">>CON: "+myfuncs.executeFunction(funzione));
+                                 defVal = defVal.replace("@@@" + funzione + "@@@", myfuncs.executeFunction(funzione));
+                                 }*/
+                                //   System.out.println(">>QUI POSSO SOSTITUIRE  ..." + this.getSendToCRUD());
+                                myField = new boundFields();
+                                myField.setMarker(fieldName);
+                                myField.setValue(defVal);
+                                //System.out.println("aggiungo "+fieldName+" alla boundList poichè ha un valore di DEFAULT"); 
+                                boundFieldList.add(myField);
+                                // aggiungo alla boundfields 
+
+                            }
+                        } else {
+                            // System.out.println("OGGETTO " + fieldName + " NON HA DEFAULT VALUE");
+                        }
+                    }
+                } catch (SQLException ex) {
+                    answer = errorMessage;
+                    System.out.println("errorMessage 1334:" + errorMessage + "_");
+                }
+                if (this.getCellName() != null && !this.getCellName().equalsIgnoreCase("INSERT_AI")) {
+                    //FINE 3.=INSERISCO NUOVO VALORE==================================================================                               
+                    myField = new boundFields();
+                    myField.setMarker(this.getCellName());
+                    myField.setValue("'" + this.getNewValue() + "'");
+                    boundFieldList.add(myField);
+                }
+
+                String fieldsList = "";
+                String valuesList = "";
+//                System.out.println("\n4.=======================\nTrovati in tutto " + boundFieldList.size() + " campi da inserire.");
+// </editor-fold>    
+                // <editor-fold defaultstate="collapsed" desc="INSERIMENTO">   
+                //===INSERIMENTO=====================================================      
+                int Result = 0;
+                if (boundFieldList.size() > 0) {
+                    for (int jj = 0; jj < boundFieldList.size(); jj++) {
+                        if (boundFieldList.get(jj).getMarker().equalsIgnoreCase(this.getPrimaryFieldName())) {
+                            this.setPrimaryFieldValue(boundFieldList.get(jj).getValue());
+                        }
+
+                        if (jj > 0) {
+                            fieldsList += ", ";
+                        }
+                        fieldsList += "`" + boundFieldList.get(jj).getMarker() + "`";
+                        if (jj > 0) {
+                            valuesList += ", ";
+                        }
+
+                        String xValue = boundFieldList.get(jj).getValue();
+                        String yValue = xValue;
+                        if (xValue != null) {
+                            int lunghezza = xValue.length();
+                            if (xValue.length() > 2
+                                    && xValue.substring(0, 1).equals("'")
+                                    && xValue.substring(lunghezza - 1, lunghezza).equals("'")) {
+                                yValue = xValue.substring(1, lunghezza - 1);
+                                yValue = "'" + yValue.replace("'", "\'") + "'";
+                            }
+                        }
+                        valuesList += yValue;
+
+                    }
+
+                    SQLphrase = "INSERT INTO `" + dbTable + "` (";
+                    SQLphrase += fieldsList;
+                    SQLphrase += " ) VALUES (";
+                    SQLphrase += valuesList;
+                    SQLphrase += " );";
+
+//                    System.out.println("Prima di replace: " + SQLphrase);
+                    SQLphrase = standardReplace(SQLphrase, this.getPrimaryFieldValue());
+//                    System.out.println("Dopo replace: " + SQLphrase);
+
+                    myEvent.setInfo1(SQLphrase);
+                    System.out.println("\n5.===============\nsmartCRUD:SQLphrase di inserimento:" + SQLphrase);
+                    errorMessage = "ERRORE IN INSERIMENTO (probabile duplicazione codice).";
+
+                    Result = s.executeUpdate(SQLphrase);
+                }
+                //================================================                  
+                System.out.println("Result:" + Result);
+// </editor-fold>    
+
+                int newID = 0;
+                if (Result > 0) {
+
+                    // se la key era un autoincrement devo cercare il suo valore massimo
+                    // altrimenti la conosco già ( primaryKEY  e  primaryKEYtype)
+//                    System.out.println("pKEYtype:" + pKEYtype);
+                    if (pKEYtype.equalsIgnoreCase("AUTOINCREMENT")) {
+                        SQLphrase = "SELECT * FROM `" + dbTable + "` WHERE ";
+
+                        fieldsList = "";
+                        for (int jj = 0; jj < boundFieldList.size(); jj++) {
+                            if (!boundFieldList.get(jj).getValue().contains("CURTIME")
+                                    && !boundFieldList.get(jj).getValue().contains("NOW")) {
+
+                                if (fieldsList.length() > 0) {
+                                    fieldsList += " AND ";
+                                }
+                                fieldsList += "`" + boundFieldList.get(jj).getMarker() + "`=" + boundFieldList.get(jj).getValue();
+                            }
+                        }
+                        SQLphrase += fieldsList + " ORDER BY `" + pKEY + "` DESC ";
+
+                        SQLphrase = standardReplace(SQLphrase, null);
+
+//                        System.out.println("SQLphrase di ricerca nuovo ID:" + SQLphrase);
+                        rs = s.executeQuery(SQLphrase);
+                        while (rs.next()) {
+                            newID = rs.getInt(this.getPrimaryFieldName());
+                            break;
+                        }
+                        pKEY = this.getPrimaryFieldName();
+                        pKEYvalue = "" + newID;
+                        pKEYtype = "INT";
+                    } else {
+                        // se sono qui non è autoincrement, quindi uso la mia primary key già nota
+                        pKEYvalue = this.getPrimaryFieldValue().replace("'", "");
+                        pKEYtype = this.getPrimaryFieldType();
+                    }
+                    jsonAnswer = new JSONObject();
+                    jsonAnswer.put("sender", "CRUD");
+                    jsonAnswer.put("operation", "ADD");
+                    jsonAnswer.put("code", "OK");
+                    jsonAnswer.put("mess", "");
+                    jsonAnswer.put("routineResponse", "");
+                    jsonAnswer.put("newID", pKEYvalue);
+                    jsonAnswer.put("afterHour", JSafterHour);
+                    jsonAnswer.put("nodeName", nodeName);
+                    jsonAnswer.put("fatherNodeName", fatherNodeName);
+
+//                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"ADD\",\"code\":\"OK\",\"newID\":\"" + pKEYvalue + "\",\"afterHour\":\"" + JSafterHour + "\"}";
+//                    answer = jsonAnswer;
+                } else {
+                    jsonAnswer = new JSONObject();
+                    jsonAnswer.put("sender", "CRUD");
+                    jsonAnswer.put("operation", "ADD");
+                    jsonAnswer.put("code", "ERR");
+                    jsonAnswer.put("mess", "ERRORE IN INSERIMENTO (probabile duplicazione codice).");
+//                    jsonAnswer.put("routineResponse", "");
+//                    jsonAnswer.put("newID", "");
+//                    jsonAnswer.put("afterHour", "");
+//
+//                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"ADD\",\"code\":\"ERR\",\"mess\":\"ERRORE IN INSERIMENTO (probabile duplicazione codice).\"}";
+//                    answer = jsonAnswer;
+                }
+//                System.out.println("answer:" + answer + "_");
+            } else // </editor-fold>    
+            // <editor-fold defaultstate="collapsed" desc="UPD"> 
+            //UPD/////////////////////////////////////////////////////////////// 
+            if (this.getOperation().equalsIgnoreCase("UPD")) {
+                SQLphrase = "UPDATE `" + dbTable + "` SET  `" + this.getCellName() + "` = ? " + whereClause;
+                System.out.println("SQLphrase:"+SQLphrase);
+                PreparedStatement statement = conny.prepareStatement(SQLphrase);
+
+                // Problema, in caso di valore nullo cambia il modo di fare update
+                // non so se devo fare setInt oppure setString a seconda che sia un numero o un testo
+                // vediamo di ricavare il dato direttamente dallo schema tabelle
+                ArrayList<schema_column> columns = getFormColumns(dbTable);
+                String fieldType = "";
+                schema_column myColumn;
+                for (schema_column column : columns) {
+                    System.out.println("Colonna " + column.getCOLUMN_NAME() + "  = " + column.getCOLUMN_TYPE()+"  ->>"+column.getDATA_TYPE().substring(0, 3));
+                    if (column.getCOLUMN_NAME().equalsIgnoreCase(this.getCellName())) {
+                        myColumn = column;
+
+                        if (column.getDATA_TYPE()!=null && column.getDATA_TYPE().length()>2 && column.getDATA_TYPE().substring(0, 3).equalsIgnoreCase("INT")) {
+                            fieldType = "INT";
+                        } else if (column.getDATA_TYPE()!=null && column.getDATA_TYPE().length()>4 &&  column.getDATA_TYPE().substring(0, 5).equalsIgnoreCase("FLOAT")) {
+                            fieldType = "FLT";
+                        } else {
+                            fieldType = "TXT";
+                        }
+                        break;
+                    }
+                }
+                switch (fieldType) {
+                    case "INT":
+                        if (this.getNewValue() == null || this.getNewValue().equalsIgnoreCase("NULL")) {
+                            statement.setNull(1, Types.INTEGER);
+                        } else {
+                            int newNumber = 0;
+                            try {
+                                newNumber = Integer.parseInt(this.getNewValue());
+                            } catch (Exception e) {
+                                newNumber = 0;
+                            }
+                            statement.setInt(1, newNumber);
+                        }
+                    case "FLT":
+                        if (this.getNewValue() == null || this.getNewValue().equalsIgnoreCase("NULL")) {
+                            statement.setNull(1, Types.FLOAT);
+                        } else {
+                            int newNumber = 0;
+                            try {
+                                newNumber = Integer.parseInt(this.getNewValue());
+                            } catch (Exception e) {
+                                newNumber = 0;
+                            }
+                            statement.setInt(1, newNumber);
+                        }
+                    case "TXT":
+                        if (this.getNewValue() == null || this.getNewValue().equalsIgnoreCase("NULL")) {
+                            statement.setString(1, null);
+                        } else {
+                            statement.setString(1, this.getNewValue());
+                        }
+                }
+
+         
+                System.out.println("FACCIO smartUPDATE:this.getCellType()= " + this.getCellType() + "  -  this.getNewValue()= " + this.getNewValue()
+                        + " _");
+
+////////2022-03-04                int numval = 999999;
+////////                try {
+////////                    numval = Integer.parseInt(this.getNewValue());
+////////                } catch (Exception ex) {
+////////
+////////                }
+////////                boolean isNumber = false;
+////////                if (this.getNewValue().trim().equalsIgnoreCase("" + numval)) {
+////////                    isNumber = true;
+////////                }
+////////
+////////                if (this.getCellType().equalsIgnoreCase("T")
+////////                        || (this.getCellType().equalsIgnoreCase("R") && isNumber == false)
+////////                        || this.getCellType().equalsIgnoreCase("D")
+////////                        || this.getCellType().equalsIgnoreCase("TM")
+////////                        || (this.getCellType().equalsIgnoreCase("S") && isNumber == false)
+////////                        || this.getCellType().equalsIgnoreCase("DT")) {
+////////
+////////                    statement.setString(1, this.getNewValue());
+////////
+////////                } else {
+////////                    int newNumber = 0;
+////////                    try {
+////////                        newNumber = Integer.parseInt(this.getNewValue());
+////////                    } catch (Exception e) {
+////////                        newNumber = 0;
+////////                    }
+////////                    statement.setInt(1, newNumber);
+////////
+////////                }
+
+                myEvent.setInfo1(statement.toString());
+                System.out.println("executeCRUD-->SQLphrase:" + statement.toString());
+                errorMessage = "ERROR ON UPDATE";
+                int Result = statement.executeUpdate();
+                if (Result > 0) {
+                    jsonAnswer = new JSONObject();
+                    jsonAnswer.put("sender", "CRUD");
+                    jsonAnswer.put("operation", "UPD");
+                    jsonAnswer.put("code", "OK");
+                    jsonAnswer.put("mess", "UPDATED");
+                    jsonAnswer.put("formType", formType);
+                    jsonAnswer.put("actionPassed", actionPassed);
+                    jsonAnswer.put("routineOnUpdateObj", routineOnUpdateObj);
+                    System.out.println("jsonAnswer:" + jsonAnswer.toString());
+//                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"UPD\",\"code\":\"OK\",\"mess\":\"UPDATED\",\"formType\":\"" + formType + "\",\"actionPassed\":\"" + actionPassed + "\" }";
+//                    answer = jsonAnswer;
+                } else {
+                    jsonAnswer = new JSONObject();
+                    jsonAnswer.put("sender", "CRUD");
+                    jsonAnswer.put("operation", "UPD");
+                    jsonAnswer.put("code", "ERR");
+                    jsonAnswer.put("mess", "ERROR WHILE UPDATING.");
+//                    String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"UPD\",\"code\":\"ERR\",\"mess\":\"ERROR WHILE UPDATING.\" }";
+//                    answer = jsonAnswer;
+                }
+
+            }
+// </editor-fold>     
+        } catch (SQLException ex) {
+            jsonAnswer = new JSONObject();
+            jsonAnswer.put("sender", "CRUD");
+            jsonAnswer.put("operation", "NOP");
+            jsonAnswer.put("code", "ERR");
+            jsonAnswer.put("mess", errorMessage);
+//            String jsonAnswer = "{\"sender\":\"CRUD\",\"operation\":\"NOP\",\"code\":\"ERR\",\"message\":\"" + errorMessage + "\"}";
+//            answer = jsonAnswer;
+
+            System.out.println("errorMessage 1497:" + errorMessage + "_" + ex.toString());
+        }
+        try {
+            conny.close();
+        } catch (SQLException ex) {
+
+        }
+
+        /*
+        FATTO IL CRUD se era un tipo tree, manderò come risposta in caso di ADD la leaf per il nuovo LI
+        in caso di UPDATE la leaf aggiornata con la dicitura corretta (però in un treer l'update per il momento non è previsto
+        in caso di DEL l'ID del LI da eliminare
+         */
+        if (this.formType != null && this.formType.equalsIgnoreCase("SMARTTREE") && this.getOperation().equalsIgnoreCase("ADD")) {
+
+        }
+        answer = jsonAnswer.toString();
+        //--------------------------
+        myEvent.setInfo2(answer);
+        myEvent.save(myParams, mySettings);
+
+        System.out.println("answer:" + answer);
+        return answer;
+    }
+
+    public ArrayList<schema_column> getFormColumns(String dbTable) throws SQLException {
+        Connection schemaconny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalSchema();
+        Statement schemast = schemaconny.createStatement();
+        String SQLphrase = "SELECT * FROM COLUMNS\n"
+                + "           WHERE TABLE_NAME = '" + dbTable + "'\n"
+                + "             AND TABLE_SCHEMA = '" + mySettings.getProjectDBextendedName(myParams) + "' ORDER BY ORDINAL_POSITION;";
+        ResultSet schemars = schemast.executeQuery(SQLphrase);
+        int i = 0;
+        /* 
+                 String IS_NULLABLE[]=new String[100]; // ES. 'YES' oppure 'NO'
+                 String COLUMN_KEY[]=new String[100]; // ES. 'PRI'=PRIMARY
+                 String EXTRA[]=new String[100]; // ES. 'auto_increment'
+         */
+        ArrayList<schema_column> columns = new ArrayList<schema_column>();
+        while (schemars.next()) {
+            i++;
+            schema_column column = new schema_column();
+            column.setCOLUMN_NAME(schemars.getString("COLUMN_NAME"));
+//                    System.out.println("CRUD ORDER reperita colonna " + column.getCOLUMN_NAME());
+            column.setCOLUMN_DEFAULT(schemars.getString("COLUMN_DEFAULT"));
+            column.setCOLUMN_KEY(schemars.getString("COLUMN_KEY"));
+            column.setDATA_TYPE(schemars.getString("DATA_TYPE"));
+            column.setEXTRA(schemars.getString("EXTRA"));
+            column.setIS_NULLABLE(schemars.getString("IS_NULLABLE"));
+            column.setCOLUMN_TYPE(schemars.getString("COLUMN_TYPE"));
+            column.setORDINAL_POSITION(schemars.getInt("ORDINAL_POSITION"));
+            BigDecimal result = schemars.getBigDecimal("CHARACTER_MAXIMUM_LENGTH");
+            column.setCHARACTER_MAXIMUM_LENGTH(result == null ? null : result.toBigInteger());
+            column.setNUMERIC_PRECISION(schemars.getInt("NUMERIC_PRECISION"));
+            columns.add(column);
+            //System.out.println("inglobata colonna "+ column.getCOLUMN_NAME());                  
+        }
+        schemaconny.close();
+        return columns;
     }
 
     public String executeCRUD() {
@@ -550,10 +1278,9 @@ public class CRUDorder {
 
 //            System.out.println("\n-----------------\nSONO IN ExecuteCRUD\nCerco le info in base al nome del form:" + myForm.getName());
             myForm.getFormInformationsFromDB();
-            if (this.formType != null && this.formType.equalsIgnoreCase("SMARTTREE")
-//                    && this.getOperation().equalsIgnoreCase("ADD")
+            if (this.formType != null && this.formType.equalsIgnoreCase("SMARTTREE") //                    && this.getOperation().equalsIgnoreCase("ADD")
                     ) {
-                System.out.println("STO PER ESEGUIRE CRUD SU TREE: "); 
+                System.out.println("STO PER ESEGUIRE CRUD SU TREE: ");
                 for (int oo = 0; oo < myForm.objects.size(); oo++) {
                     if (myForm.objects.get(oo).AddingRow_enabled > 0) {
                         cellName = myForm.objects.get(oo).getName();
@@ -1249,9 +1976,9 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
 
         // ora inizio il parsing delle info da StC
 //           System.out.println("standardReplace Step 3 getSendToCRUD:" + params);
-//        System.out.println("standardReplace--->applico sostituzioni con SendToCRUD:" + this.getSendToCRUD());
+        System.out.println("standardReplace--->applico sostituzioni con SendToCRUD:" + this.getSendToCRUD());
         defVal = replaceMarkers(defVal, decodeURLstring(this.getSendToCRUD()));
-//        System.out.println("standardReplace--->applico sostituzioni con ToBeSent:" + this.getToBeSent());
+        System.out.println("standardReplace--->applico sostituzioni con ToBeSent:" + this.getToBeSent());
         defVal = replaceMarkers(defVal, decodeURLstring(this.getToBeSent()));
 
 //        System.out.println(" *REPLACE RESULT:" + defVal);

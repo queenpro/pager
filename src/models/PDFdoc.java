@@ -238,7 +238,6 @@ public class PDFdoc {
     public Object fillDocumentWithMasterQuery(String XdocName, String destType, String query) {
         this.masterQuery = query;
         Object retObj = fillDocument(XdocName, destType);
-
         return retObj;
     }
 
@@ -247,7 +246,7 @@ public class PDFdoc {
         conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
         Object retObj = new Object();
         docName = XdocName;
-// chiamata a documento che sarà inserito in ...
+        // chiamata a documento che sarà inserito in ...
         if (destType.equalsIgnoreCase("table")) {
             this.destType = destType;
             mainDestTable = new PdfPTable(1);
@@ -255,12 +254,13 @@ public class PDFdoc {
             System.out.println("fillDocument_ CHIAMATO FORM SECONDARIO; " + docName);
             goFillDocument(docName, conny);
             retObj = mainDestTable;
-//            System.out.println(">>>>>>>>>RITORNO CON OGGETTO mainDestTable CONTENENTE TABELLA PREPARATO DA goFillDocument.");
+            //            System.out.println(">>>>>>>>>RITORNO CON OGGETTO mainDestTable CONTENENTE TABELLA PREPARATO DA goFillDocument.");
         } else {// per default è document
             destType = "document";
+            this.destType = destType;
             goFillDocument(docName, conny);
             retObj = null;
-//            System.out.println(">>>>>>>>>RITORNO OGGETTO NULLO  docName:" + docName);
+            //            System.out.println(">>>>>>>>>RITORNO OGGETTO NULLO  docName:" + docName);
 
         }
         // if (destType.equalsIgnoreCase("table")) {            
@@ -270,11 +270,11 @@ public class PDFdoc {
     }
 
     public void goFillDocument(String XdocName, Connection conny) {
-//        System.out.println("\n>>>>>>>>>SONO IN goFillDocument destType:" + destType + "   -  XdocName:" + XdocName);
+        System.out.println("\n>>>>>>>>>SONO IN goFillDocument destType:" + destType + "   -  XdocName:" + XdocName);
 
         ArrayList<PDFreportRow> reportRows = scriptLoader(XdocName, conny);
         paintDocument(reportRows, destType, conny);
-//        System.out.println(">>>>>>>>>RITORNO CON OGGETTO CONTENENTE TABELLA PREPARATO DA goFillDocument.");
+        //        System.out.println(">>>>>>>>>RITORNO CON OGGETTO CONTENENTE TABELLA PREPARATO DA goFillDocument.");
 
     }
 
@@ -361,7 +361,7 @@ public class PDFdoc {
 //-------------------------------------
 //                System.out.println(docName + ")LOOP da riga " + row + " a " + rigaFine);
 
-                String query = browserArgsReplace(myRow.getQuery(),"mysql");
+                String query = browserArgsReplace(myRow.getQuery(), "mysql");
                 System.out.println("\n\n-PDF->Query: " + query);
 //                System.out.println("TablesStack: " + TablesStack);
 
@@ -374,7 +374,7 @@ public class PDFdoc {
                     ArrayList<SelectListLine> fields = new ArrayList<SelectListLine>();
                     while (rs[TablesStack].next()) { // per ogni riga in tabella
                         DBrows++;
-//                        System.out.println("RIGA DATABASE: " + DBrows);
+                        System.out.println("\nRIGA DATABASE: " + DBrows);
                         if (DBrows == 1) {
                             ResultSetMetaData rsmd = rs[TablesStack].getMetaData();
                             int numColumns = rsmd.getColumnCount();
@@ -453,7 +453,7 @@ public class PDFdoc {
                             //-------------------------------
                             if (curRow > rigaInizio + 1 && loopRow.getElement().equalsIgnoreCase("openDataTable")) {
 
-//////                                System.out.println("\n\n-->open SUBDataTable in riga: " + curRow);
+                                System.out.println("\n\n-->open SUBDataTable in riga: " + curRow);
                                 // sono entrato in una riga che apre una tabella dati
                                 // ceco la prima chiusura di tabella disponibile
                                 int SUBrigaInizio = curRow;
@@ -478,7 +478,7 @@ public class PDFdoc {
                                 Tables[TablesStack] = myTable;
                                 // parsing della chiusura
                                 curRow = SUBrigaFine - 1;
-//                                System.out.println("FINE LOOP per tabella interna ; Riprendo da riga " + curRow);
+                                System.out.println("FINE LOOP per tabella interna ; Riprendo da riga " + curRow);
 //                                System.out.println("\n***************************\n ");
 
                             } else if (loopRow.getElement().equalsIgnoreCase("if")) {
@@ -508,7 +508,7 @@ public class PDFdoc {
                         //  System.out.println(docName + " =================fine  parsing righe script Args [" + richArgList.size() + "/" + argList.size());
                         richArgList = cloneArray(argList);
                     }// fine loop del database
-                    //      System.out.println("FINE LOOP righe del database ");
+                    System.out.println("FINE LOOP righe del database ");
 
                 } catch (SQLException ex) {
                     Logger.getLogger(PDFdoc.class.getName()).log(Level.SEVERE, null, ex);
@@ -536,10 +536,11 @@ public class PDFdoc {
             }
             row++;
         }
+//        System.out.println("Fine report rows:" + row);
         //-------------------------------------------
         //chiudo il documento 
         if (docType != null && docType.equalsIgnoreCase("mainDocument")) {
-            //     System.out.println("=========================CHIUDO" + docName);
+            System.out.println("=========================CHIUDO " + docName);
             document.close();
         }
         try {
@@ -742,8 +743,15 @@ public class PDFdoc {
                 cols[TablesStack] = myRow.getCols();
                 Tables[TablesStack].setWidthPercentage(widthPercent);
                 Tables[TablesStack].setSplitLate(myRow.isSplitLate());
-                Tables[TablesStack].setSplitRows(myRow.isSplitRows());
-                Tables[TablesStack].setKeepTogether(myRow.isKeepTogether());
+
+//                try {
+//                    Tables[TablesStack].setSplitRows(myRow.isSplitRows());
+//                } catch (Exception e) {
+//                }
+//                try {
+//                    Tables[TablesStack].setKeepTogether(myRow.isKeepTogether());
+//                } catch (Exception e) {
+//                }
                 isDatabaseTable[TablesStack] = true;
             } else if (myRow.getElement().equalsIgnoreCase("openDataBase")) {
 //                System.out.println("--- openDataBase entro in tabella di " + TablesStack + " livello");
@@ -759,8 +767,11 @@ public class PDFdoc {
 //--------------------- 
                     stackUsed = TablesStack;
                     int flag = 0;
-
+//                    System.out.println("\n#\n");
                     // field tipo INT
+
+                    System.out.println("myRow.getFieldType() :" + myRow.getFieldType());
+                    System.out.println("myRow.getLayout() :" + myRow.getLayout());
                     if (myRow.getFieldType().equalsIgnoreCase("INT")) {
                         if (myRow.getLayout().equalsIgnoreCase("checkbox")) {
                             int value = 0;
@@ -920,19 +931,49 @@ public class PDFdoc {
                             System.out.println("myLogo è vuoto..");
                             cellOne.fillCell(" ", myRow);
                         }
-
+                    } else if (myRow.getFieldType().equalsIgnoreCase("minToHours")) {
+                        try {
+                            phrase = rs[stackUsed].getString(myRow.getFieldName());
+                            try {
+                                System.out.println("phrase:" + phrase);
+                                int no = Integer.parseInt(phrase);
+                                System.out.println("no:" + no);
+                                int hours = (int) (no / 60); //since both are ints, you get an int
+                                int minutes = (int) (no % 60);
+                                phrase = hours + "h " + minutes + "m";
+                                System.out.println("phrase:" + phrase);
+                            } catch (Exception e) {
+                            }
+                        } catch (SQLException ex) { 
+                            System.out.println("\n@@@\n\n ERRORE su minToHours ");
+                        } 
+                        cellOne.fillCell(phrase, myRow);
                     } // field tipo TEXT
                     else { // per default è un text
                         try {
 //                            System.out.println("Cerco campo: " + myRow.getFieldName());
                             phrase = rs[stackUsed].getString(myRow.getFieldName());
-//                            System.out.println("Assegno contenuto alla cella(" + myRow.getFieldName() + ") :" + phrase);
+                            System.out.println("Assegno contenuto alla cella(" + myRow.getFieldName() + ") :" + phrase);
+
+                            System.out.println("myRow.getFieldType() :" + myRow.getFieldType());
                             if (myRow.getLayout().equalsIgnoreCase("barcode")) {
                                 Image BCimage = getBarcode(phrase, myRow.getStyle());
                                 BCimage.setScaleToFitLineWhenOverflow(true);
                                 BCimage.scaleAbsoluteHeight(myRow.getFontSize());
                                 BCimage.scalePercent(98);
                                 cellOne.fillCell(BCimage, myRow);
+
+                            } else if (myRow.getLayout().equalsIgnoreCase("minToHours")) {
+                                int no = 0;
+                                try {
+                                    no = Integer.parseInt(phrase);
+                                    int hours = (int) (no / 60); //since both are ints, you get an int
+                                    int minutes = (int) (no % 60);
+                                    phrase = hours + "h " + minutes + "m";
+                                } catch (Exception e) {
+                                }
+                                cellOne.fillCell(phrase, myRow);
+
                             } else {
 
                                 cellOne.fillCell(phrase, myRow);
@@ -981,7 +1022,8 @@ public class PDFdoc {
                 } else {
                     // LABEL
                     phrase = myRow.getContent();// suppongo per default che sia una label  
-                    phrase = browserArgsReplace(phrase,null);
+                    phrase = browserArgsReplace(phrase, null);
+//                    System.out.println("phrase ::" + phrase);
                     if (phrase == null || phrase.length() < 1) {
                         phrase = " ";
                     }
@@ -1104,8 +1146,14 @@ public class PDFdoc {
 
                 String[] items = myRow.getContent().split("==");
                 if (items.length > 0 && items[0] != null && items[1] != null) {
-                    triggers[triggerStack].elementoA = browserArgsReplace(items[0],null);
-                    triggers[triggerStack].elementoB = browserArgsReplace(items[1],null);
+                    try {
+                        triggers[triggerStack].elementoA = browserArgsReplace(items[0], null);
+                    } catch (Exception e) {
+                    }
+                    try {
+                        triggers[triggerStack].elementoB = browserArgsReplace(items[1], null);
+                    } catch (Exception e) {
+                    }
                     triggers[triggerStack].confronto = "==";
 
                     if (triggers[triggerStack].elementoA.equals(triggers[triggerStack].elementoB)) {
@@ -1398,7 +1446,8 @@ public class PDFdoc {
                     reportRows.add(myRow);
                 }
             } catch (ParseException ex) {
-                Logger.getLogger(PDFdoc.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(PDFdoc.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
 
         }
@@ -1451,7 +1500,7 @@ public class PDFdoc {
 
             } else if (myRow.getType().equalsIgnoreCase("filename")) {
                 richArgList = cloneArray(argList);
-                String fn = browserArgsReplace(myRow.getContent(),null);
+                String fn = browserArgsReplace(myRow.getContent(), null);
                 PDFfilename = fn;
 
             }
@@ -1504,18 +1553,18 @@ public class PDFdoc {
 //                Logger.getLogger(CRUDorder.class.getName()).log(Level.SEVERE, null, e);
 
         }
-
+//        System.out.println("\n#\n");
         for (int jj = 0; jj < this.richArgList.size(); jj++) {
             String xMarker = this.richArgList.get(jj).getLabel();
             String xValue = this.richArgList.get(jj).getValue();
-            if (destination!=null && destination.equalsIgnoreCase("mysql") 
+            if (destination != null && destination.equalsIgnoreCase("mysql")
                     && !xMarker.equalsIgnoreCase("masterQuery") //In caso di masterQuery non devo toglierre gli apici
                     ) {
                 xValue = encodeMYSQLstring(xValue);
             }
             String toBeReplaced = "###" + xMarker + "###";
-            System.out.println("toBeReplaced :" + toBeReplaced + "  ---> " + xValue);
-            if (defVal.contains(toBeReplaced)) {
+//            System.out.println("toBeReplaced :" + toBeReplaced + "  ---> " + xValue);
+            if (defVal != null && defVal.contains(toBeReplaced)) {
                 defVal = defVal.replace(toBeReplaced, xValue);
             }
         }
@@ -1525,7 +1574,7 @@ public class PDFdoc {
             String toBeReplaced = "@@@" + xMarker + "@@@";
 //            System.out.println("toBeReplaced :" + toBeReplaced + "  ---> " + xValue);
 
-            if (defVal.contains(toBeReplaced)) {
+            if (defVal != null && defVal.contains(toBeReplaced)) {
                 defVal = defVal.replace(toBeReplaced, xValue);
             }
         }
@@ -1715,6 +1764,7 @@ public class PDFdoc {
         }
 //        System.out.println("trovata chiusura in " + rigaFine);
         return rigaFine;
+
     }
 
     public class scriptVariable {

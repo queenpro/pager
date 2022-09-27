@@ -53,6 +53,7 @@ public class EmailSender {
     private String username = "info@queenpro.it";
     private String password = "Qcosta32!quee17";
     private String replyTo = "info@queenpro.it";
+    private String mailServerProtocol = "SMTP";
 
     private boolean auth = true;
     private EmailProtocol protocol = EmailProtocol.SMTP;
@@ -69,7 +70,20 @@ public class EmailSender {
         SendEmail(to, subject, body, from);
     }
 
+    private void setProtocol() {
+        
+        System.out.println("PROTOCOLLO DA DB:"+mailServerProtocol);
+        if (mailServerProtocol.equalsIgnoreCase("SMTPS")) {
+            protocol = EmailProtocol.SMTPS;
+        } else if (mailServerProtocol.equalsIgnoreCase("TLS")) {
+            protocol = EmailProtocol.TLS;
+        } else {
+            protocol = EmailProtocol.SMTP;
+        }
+    }
+
     public void SendEmail(String to, String subject, String body, String XreplyTo) {
+        setProtocol();
         Properties props = new Properties();
         props.put("mail.smtp.host", host);
         props.put("mail.smtp.port", port);
@@ -135,7 +149,7 @@ public class EmailSender {
     }
 
     public int SendEmailAttach(String ToList, String CcList, String BccList, String subject, String body, ByteArrayOutputStream outputStream) {
-
+        setProtocol();
         InternetAddress[] myToList = null;
 
         InternetAddress[] myBccList = null;
@@ -161,6 +175,7 @@ public class EmailSender {
         Properties props = new Properties();
         props.put("mail.smtp.host", host);
         props.put("mail.smtp.port", port);
+        System.out.println();
         switch (protocol) {
             case SMTPS:
                 props.put("mail.smtp.ssl.enable", true);
@@ -229,14 +244,14 @@ public class EmailSender {
             MimeMultipart multipart = new MimeMultipart();
 //1. textPart           
             MimeBodyPart textPart = new MimeBodyPart();
-            String textContent = "Messaggio di servizio.";
+            String textContent = " ";
             textPart.setText(textContent);
 //1. htmlPart    
             MimeBodyPart htmlPart = new MimeBodyPart();
 //body = "<html><h1>Hi</h1><p>Nice to meet you!</p></html>";
             htmlPart.setContent(body, "text/html");
 
-            multipart.addBodyPart(textPart);
+//            multipart.addBodyPart(textPart);
             multipart.addBodyPart(htmlPart);
             multipart.addBodyPart(pdfBodyPart);
 
@@ -253,9 +268,11 @@ public class EmailSender {
         return esito;
     }
 
-   
+    public void setMailServerProtocol(String mailServerProtocol) {
+        this.mailServerProtocol = mailServerProtocol;
+    }
 
- public int getPort() {
+    public int getPort() {
         return port;
     }
 

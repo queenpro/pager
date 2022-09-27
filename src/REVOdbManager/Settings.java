@@ -116,6 +116,8 @@ public class Settings {
     private String localCUSTOM_directives;
     private String localEVO_directives;
     private boolean lighthouseHookable;
+    private boolean showPeople;
+    
     private String updateMode;
 
     private TomcatGaiaHost gaiaHost;
@@ -211,6 +213,14 @@ public class Settings {
 
         System.out.print(result);
 
+    }
+
+    public boolean isShowPeople() {
+        return showPeople;
+    }
+
+    public void setShowPeople(boolean showPeople) {
+        this.showPeople = showPeople;
     }
 
     public boolean isLogEvents() {

@@ -30,8 +30,11 @@ import REVOmail.EmailSessionBean;
  * @author FFS INFORMATICA <info at ffs.it>
  */
 public class mailSender {
+    
 
     public int sendMail(String dest, String oggetto, String body) {
+        
+//        System.out.println("SONO IN mailSender--> SENDMAIL");
         EmailSender mailer = new EmailSender();
         
         mailer.SendEmail(dest, oggetto, body);

@@ -10,6 +10,7 @@ import REVOdbManager.Settings;
 import REVOpager.EVOpagerDBconnection;
 import REVOpager.QPfield;
 import REVOpager.QPtable;
+import REVOsetup.EVOsetup;
 import REVOsetup.ErrorLogger;
 import REVOwebsocketManager.WShandler;
 import java.io.BufferedReader;
@@ -138,6 +139,7 @@ public class ClassQPmanageUpdate {
             templateUpdatePresent = false;
             templateUpdateAuthorized = false;
             swVersionAppropriate = false;
+            tabs = new ArrayList<QPtable>();
         }
 
         public void getAuthFromQueenpro() {
@@ -402,8 +404,8 @@ public class ClassQPmanageUpdate {
                                 address = jObject.get("altCentralManager").toString();
                             } catch (Exception ex) {
                             }
-//                            System.out.println("->address: " + address);
-
+                            System.out.println("->address alternativo trovato su FFS.IT: " + address);
+                            System.out.println("->REITERO LA RICHIESTA ");
                             if (address.length() > 0) {
                                 response = null;
                                 address += "qpmanager/centralManager";
@@ -437,12 +439,12 @@ public class ClassQPmanageUpdate {
                                     in = new InputStreamReader(conn.getInputStream());
                                     br = new BufferedReader(in);
                                     while ((output = br.readLine()) != null) {
-//                    System.out.println(output);
+                                        System.out.println("RISPOSTA: " + output);
                                         response = output;
                                     }
                                     conn.disconnect();
                                 } catch (Exception ee) {
-
+                                    System.out.println("ERRORE: " + ee.toString());
                                 }
 
                             } else {
@@ -590,8 +592,8 @@ public class ClassQPmanageUpdate {
             System.out.println("\n-------\n installationName:" + installationName);
             System.out.println("myParams.getCKtokenID():" + tokenUsed);
             WShandler myWShandler = new WShandler(mySettings, installationName);
-            myWShandler.printClientsConnected();
-            myWShandler.printPeers();
+//            myWShandler.printClientsConnected();
+//            myWShandler.printPeers();
             myWShandler.sendToBrowser("status", null, myParams.getCKtokenID(), "Acquisizione aggiornamenti.");
 
             System.out.println("SONO IN normalizeFEtbContent: " + myParams.getCKprojectName() + "_" + myParams.getCKcontextID());
@@ -638,7 +640,10 @@ public class ClassQPmanageUpdate {
                             + "\"formID\":\"" + dbID + "\","
                             + "\"table\":\"" + tabs.get(tbl).name + "\""
                             + " }]";
+
+//                    System.out.println("Chiedo a queenpro... " + tabs.get(tbl).name);
                     String response = askQueenpro(connectors);
+
                     response = decodificaJSONdaURL(response);
 //                    System.out.println("response: " + response);
 
@@ -654,7 +659,7 @@ public class ClassQPmanageUpdate {
                     }
 //                    System.out.println("\n=======================================\nil numero di rows nella tabella è :" + totLines);
 
-//                    System.out.println("RIPORTO IN LOCALE tabella:" + localFEtableName);
+//                    System.out.println("\n\nRIPORTO IN LOCALE tabella:" + localFEtableName);
                     for (int lns = 0; lns < totLines; lns++) {
                         int numRiga = lns + 1;
                         connectors = "[{\"door\":\"manageUpdate\","
@@ -663,6 +668,8 @@ public class ClassQPmanageUpdate {
                                 + "\"table\":\"" + tabs.get(tbl).name + "\","
                                 + "\"keyValue\":\"" + numRiga + "\""
                                 + " }]";
+
+//                        System.out.println("Chiedo a queenpro... " + tabs.get(tbl).name + "   row :" + numRiga);
                         response = askQueenpro(connectors);
                         response = decodificaJSONdaURL(response);
 //                        System.out.println("Line " + numRiga + ") response: " + response);
@@ -782,7 +789,7 @@ public class ClassQPmanageUpdate {
 
                         }
 //                        System.out.println("LI RICOPIO IN LOCALE:" + statement.toString());
-                        System.out.println("RIPORTO IN LOCALE tabella:" + localFEtableName + " RIGA " + numRiga + "/" + totLines);
+//                        System.out.println("RIPORTO IN LOCALE tabella:" + localFEtableName + " RIGA " + numRiga + "/" + totLines);
 
                         myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti. Tabella " + localFEtableName + " RIGA " + numRiga + "/" + totLines);
 
@@ -1012,7 +1019,13 @@ public class ClassQPmanageUpdate {
         }
 
         public int remakeDB() {
-
+            String history = "";
+            String historyMessage = "";
+            //int response = 0;
+            //----------------------------------
+            historyMessage = "SONO IN remakeDB";
+            System.out.println(historyMessage);
+            history += historyMessage + "\n";
             String tokenUsed = myParams.getCKtokenID();
             String installationName = mySettings.getInstallationName(myParams);
             System.out.println("\n-------\n installationName:" + installationName);
@@ -1081,12 +1094,12 @@ public class ClassQPmanageUpdate {
                     myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti struttura database. Tabella " + (1 + currentTable) + "/" + tabs.size());
 
                     feed = "\n\n-----\nClassQPmanageUpdate>> " + (1 + currentTable) + "/" + tabs.size()
-                            + " . AGGIORNAMENTO TABELLA  >" + tableName;
+                            + " . AGGIORNAMENTO TABELLA  >>" + tableName;
                     System.out.println(feed);
                     try {
-                        SQLphrase = "SELECT * FROM COLUMNS\n"
-                                + "           WHERE TABLE_NAME = '" + tableName + "'\n"
-                                + "             AND TABLE_SCHEMA = '" + DestinationDBname + "';";
+                        SQLphrase = "SELECT * FROM COLUMNS "
+                                + " WHERE TABLE_NAME = '" + tableName + "' "
+                                + " AND TABLE_SCHEMA = '" + DestinationDBname + "';";
                         feed = "RICERCA SCHEMA TABELLA: " + SQLphrase;
 
 //ResultSet rs = schemast.executeQuery(SQLphrase); 
@@ -1106,11 +1119,11 @@ public class ClassQPmanageUpdate {
 //                    System.out.println("CONTROLLO ESISTENZA EFFETTUATO: " + exists + " TAB:" + tableName);
 //==========SE LA TABELLA NON ESISTE LA CREO ED E' DI SICURO AGGIORNATA===============================                
                     if (exists < 1) {
-//                        feed = "LA TABELLA NON ESISE IN LOCALE. ";
-//                        System.out.println(feed);
+                        feed = "LA TABELLA NON ESISE IN LOCALE. ";
+                        System.out.println(feed);
 
-                        SQLphrase = "CREATE TABLE IF NOT EXISTS ";
-                        SQLphrase += tableName + " ( ";
+                        SQLphrase = "CREATE TABLE IF NOT EXISTS `";
+                        SQLphrase += tableName + "` ( ";
                         System.out.println("CREAZIONE TABELLA " + currentTable + "):" + tableName);
 
                         for (int jj = 0; jj < numFields; jj++) {
@@ -1130,10 +1143,20 @@ public class ClassQPmanageUpdate {
                         }
                         SQLphrase += " ) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
+                        historyMessage = "SQLphrase :" + SQLphrase;
+                        System.out.println(historyMessage);
+                        history += historyMessage + "\n";
                         try {
                             Result = s.executeUpdate(SQLphrase); // creazione tabella
-
+                            historyMessage = "OK";
+                            System.out.println(historyMessage);
+                            history += historyMessage + "\n";
                         } catch (SQLException ex) {
+                            historyMessage = "ERROR:" + ex.toString();
+                            System.out.println(historyMessage);
+                            history += historyMessage + "\n";
+                            Logger.getLogger(ClassProjectUpdate.class.getName()).log(Level.SEVERE, null, ">>>" + ex);
+                            Logger.getLogger(ClassProjectUpdate.class.getName()).log(Level.SEVERE, null, ">>>" + SQLphrase);
                             feed = "943.ERRORE IN Connessione a " + DestinationDBname;
                             System.out.println(feed);
                             feed = "943.ERRORE  " + s.getWarnings();
@@ -1183,33 +1206,79 @@ public class ClassQPmanageUpdate {
                                     + "             AND COLUMN_NAME = '" + name + "' ;";
                             //System.out.println("SQLphrase="+SQLphrase);
 //                            System.out.println(">>> CERCO COLONNA " + name);
-
-                            ResultSet rs = schemast.executeQuery(SQLphrase);
                             int i = 0;
-                            while (rs.next()) {
-                                i++;
+                            try {
+                                ResultSet rs = schemast.executeQuery(SQLphrase);
+                                while (rs.next()) {
+                                    i++;
+                                }
+                            } catch (SQLException ex) {
+
                             }
+
                             routine = "4. ALTER TABLE PER ADDING FIELDS.";
 //==========SE UN FIELD NON ESISTE LO CREO ADESSO===============================                            
                             if (i < 1) {
+
                                 try {
 //                                    System.out.println(">>> COLONNA " + name + " NON ESISTE.");
-                                    SQLphrase = "  ALTER TABLE `" + tableName + "` ADD ";
-                                    SQLphrase += " `" + name + "` ";
+//                                    Logger.getLogger(ClassProjectUpdate.class.getName()).log(Level.SEVERE, null, ">>> COLONNA " + name + " NON ESISTE.");
+                                    SQLphrase = "ALTER TABLE `" + tableName + "` ADD ";
+                                    SQLphrase += " " + name + " ";
                                     SQLphrase += parseFieldQuery(tabs.get(currentTable).getFields().get(jj), jj);
                                     if (tabs.get(currentTable).getFields().get(jj).primary > 0) {
-                                        SQLphrase += " PRIMARY KEY \n";
+                                        SQLphrase += " PRIMARY KEY ";
                                     }
-//                                    System.out.println("ROUTINE DI ADD FIELD: " + SQLphrase);
+                                    System.out.println("ROUTINE DI ADD FIELD: " + SQLphrase);
+                                    historyMessage = "NECESSARIO ADDING FIELD:" + SQLphrase;
+                                    System.out.println(historyMessage);
+                                    history += historyMessage + "\n";
+//                                    Logger.getLogger(ClassProjectUpdate.class.getName()).log(Level.SEVERE, null, ">>>" + SQLphrase);
                                     Result = s.executeUpdate(SQLphrase); // creazione field 
 
                                 } catch (SQLException ex) {
-                                    feed = "ROUTINE AGGIUNTA FIELD: " + SQLphrase;
-                                    System.out.println(feed);
-                                    feed = "ERRORE IN AGGIUNTA FIELD: " + ex.toString();
-                                    System.out.println(feed);
 
-                                    myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti struttura database. <B>ERRORE IN AGGIUNTA FIELD</B>.");
+                                    historyMessage = "ERR:" + ex.toString();
+                                    System.out.println(historyMessage);
+                                    history += historyMessage + "\n";
+//                                    feed = "ROUTINE AGGIUNTA FIELD: " + SQLphrase;
+//                                    System.out.println(feed);
+//                                    feed = "ERRORE IN AGGIUNTA FIELD: " + ex.toString();
+//                                    System.out.println(feed);
+//
+//                                    myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti struttura database. <B>ERRORE IN AGGIUNTA FIELD</B>.");
+//                                    myWShandler.sendToBrowser("errlog", null, tokenUsed, SQLphrase);
+                                    String adTblNm = tableName.toLowerCase();
+                                    try {
+//                                    System.out.println(">>> COLONNA " + name + " NON ESISTE.");
+//                                        Logger.getLogger(ClassProjectUpdate.class.getName()).log(Level.SEVERE, null, ">>> COLONNA " + name + " NON ESISTE.");
+                                        SQLphrase = "ALTER TABLE `" + adTblNm + "` ADD ";
+                                        SQLphrase += " " + name + " ";
+                                        SQLphrase += parseFieldQuery(tabs.get(currentTable).getFields().get(jj), jj);
+                                        if (tabs.get(currentTable).getFields().get(jj).primary > 0) {
+                                            SQLphrase += " PRIMARY KEY ";
+                                        }
+                                        System.out.println("ROUTINE DI ADD FIELD: " + SQLphrase);
+                                        historyMessage = "RIPROVO ADDING FIELD:" + SQLphrase;
+                                        System.out.println(historyMessage);
+                                        history += historyMessage + "\n";
+//                                        Logger.getLogger(ClassProjectUpdate.class.getName()).log(Level.SEVERE, null, ">>>" + SQLphrase);
+                                        Result = s.executeUpdate(SQLphrase); // creazione field 
+
+                                    } catch (SQLException e) {
+                                        historyMessage = "ERR2:" + e.toString();
+                                        System.out.println(historyMessage);
+                                        history += historyMessage + "\n";
+                                        feed = "ROUTINE AGGIUNTA FIELD: " + SQLphrase;
+                                        System.out.println(feed);
+                                        feed = "ERRORE IN AGGIUNTA FIELD: " + e.toString();
+                                        System.out.println(feed);
+
+                                        myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti struttura database. <B>ERRORE IN AGGIUNTA FIELD</B>.");
+                                        myWShandler.sendToBrowser("errlog", null, tokenUsed, SQLphrase);
+
+                                    }
+
                                 }
 
                             }
@@ -1237,7 +1306,7 @@ public class ClassQPmanageUpdate {
                             SQLphrase = "ALTER TABLE `" + tableName + "` ";
                             SQLphrase += "CHANGE `" + name + "` `" + name + "` ";
                             SQLphrase += parseFieldQuery(myField, jj);
-//                            System.out.println("SQL:" + SQLphrase);
+                            System.out.println("SQL:" + SQLphrase);
                             Result = s.executeUpdate(SQLphrase); // creazione field
                         } catch (SQLException ex) {
                             feed = "ROUTINE DI CHANGE TABELLA: " + SQLphrase;
@@ -1261,10 +1330,10 @@ public class ClassQPmanageUpdate {
                 feed = "ROUTINE DI CHANGE TABELLA: " + SQLphrase;
                 feed = "ERRORE IN REMAKE DB: " + ex.toString();
                 Logger.getLogger(ClassProjectUpdate.class.getName()).log(Level.SEVERE, null, ex);
-                     myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti struttura database. <B>ERRORE IN REMAKE DB</B>.");
+                myWShandler.sendToBrowser("status", null, tokenUsed, "Acquisizione aggiornamenti struttura database. <B>ERRORE IN REMAKE DB</B>.");
 
             }
-
+            setEvoDirective(myParams, "lastHistory", history);
             return 0;
         }
 
@@ -1363,6 +1432,33 @@ public class ClassQPmanageUpdate {
             return SQLphrase;
         }
 
+    }
+
+    public int setEvoDirective(EVOpagerParams myParams, String infoName, String infoValue) {
+        int result = 0;
+
+        Connection FEconny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalFE();
+        try {
+            String SQLphrase = "DELETE FROM " + mySettings.getLocalEVO_directives() + " WHERE infoName = '" + infoName + "' ";
+            PreparedStatement statement = FEconny.prepareStatement(SQLphrase);
+            int i = statement.executeUpdate();
+
+            SQLphrase = "INSERT INTO " + mySettings.getLocalEVO_directives() + "  ( infoName, infoValue) VALUES ( ?,? ) ";
+            statement = FEconny.prepareStatement(SQLphrase);
+            statement.setString(1, infoName);
+            statement.setString(2, infoValue);
+            i = statement.executeUpdate();
+
+            FEconny.close();
+            result = 1;
+            el.log("setEvoDirective", SQLphrase);
+        } catch (SQLException ex) {
+            result = -1;
+            Logger.getLogger(EVOsetup.class.getName()).log(Level.SEVERE, null, ex);
+            el.log("setEvoDirective", ex.toString());
+        }
+
+        return result;
     }
 
     public class evoDirective {

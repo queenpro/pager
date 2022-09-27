@@ -319,7 +319,7 @@ public class smartObject {
         public String Value;
         public int hasSum;
         public String modifiable;
-        public int actualSum;
+        public float actualSum;
         public int actualModifiable;
         public int thisRowModifiable;
 
@@ -341,11 +341,11 @@ public class smartObject {
             this.thisRowModifiable = thisRowModifiable;
         }
 
-        public int getActualSum() {
+        public float getActualSum() {
             return actualSum;
         }
 
-        public void setActualSum(int actualSum) {
+        public void setActualSum(float actualSum) {
             this.actualSum = actualSum;
         }
 

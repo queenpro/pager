@@ -18,14 +18,14 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package models;
 
 import REVOdbManager.EVOpagerDirectivesManager;
 import REVOdbManager.EVOpagerParams;
 import REVOdbManager.Settings;
 import REVOsetup.ErrorLogger;
+import REVOsetup.OSenv;
+import REVOwebsocketManager.WShandler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -188,11 +188,11 @@ public class portalClass {
     }
 
     public storedFile managerenderApplicationX() throws FileNotFoundException, IOException {
+        WShandler myWShandler = new WShandler(mySettings, mySettings.getInstallationName(myParams));
 
         String jsonString = (String) this.myRequest.getResponse();
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject;
-        String filepath = "";
         String FileSysName = "";
         String originalName = "";
         String ext = "";
@@ -215,20 +215,31 @@ public class portalClass {
 //                            Logger.getLogger(this.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-
-        filepath = FileSysName;
+        OSenv myEnv = new OSenv();
+//        System.out.println(">>>>FileSysName:" + FileSysName);
+//        System.out.println(">>>>originalName:" + originalName);
+//        System.out.println(">>>>ext:" + ext);
+//        System.out.println(">>>>ext:" + ext);
 
         EVOpagerDirectivesManager myManager = new EVOpagerDirectivesManager(this.myRequest.getMyParams(), this.mySettings);
-        String OSbasepath = myManager.getDirective("uploadBasePath");
-        String slash = OSbasepath.substring(0, 1);
-        String nomeContesto = "";
+        String percorsoBase = myManager.getDirective("uploadBasePath");
+//        System.out.println(">>>>percorsoBase:" + percorsoBase);
 
+        String nomeContesto = "";
         if (this.myRequest.getMyParams().getCKcontextID() != null && this.myRequest.getMyParams().getCKcontextID().length() > 0) {
-            nomeContesto = this.myRequest.getMyParams().getCKcontextID() + slash;
+            nomeContesto = this.myRequest.getMyParams().getCKcontextID() + myEnv.getOSslash();
+        }
+        String completePathFilename = myEnv.getOSbasePath() + percorsoBase + nomeContesto + FileSysName;
+        if (percorsoBase.startsWith("[]")) {
+            String usatoPerFile = percorsoBase + nomeContesto + FileSysName;
+            usatoPerFile = usatoPerFile.replace("[]", "");
+            completePathFilename = usatoPerFile;
         }
 
-        String completePathFilename = OSbasepath + nomeContesto + filepath;
+        completePathFilename = myEnv.normalizePath(completePathFilename);
         System.out.println(">>>>ServeFile:" + completePathFilename);
+
+        myWShandler.sendToBrowser("status", null, myParams.getCKtokenID(), ">>>>ServeFile:" + completePathFilename);
 //                    el = new ErrorLogger(myPortal.myRequest.getMyParams(), myPortal.mySettings);
 //                    el.setPrintOnScreen(false);
 //                    el.setPrintOnLog(true);

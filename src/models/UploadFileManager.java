@@ -18,8 +18,6 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package models;
 
 import REVOdbManager.EVOpagerDirectivesManager;
@@ -28,6 +26,8 @@ import REVOdbManager.Settings;
 import REVOpager.EVOpagerDBconnection;
 import REVOpager.EVOuser;
 import REVOsetup.ErrorLogger;
+import REVOsetup.OSenv;
+import REVOwebsocketManager.WShandler;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -69,7 +69,10 @@ public class UploadFileManager {
         pic = new UpToDBpicture();
     }
 
-    public void uploadFile2FileSystem(portalClass myPortal, Part filePart, String oFormTBS) throws IOException {
+    public void uploadFile2FileSystem(portalClass myPortal, Part filePart, String oFormTBS) throws IOException { 
+            WShandler myWShandler = new WShandler(mySettings, mySettings.getInstallationName(myParams)); 
+            myWShandler.sendToBrowser("status", null, myParams.getCKtokenID(), "uploadFile .");
+
 
         Connection conny = new EVOpagerDBconnection(myPortal.myParams, myPortal.mySettings).ConnLocalDataDB();
 //===================================================================================================           
@@ -190,14 +193,29 @@ public class UploadFileManager {
 //                                String originalFilename = fileID + estensione;
                 // ricavo da GES le regole per formare il nome
                 String nameRules = "";
+                String actionParams = "";
                 for (int i = 0; i < myForm.objects.size(); i++) {
                     if (myForm.objects.get(i).getName().equalsIgnoreCase(objID)) {
                         nameRules = myForm.objects.get(i).CG.getParams();
+                        actionParams = myForm.objects.get(i).getActionParams();
                         break;
                     }
 
                 }
                 System.out.println("nameRules ---------->" + nameRules);
+                System.out.println("actionParams ---------->" + actionParams);
+                String fieldForFilename = "";
+                if (actionParams != null) {
+                    try {
+                        JSONParser jsonParser = new JSONParser();
+                        JSONObject jsonObject;
+                        jsonObject = (JSONObject) jsonParser.parse(actionParams);
+                        fieldForFilename = jsonObject.get("copyFilename").toString();
+                    } catch (Exception e) {
+
+                    }
+                }
+
                 JSONParser jsonParser = new JSONParser();
                 JSONObject jsonObject;
                 String RULESarray = null;
@@ -234,11 +252,23 @@ public class UploadFileManager {
                 }
                 String completeFileName = "";
 //*******PERCORSO DI SALVATAGGIO***********
-                String slash = percorsoBase.substring(0, 1);
+////////                String systemBasepath = System.getProperty("user.dir");
+////////                System.out.println("Working Directory = " + systemBasepath);
+////////                String slash = percorsoBase.substring(0, 1);
+////////                if (systemBasepath.contains("\\")) {
+////////                    slash = "\\";
+////////                    percorsoBase = percorsoBase.replace("/", "\\");
+////////                } else {
+////////                    slash = "/";
+////////                    percorsoBase = percorsoBase.replace("\\", "/");
+////////                }
+////////                System.out.println("slash = " + slash);
+                OSenv myEnv = new OSenv();
+
                 String folderPath = "";
                 if (nameRules != null && newNameRules.length() > 0) {
                     String toReplace = "$$$slash$$$";
-                    newNameRules = newNameRules.replace(toReplace, slash);
+                    newNameRules = newNameRules.replace(toReplace, myEnv.getOSslash());
                     toReplace = "$$$extension$$$";
                     newNameRules = newNameRules.replace(toReplace, estensione);
                     toReplace = "$$$originalFilename$$$";
@@ -264,11 +294,9 @@ public class UploadFileManager {
                     newNameRules = newNameRules.replace("$$$newRandom$$$", newToken);
                     newNameRules = newNameRules.replace("$$$CKUSER$$$", myParams.getCKuserID());
                     newNameRules = newNameRules.replace("$$$USER$$$", myParams.getCKuserID());
-                    
-                    
-                    
-                    
-                    int posizioneSlash = newNameRules.lastIndexOf(slash);
+                    newNameRules = myEnv.normalizePath(newNameRules);
+
+                    int posizioneSlash = newNameRules.lastIndexOf(myEnv.getOSslash());
                     System.out.println("posizioneSlash ---------->" + posizioneSlash);
                     String percorso = newNameRules.substring(0, posizioneSlash);
                     percorso = percorso.trim();
@@ -282,15 +310,16 @@ public class UploadFileManager {
                         percorsoBase = myPortal.WebserverBasepath;
                     }
 
-                    System.out.println("percorso ---------->" + percorso);
-                    folderPath = percorsoBase 
-                            + myPortal.getMyParams().getCKcontextID() 
-                            + slash 
-                            + percorso;
-
                     completeFileName = completeFileName.trim();
                     completeFileName = completeFileName.replace("'", "");
-                    System.out.println("completeFileName ---------->" + completeFileName);                   
+                    System.out.println("completeFileName ---------->" + completeFileName);
+
+                    System.out.println("percorso ---------->" + percorso);
+                    folderPath = percorsoBase
+                            + myPortal.getMyParams().getCKcontextID()
+                            + myEnv.getOSslash()
+                            + percorso;
+                    System.out.println("folderPath ---------->" + folderPath);
                     // new File(percorsoBase + percorso).mkdirs();
                 } else {
                     //NON CI SONO REGOLE
@@ -301,25 +330,40 @@ public class UploadFileManager {
                 }
                 //creo le cartelle in base al nome costruiito (che può contenere sottocartelle)
                 System.out.println("folderPath>" + folderPath);
+                folderPath = myEnv.normalizePath(folderPath);
                 new File(folderPath).mkdirs();
                 //---------------------------------------------
-                String usatoPerFile = percorsoBase 
-                        + myPortal.getMyParams().getCKcontextID() 
-                        + slash 
+                String usatoPerFile = myEnv.getOSbasePath() + percorsoBase
+                        + myPortal.getMyParams().getCKcontextID()
+                        + myEnv.getOSslash()
                         + completeFileName;
-                String usatoPerDB = "{\"FileSysName\":\"" + completeFileName + "\", \"originalName\":\"" + nomeOriginale + "\", \"ext\":\"" + estensione + "\"}";
-                System.out.println("usato per file ---------->" + usatoPerFile);
+                if (percorsoBase.startsWith("[]")){
+                    usatoPerFile = percorsoBase
+                        + myPortal.getMyParams().getCKcontextID()
+                        + myEnv.getOSslash()
+                        + completeFileName;
+                    usatoPerFile = usatoPerFile.replace("[]", "");
+                    
+                }
+                
+                
+                usatoPerFile = myEnv.normalizePath(usatoPerFile);
+                String safeCFN = completeFileName;
+                safeCFN = safeCFN.replace("\\", "/");//nel json non ci possono essere backslash... sostituisco con slash 
+                String usatoPerDB = "{\"FileSysName\":\"" + safeCFN + "\", \"originalName\":\"" + nomeOriginale + "\", \"ext\":\"" + estensione + "\"}";
+                System.out.println("*usato per file ---------->" + usatoPerFile);
                 System.out.println("usato per DB ---------->" + usatoPerDB);
-                System.out.println(">>>>uploadManager: " + usatoPerFile);
+                myWShandler.sendToBrowser("status", null, myParams.getCKtokenID(), "usato per file ---------->" + usatoPerFile);
+//                System.out.println(">>>>uploadManager: " + usatoPerFile);
 
                 // Nel database salvo il nome completo escluso il nome della cartella dato dal context
                 // in ogni caso servendo il file sarà aggiunto in automatico il context per evitare hacking
-                if (myKyefieldType.contains("int") || myKyefieldType.contains("INT")) {
+                if (myKyefieldType != null && (myKyefieldType.contains("int") || myKyefieldType.contains("INT"))) {
                     SQLphrase = "UPDATE " + myTable + " SET  `" + objID + "`='" + usatoPerDB + "' WHERE " + myKyefield + "= " + fileID + "";
                 } else {
                     SQLphrase = "UPDATE " + myTable + " SET  `" + objID + "`='" + usatoPerDB + "' WHERE " + myKyefield + "= '" + fileID + "'";
                 }
-
+                System.out.println(">>>>SQLphrase: " + SQLphrase);
                 PreparedStatement ps = null;
                 try {
                     ps = conny.prepareStatement(SQLphrase);
@@ -328,16 +372,45 @@ public class UploadFileManager {
 
                 }
 
+                if (fieldForFilename != null && fieldForFilename.length() > 0) {
+                    if (myKyefieldType != null && (myKyefieldType.contains("int") || myKyefieldType.contains("INT"))) {
+                        SQLphrase = "UPDATE " + myTable + " SET  `" + fieldForFilename + "`='" + name + "' WHERE " + myKyefield + "= " + fileID + "";
+                    } else {
+                        SQLphrase = "UPDATE " + myTable + " SET  `" + fieldForFilename + "`='" + name + "' WHERE " + myKyefield + "= '" + fileID + "'";
+                    }
+                    System.out.println(">>>>SQLphrase: " + SQLphrase);
+                    try {
+                        ps = conny.prepareStatement(SQLphrase);
+                        int i = ps.executeUpdate();
+                    } catch (SQLException ex) {
+
+                    }
+                }
+
                 //   myPortal.OSfolder = myPortal.formID + slash + objID;
                 OutputStream outputStream = null;
                 try {
+                    System.out.println(">>>> ESEGUO IL SALVATAGGIO.");
                     File file = new File(usatoPerFile);
                     outputStream = new FileOutputStream(file);
                     IOUtils.copy(inputStream, outputStream);
+                    System.out.println(">>>>ok SALVATAGGIO ESEGUITO.");
+                    
 
                 } catch (Exception e) {
-                    System.out.println("error>" + e.toString());
+                    System.out.println("error outputStream>" + e.toString());
+                    myWShandler.sendToBrowser("status", null, myParams.getCKtokenID(), "error outputStream>" + e.toString());
                     new File(folderPath).mkdirs();
+                    try {
+                        File file = new File(usatoPerFile);
+                        outputStream = new FileOutputStream(file);
+                        IOUtils.copy(inputStream, outputStream);
+                        System.out.println(">>>> SALVATAGGIO ESEGUITO.");
+                    } catch (Exception ex) {
+                        System.out.println("error2 outputStream>" + ex.toString());
+                        myWShandler.sendToBrowser("status", null, myParams.getCKtokenID(), "error2 outputStream>" + ex.toString());
+                        System.out.println(">>>> SALVATAGGIO NON ESEGUITO.");
+                    }
                 } finally {
                     if (outputStream != null) {
                         outputStream.close();

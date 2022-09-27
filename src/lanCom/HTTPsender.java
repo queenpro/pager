@@ -45,6 +45,12 @@ import java.util.logging.Logger;
 public class HTTPsender {
 
     public String send(String Address, String jmessage) throws MalformedURLException {
+        String method = "POST";
+
+        return send(Address, jmessage, method);
+    }
+
+    public String send(String Address, String jmessage, String method) throws MalformedURLException {
         //String jmessage="{\"device\":\"192.168.1.101\",\"command\":\"SETVALUE\",\"periph\":\"2\",\"value\":\"0\"}";
         //String jmessage="{\"command\":\"GETMAP\"}";
 
@@ -73,14 +79,15 @@ public class HTTPsender {
         String response = "";
         //url = new URL("http://192.168.1.101:8080");
         url = new URL("http://" + Address);
-//        System.out.println("url = " + url.toString());
+        System.out.println("method = " + method);
+        System.out.println("url = " + url.toString());
         URLConnection con = null;
         try {
             con = url.openConnection();
             con.setConnectTimeout(500);
             HttpURLConnection http = (HttpURLConnection) con;
             try {
-                http.setRequestMethod("POST");
+                http.setRequestMethod(method);
             } catch (ProtocolException ex) {
                 Logger.getLogger(HTTPsender.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -105,7 +112,7 @@ public class HTTPsender {
                 response = sb.toString();
 
             } catch (Exception e) {
-                Logger.getLogger(HTTPsender.class.getName()).log(Level.SEVERE, "ERRORE 69" + e, false);
+                Logger.getLogger(HTTPsender.class.getName()).log(Level.SEVERE, "ERRORE 69xx " + e, false);
             }
 
 //            System.out.println("Ricevuta risposta:" + response);
@@ -141,6 +148,32 @@ public class HTTPsender {
             resp = httpSender.send(Address + ":" + Port + "/" + page, Message);
         } catch (MalformedURLException ex) {
             System.out.println("\n\nERRORE INVIO HTTP SU" + Address + " : " + Message);
+        }
+        return resp;
+    }
+
+    public String sendHTTPget(String Address, String Port, String Message) {
+
+//        System.out.println("\n\nINVIO HTTP SU " + Address + ":" + Port);
+        HTTPsender httpSender = new HTTPsender();
+        String resp = "";
+        try {
+            resp = httpSender.send(Address + ":" + Port, Message, "GET");
+        } catch (MalformedURLException ex) {
+            System.out.println("\n\nERRORE INVIO GET HTTP SU" + Address + " : " + Message);
+        }
+        return resp;
+    }
+
+    public String sendHTTPget(String Address, String Port, String Message, String page) {
+
+//        System.out.println("\n\nINVIO HTTP SU " + Address + ":" + Port);
+        HTTPsender httpSender = new HTTPsender();
+        String resp = "";
+        try {
+            resp = httpSender.send(Address + ":" + Port + "/" + page, Message, "GET");
+        } catch (MalformedURLException ex) {
+            System.out.println("\n\nERRORE INVIO GET HTTP SU" + Address + " : " + Message);
         }
         return resp;
     }

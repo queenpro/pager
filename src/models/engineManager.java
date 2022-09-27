@@ -1404,9 +1404,18 @@ CREATE TABLE `gFE_forms_childhood` (
         String rifChild;
         String destination;
         String childLinkQuery;
+        String conditions;
         int alive;
         String operatore;
         int position;
+
+        public String getConditions() {
+            return conditions;
+        }
+
+        public void setConditions(String conditions) {
+            this.conditions = conditions;
+        }
 
         public String getID() {
             return ID;

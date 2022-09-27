@@ -34,6 +34,7 @@ import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ import models.SelectList;
 import models.ShowItObject;
 import models.boundFields;
 import models.gate;
+import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -156,7 +158,9 @@ public class smartForm {
     String updRowWhereClause;
     String showHeader;
     String showCounter;
+    String childsOnFocus;
     String showToggler;
+    String showKeyLink;
     String bodyInitHidden;
     String collapseOnExpand;
     int maxRows;
@@ -241,6 +245,30 @@ public class smartForm {
         this.formObjects = new ArrayList<smartObject>();
     }
 // <editor-fold defaultstate="collapsed" desc="GETTERS & SETTERS">
+
+    public String getChildsOnFocus() {
+        return childsOnFocus;
+    }
+
+    public void setChildsOnFocus(String childsOnFocus) {
+        this.childsOnFocus = childsOnFocus;
+    }
+
+    public String getRoutineBeforeUpdate() {
+        return routineBeforeUpdate;
+    }
+
+    public void setRoutineBeforeUpdate(String routineBeforeUpdate) {
+        this.routineBeforeUpdate = routineBeforeUpdate;
+    }
+
+    public String getRoutineAfterUpdate() {
+        return routineAfterUpdate;
+    }
+
+    public void setRoutineAfterUpdate(String routineAfterUpdate) {
+        this.routineAfterUpdate = routineAfterUpdate;
+    }
 
     public int getMaxRows() {
         return maxRows;
@@ -943,6 +971,11 @@ public class smartForm {
     }
 
     // </editor-fold>
+    public void loadSettingsAndPanel() {
+        loadSettings();
+        getFormPanel(this.getGes_formPanel());
+    }
+
     public void buildSchema() {
 //        System.out.println("-------->loadFormSettings() ");
 //        System.out.println("-------->VisualType: "+this.getVisualType());
@@ -973,15 +1006,14 @@ public class smartForm {
         this.buildSchemaDone = true;
     }
 
-    public void loadFormSettings() {
-
-//        System.out.println("loadFormSettings");
+    public void loadSettings() {
+        //        System.out.println("loadFormSettings");
         //CARICO DATI DA DB   
         Connection FEconny = null;
         try {
             FEconny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalFE();
         } catch (Exception e) {
-            System.out.println("errore in creazion econny: " + e.toString());
+            System.out.println("errore in creazione conny: " + e.toString());
         }
 
         ResultSet rs;
@@ -1168,13 +1200,18 @@ public class smartForm {
             if (this.getCopyTag() == null || this.getCopyTag().equalsIgnoreCase("null") || this.getCopyTag().length() < 1) {
                 this.setCopyTag("X");
             }
-            formRightsRules = analyzeRightsRuleJson(userRights, null, null, 10);
+
             FEconny.close();
 
         } catch (SQLException ex) {
 
         }
+    }
 
+    public void loadFormSettings() {
+        loadSettings();
+
+        formRightsRules = analyzeRightsRuleJson(userRights, null, null, 10);
     }
 
     public void createColumnSchema() {
@@ -1253,6 +1290,10 @@ public class smartForm {
 
     }
 
+     public void getFormPanel() {
+         getFormPanel(this.ges_formPanel) ;
+     }
+    
     public void getFormPanel(String XformPanel) {
         /*
         Carica le settings inserite nel JSON nel campo formPanel
@@ -1285,8 +1326,11 @@ public class smartForm {
                     this.bodyInitHidden = ("");
                     this.showToggler = ("");
                     this.collapseOnExpand = ("");
+                    this.showCounter = ("");
+                    this.childsOnFocus = "";
+                    this.showKeyLink = "";
                     for (Object riga : array) {
-                        this.showCounter = ("");
+
                         lockRule myRule = new lockRule();
                         jsonObject = (JSONObject) jsonParser.parse(riga.toString());
                         try {
@@ -1333,7 +1377,14 @@ public class smartForm {
                                 this.showCounter = (jsonObject.get("showCounter").toString());
                             } catch (Exception e) {
                             }
-                            System.out.println("\nRETREIVED showCounter:" + this.showCounter);
+//                            System.out.println("\nRETREIVED showCounter:" + this.showCounter);
+
+                            try {
+                                this.childsOnFocus = (jsonObject.get("getChildsOnFocus").toString());
+                            } catch (Exception e) {
+                            }
+//                            System.out.println("\nRETREIVED childsOnFocus:" + this.childsOnFocus);
+
                             try {
                                 this.advancedFiltered = (jsonObject.get("advancedFiltered").toString());
                             } catch (Exception e) {
@@ -1343,6 +1394,12 @@ public class smartForm {
                                 this.showToggler = (jsonObject.get("showToggler").toString());
                             } catch (Exception e) {
                             }
+
+                            try {
+                                this.showKeyLink = (jsonObject.get("showKeyLink").toString());
+                            } catch (Exception e) {
+                            }
+
                             try {
                                 this.bodyInitHidden = (jsonObject.get("bodyInitHidden").toString());
                             } catch (Exception e) {
@@ -1389,8 +1446,8 @@ public class smartForm {
                                 this.routineAfterUpdate = (jsonObject.get("routineAfterUpdate").toString());
                             } catch (Exception e) {
                             }
-                        }else if (infotype.equalsIgnoreCase("autolinks")) {
-                            
+                        } else if (infotype.equalsIgnoreCase("autolinks")) {
+
                         }
                     }//end FOR
                 }
@@ -1549,7 +1606,7 @@ public class smartForm {
                 }
             }
             accountConny.close();
-
+            String HP = this.htmlPattern;
 //===================================================================  
 //===================================================================        
 // <editor-fold defaultstate="collapsed" desc="COMPLETO INFORMAZIONI OGGETTI"> 
@@ -1557,6 +1614,7 @@ public class smartForm {
             if (this.type != null
                     && !this.type.equalsIgnoreCase("SINGLEROWFORM")
                     && !this.type.equalsIgnoreCase("INSERTROWFORM")
+                    && HP.length() == 0
                     && totalWidth > 0) {
 
                 if (showCounter == null || !showCounter.equalsIgnoreCase("FALSE")) {
@@ -1842,7 +1900,8 @@ public class smartForm {
             this.type = "TABLE";
         }
         System.out.println("SONO IN smartForm->PAINTFORM :this.type: " + this.type);
-        if (this.type.equalsIgnoreCase("SMARTTABLE")) {
+//        System.out.println("+->### this.advancedFiltered:" + this.advancedFiltered);
+        if (this.type.equalsIgnoreCase("SMARTTABLE") || this.type.equalsIgnoreCase("SMARTBUBBLES") || this.type.equalsIgnoreCase("SMARTCALENDAR")) {
             formResponse = paintDataTable();
         } else if (this.type.equalsIgnoreCase("SMARTTREE")) {
             formResponse = paintDataTree();
@@ -1858,7 +1917,8 @@ public class smartForm {
             divPrefix = "CH-" + this.getID() + "-" + this.getCopyTag();
             elementPrefix = this.getID() + "-" + this.getCopyTag();
             prepareFullForm();
-            System.out.println("fillSmartPanel-->CASO VisualType() FULLFORM");
+//            System.out.println("fillSmartPanel-->CASO VisualType() FULLFORM: " );
+//            System.out.println("mainQPtable: "+mainQPtable);
             String fullFormCode = "<div id=\"FRAME-" + this.getName() + "-" + this.getCopyTag() + "\" "
                     + "class= \"frame scrollableContainer\" >";
             fullFormCode += mainQPtable;
@@ -1892,94 +1952,95 @@ public class smartForm {
 //        System.out.println("PAINTFORM_htmlCode:" + htmlCode);
         return formResponse;
     }
-    //----------------------------------------
- public JSONObject paintTreeNewLeaf() { 
 
-            String pKEYvalue = this.getCurKEYvalue().replace("'", "");
-            String pKEYtype = this.getCurKEYtype();
-            int myVal = 0;
+    public JSONObject paintTreeNewLeaf() {
+
+        String pKEYvalue = this.getCurKEYvalue().replace("'", "");
+        String pKEYtype = this.getCurKEYtype();
+        int myVal = 0;
+        try {
+            myVal = Integer.parseInt(pKEYvalue);
+        } catch (Exception e) {
+            myVal = 0;
+        }
+        String myTxVal = "" + myVal;
+        if (myTxVal.equalsIgnoreCase(pKEYvalue.trim())) {
+            pKEYtype = "INT";
+        }
+        String whereClause = "";
+        //adesso chiamo la routine showItFOrm affinchè mi restituisca la singola riga aggiunta
+        if (this.getKEYfieldType() == "INT") {
+            whereClause = " " + this.getMainTable() + "." + this.getKEYfieldName() + " = " + pKEYvalue + " ";
+        } else {
+            String result = null;
             try {
-                myVal = Integer.parseInt(pKEYvalue);
-            } catch (Exception e) {
-                myVal = 0;
+                result = java.net.URLEncoder.encode(pKEYvalue, "UTF-8");
+            } catch (UnsupportedEncodingException ex) {
+                System.out.println("serror in line 1710");
             }
-            String myTxVal = "" + myVal;
-            if (myTxVal.equalsIgnoreCase(pKEYvalue.trim())) {
-                pKEYtype = "INT";
-            }
-            String whereClause = "";
-            //adesso chiamo la routine showItFOrm affinchè mi restituisca la singola riga aggiunta
-            if (this.getKEYfieldType() == "INT") {
-                whereClause = " " + this.getMainTable() + "." + this.getKEYfieldName() + " = " + pKEYvalue + " ";
+
+            if (updRowWhereClause == null
+                    || updRowWhereClause.equalsIgnoreCase("null")
+                    || updRowWhereClause.length() < 1) {
+                whereClause = " " + this.getMainTable() + "." + this.getKEYfieldName() + " = '" + result + "'";
+                System.out.println("QUERY SEMPLICE: USO COME INDICE " + whereClause);
             } else {
-                String result = null;
-                try {
-                    result = java.net.URLEncoder.encode(pKEYvalue, "UTF-8");
-                } catch (UnsupportedEncodingException ex) {
-                    System.out.println("serror in line 1710");
-                }
-
-                if (updRowWhereClause == null
-                        || updRowWhereClause.equalsIgnoreCase("null")
-                        || updRowWhereClause.length() < 1) {
-                    whereClause = " " + this.getMainTable() + "." + this.getKEYfieldName() + " = '" + result + "'";
-                    System.out.println("QUERY SEMPLICE: USO COME INDICE " + whereClause);
-                } else {
-                    whereClause = " " + updRowWhereClause + " ";
-                    System.out.println("QUERY COMPLESSA: USO COME INDICE " + whereClause);
-                }
-
+                whereClause = " " + updRowWhereClause + " ";
+                System.out.println("QUERY COMPLESSA: USO COME INDICE " + whereClause);
             }
+
+        }
 
 //            System.out.println("PAINTFORM_case singleRow_whereClause:" + whereClause);
-            setInfoReceived(this.getToBeSent());
+        setInfoReceived(this.getToBeSent());
 
-            System.out.println("paintDataTree-->CASO SINGLE ROW:"+ pKEYvalue);
-            formResponse.getDataJSON().put("mode", "leaf");
-            formResponse.getDataJSON().put("node", this.getID() + "-" + this.getCopyTag());
-            formResponse.getDataJSON().put("keyField", this.getID() + "-" + this.getCopyTag());
-            Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
+        System.out.println("paintDataTree-->CASO SINGLE ROW:" + pKEYvalue);
+        formResponse.getDataJSON().put("mode", "leaf");
+        formResponse.getDataJSON().put("node", this.getID() + "-" + this.getCopyTag());
+        formResponse.getDataJSON().put("keyField", this.getID() + "-" + this.getCopyTag());
+        Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
 ////////        ResultSet DATArs;
-            // cerca il FORM per nome e se non è compilato per ID
+        // cerca il FORM per nome e se non è compilato per ID
 
 //        System.out.println("fillRowData query: " + this.query);
 //        System.out.println("fillRowData whereClause: " + whereClause);
-            String myQuery = prepareSQL(this.query);
-            this.queryUsed = regenerateQuery(myQuery, whereClause, false, null, false, false);
-            System.out.println("====fillRowData queryUsed: " + this.queryUsed);
+        String myQuery = prepareSQL(this.query);
+        this.queryUsed = regenerateQuery(myQuery, whereClause, false, null, false, false);
+        System.out.println("====fillRowData queryUsed: " + this.queryUsed);
 
-            if (this.queryUsed == null || this.queryUsed == "") {
-                return null;
-            }
-            JSONObject myleaf= new JSONObject();
-            Statement s;
-            try {
-                s = conny.createStatement();
-                DATArs = s.executeQuery(this.queryUsed);
-                while (DATArs.next()) {
-                    try {
-                        smartRow myRow = new smartRow(this, DATArs, 0);
-                        smartObjRight rowRights = myRow.valutaRightsRiga(this.getDisableRules(), DATArs);/// analizzo il LOCKER del form per la riga
-                        smartObjRight actualRowRights = joinRights(formRightsRules, rowRights);
-                        myRow.setActualRowRights(actualRowRights);
-                        myRow.setFormRightsRules(formRightsRules); 
-                        myleaf =  myRow.encodeTreeRow();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                break;// solo una riga
+        if (this.queryUsed == null || this.queryUsed == "") {
+            return null;
+        }
+        JSONObject myleaf = new JSONObject();
+        Statement s;
+        try {
+            s = conny.createStatement();
+            DATArs = s.executeQuery(this.queryUsed);
+            while (DATArs.next()) {
+                try {
+                    smartRow myRow = new smartRow(this, DATArs, 0);
+                    smartObjRight rowRights = myRow.valutaRightsRiga(this.getDisableRules(), DATArs);/// analizzo il LOCKER del form per la riga
+                    smartObjRight actualRowRights = joinRights(formRightsRules, rowRights);
+                    myRow.setActualRowRights(actualRowRights);
+                    myRow.setFormRightsRules(formRightsRules);
+                    myleaf = myRow.encodeTreeRow();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (SQLException ex) {
-                Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
+                break;// solo una riga
             }
-            try {
-                conny.close();
-            } catch (SQLException ex) {
-                Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
-            }
-           return myleaf;
+        } catch (SQLException ex) {
+            Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            conny.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return myleaf;
 
-        } 
+    }
+
     public smartFormResponse paintDataTree() {
         String htmlCode = "";
         if (this.getVisualType().equalsIgnoreCase("singleRow")) {
@@ -2040,7 +2101,7 @@ public class smartForm {
             if (this.queryUsed == null || this.queryUsed == "") {
                 return null;
             }
-            JSONObject myleaf= new JSONObject();
+            JSONObject myleaf = new JSONObject();
             Statement s;
             try {
                 s = conny.createStatement();
@@ -2053,11 +2114,11 @@ public class smartForm {
                         myRow.setActualRowRights(actualRowRights);
                         myRow.setFormRightsRules(formRightsRules);
 //                        htmlCode += myRow.SMRTpaintRow("normal");
-                        myleaf =  myRow.encodeTreeRow();
+                        myleaf = myRow.encodeTreeRow();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                break;// solo una riga
+                    break;// solo una riga
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
@@ -2067,9 +2128,8 @@ public class smartForm {
             } catch (SQLException ex) {
                 Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
             }
-             formResponse.getDataJSON().put("node", this.getID() + "-" + this.getCopyTag());
+            formResponse.getDataJSON().put("node", this.getID() + "-" + this.getCopyTag());
             formResponse.getDataJSON().put("keyField", this.getID() + "-" + this.getCopyTag());
-         
 
         } else //==============================================================================
         if (this.getVisualType().equalsIgnoreCase("FULLFORM")) {
@@ -2253,9 +2313,25 @@ public class smartForm {
         divBottom += "<TD colspan=\"2\"><div class=\"bottomTab\" id=\"" + divPrefix + "-B\" ></div></TD>\n";
         divBottom += "</TR><TR>\n";
         divBottom += "<TD colspan=\"2\"><div class=\"bottomTab\" id=\"CH-" + this.getName() + "-B\"></div></TD>\n";
+
         divBottom += "</TR><TR>\n";
-        divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-BL\" ></div></TD>\n";
-        divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-BR\" ></div></TD>\n";
+        divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-UBL\" ></div>\n";
+        divBottom += "<div class=\"bottomTab\" " + style + " id=\"CH-" + this.getName() + "-UBL\" ></div></TD>\n";
+        divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-UBR\" ></div>\n";
+        divBottom += "<div class=\"bottomTab\" " + style + " id=\"CH-" + this.getName() + "-UBR\" ></div></TD>\n";
+
+        divBottom += "</TR><TR>\n";
+        divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-BL\" ></div>\n";
+        divBottom += "<div class=\"bottomTab\" " + style + " id=\"CH-" + this.getName() + "-BL\" ></div></TD>\n";
+        divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-BR\" ></div>\n";
+        divBottom += "<div class=\"bottomTab\" " + style + " id=\"CH-" + this.getName() + "-BR\" ></div></TD>\n";
+
+        divBottom += "</TR><TR>\n";
+        divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-DBL\" ></div>\n";
+        divBottom += "<div class=\"bottomTab\" " + style + " id=\"CH-" + this.getName() + "-DBL\" ></div></TD>\n";
+        divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-DBR\" ></div>\n";
+        divBottom += "<div class=\"bottomTab\" " + style + " id=\"CH-" + this.getName() + "-DBR\" ></div></TD>\n";
+
         divBottom += "</TR></TABLE>\n";
         divBottom += "</div>";
         //    divBottom="BOTTOM";
@@ -2295,14 +2371,14 @@ public class smartForm {
         divExtB = "<div class=\"bottomTab\" id=\"" + divPrefix + "-ExtB\" ></div>\n";
         divExtB += "<div class=\"bottomTab\" id=\"CH-" + this.getName() + "-ExtB\" ></div>\n";
         //==============================================================================
-        divIntRight = "<div class=\"bottomTab\" id=\"" + divPrefix + "-IntR\" ></div>\n";
-        divIntRight += "<div class=\"bottomTab\" id=\"CH-" + this.getName() + "-IntR\" ></div>\n";
+        divIntRight = "<div class=\"rightTab\" id=\"" + divPrefix + "-IntR\" ></div>\n";
+        divIntRight += "<div class=\"rightTab\" id=\"CH-" + this.getName() + "-IntR\" ></div>\n";
         //==============================================================================
         outL = "<div class=\"sideText\" id=\"" + divPrefix + "-OutL\" ></div>\n";
         outL += "<div class=\"bottomTab\" id=\"CH-" + this.getName() + "-OutL\" ></div>\n";
         //==============================================================================
-        outR = "<div class=\"bottomTab\" id=\"" + divPrefix + "-OutR\" ></div>\n";
-        outR += "<div class=\"bottomTab\" id=\"CH-" + this.getName() + "-OutR\" ></div>\n";
+        outR = "<div class=\"rightTab\" id=\"" + divPrefix + "-OutR\" ></div>\n";
+        outR += "<div class=\"rightTab\" id=\"CH-" + this.getName() + "-OutR\" ></div>\n";
         //==============================================================================
 //        System.out.println("concluso prepareDivs();");
     }
@@ -2334,23 +2410,26 @@ public class smartForm {
         divBodyUpDown += "<TABLE style=\"border-collapse: collapse; padding: 0; margin: 0;  \">";
         divBodyUpDown += "<TR><TD style=\"display: table-cell; vertical-align: top;\">";
 
-        divBodyUpDown += "<TABLE style=\"border-collapse: collapse; padding: 0; margin: 0;  \"><TR>"
-                + "<TD style=\"display: table-cell; vertical-align: top;\">";
+        divBodyUpDown += "<TABLE style=\"border-collapse: collapse; padding: 0; margin: 0;  \">"
+                + "<TR>";
 
+        divBodyUpDown += "<TD style=\"display: table-cell; vertical-align: top;\">";
         divBodyUpDown += "<DIV "
                 + "id=\"" + this.getName() + "-HIDABLE\"";
         if (this.getBodyInitHidden() != null && this.getBodyInitHidden().equalsIgnoreCase("TRUE")) {
             divBodyUpDown += "style=\"display:none;\" ";
         }
-        divBodyUpDown += ">";
+        divBodyUpDown += "><table><tr><td>";
         divBodyUpDown += "<DIV id=\"" + this.getID() + "-" + this.getCopyTag() + "-TABDIV\">";
         divBodyUpDown += divBody;
         divBodyUpDown += "</DIV>";
-        divBodyUpDown += "</DIV>";
+        divBodyUpDown += "</DIV></td></tr></table>";
+        divBodyUpDown += "</TD>";
 
-        divBodyUpDown += "</TD><TD style=\"display: table-cell; vertical-align: top;\">";
+        divBodyUpDown += "<TD style=\"display: table-cell; vertical-align: top;\">";
         divBodyUpDown += divIntRight;
-        divBodyUpDown += "</TD></TR></TABLE>";
+        divBodyUpDown += "</TD>";
+        divBodyUpDown += "</TR></TABLE>";
 
         divBodyUpDown += "</TD></TR>";
         divBodyUpDown += "<TR><TD style=\"display: table-cell; vertical-align: top;\">";
@@ -2505,7 +2584,7 @@ public class smartForm {
                         if (this.objects.get(jj).Content.getType() != null
                                 && this.objects.get(jj).Content.getType().equalsIgnoreCase("INT")
                                 && this.objects.get(jj).Content.getHasSum() > 0) {
-                            int partial = this.objects.get(jj).Content.getActualSum();
+                            float partial = this.objects.get(jj).Content.getActualSum();
                             int thisValue = 0;
                             try {
                                 thisValue = rs.getInt(this.objects.get(jj).getName());
@@ -2513,6 +2592,19 @@ public class smartForm {
                                 thisValue = 0;
                             }
                             this.objects.get(jj).Content.setActualSum(partial + thisValue);
+                        } else if (this.objects.get(jj).Content.getType() != null
+                                && (this.objects.get(jj).Content.getType().equalsIgnoreCase("FLOAT") || this.objects.get(jj).Content.getType().equalsIgnoreCase("EURO") || this.objects.get(jj).Content.getType().equalsIgnoreCase("MINtoHOURS") || this.objects.get(jj).Content.getType().equalsIgnoreCase("MINstoHOURS"))
+                                && this.objects.get(jj).Content.getHasSum() > 0) {
+                            float partial = this.objects.get(jj).Content.getActualSum();
+                            float thisValue = 0;
+                            try {
+                                thisValue = rs.getFloat(this.objects.get(jj).getName());
+                            } catch (Exception e) {
+                                thisValue = 0;
+                            }
+                            this.objects.get(jj).Content.setActualSum(partial + thisValue);
+//                        System.out.println(this.objects.get(jj).name + " --> Tab_partial: " +partial+" ==> "+ this.objects.get(jj).Content.getActualSum());
+
                         }
                     }
                     if (righeScritte > (rowsPerPage * currentPage) && splitterPagesEnabled > 0) {
@@ -2569,7 +2661,7 @@ public class smartForm {
                 + ">";
         rowsCode += "<UL ";
         rowsCode += "id=\"" + this.getID() + "-" + this.getCopyTag() + "-ROOT-ROWSTABLE\"   ";
-        rowsCode += "style=\"width:" + this.getFormWidth()+"; height:" + this.getFormHeight()+";\"   ";
+        rowsCode += "style=\"width:" + this.getFormWidth() + "; height:" + this.getFormHeight() + ";\"   ";
         rowsCode += ">  ";
         if (this.addRowPosition != null && this.addRowPosition.equalsIgnoreCase("TOP")) {
             //===CASO FORMMASK CON ADD IN ALTO
@@ -2605,15 +2697,27 @@ public class smartForm {
         if (this.type == null) {
             this.type = "TABLE";
         }
+        if (this.type.equalsIgnoreCase("SMARTBUBBLES")) {
+            className = "";
+        }
+        if (this.type.equalsIgnoreCase("SMARTCALENDAR")) {
+            className = "calendar";
+        }
 
-//        System.out.println(" this.type:" + this.type);
+        System.out.println(" this.type:" + this.type);
         //==============================================================================
         divBody = "<div id=\"FORM-" + this.name + "-" + this.getCopyTag() + "\"  ";
         divBody += "class = \"" + className + " \""
                 + " style=\" width:" + this.getFormWidth() + "; "
-                + " height:" + this.getFormHeight() + ";  "
-                + "resize: vertical; "
-                + "display: table-cell; vertical-align: top; overflow: auto; \" >";
+                + " height:" + this.getFormHeight() + ";  ";
+
+        if (!this.type.equalsIgnoreCase("SMARTBUBBLES")) {
+            divBody += "display: table-cell; " + "resize: vertical; ";
+        } else {
+            divBody += "display: block; ";
+        }
+
+        divBody += "vertical-align: top; overflow: auto; \" >";
         //==============================================================================
 
 //        System.out.println("richiamo paintFormAttributes().");
@@ -2625,10 +2729,136 @@ public class smartForm {
             divBody += fillFormPanel();
         } else if (this.type.equalsIgnoreCase("SMARTTREE")) {
             divBody += fillFormTree("FRAMEONLY");
+        } else if (this.type.equalsIgnoreCase("SMARTBUBBLES")) {
+            divBody += fillFormBubbles();
+        } else if (this.type.equalsIgnoreCase("SMARTCALENDAR")) {
+            divBody += fillFormCalendar();
         } else {
             divBody += fillFormData();
         }
         divBody += "</div>\n"; // chiude FORM-xxxxxx 
+    }
+
+    public String fillFormBubbles() {
+        System.out.println("BUBBLES->query used: " + this.queryUsed);
+        Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
+        ResultSet rs;
+        Statement s;
+        try {
+            s = conny.prepareStatement(this.queryUsed,
+                    ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY); //questo serve per poter scorrere i record e riocomeinciare da capo
+            rs = s.executeQuery(this.queryUsed);
+            righeScritte = 0;
+            while (rs.next()) {
+                righeScritte++;
+                smartRow myRow = new smartRow(this, rs, righeScritte);
+
+                smartObjRight rowRights = myRow.valutaRightsRiga(this.getDisableRules(), rs);/// analizzo il LOCKER del form per la riga
+                smartObjRight actualRowRights = joinRights(formRightsRules, rowRights);
+
+                myRow.setActualRowRights(actualRowRights);
+                myRow.setFormRightsRules(formRightsRules);
+                String rowCode = myRow.SMRTpaintRow("bubble");
+                normalRowsCode += rowCode;
+
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        try {
+            conny.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        String htmlCode = "";
+        htmlCode = "<TABLE style=\"table-layout: fixed; width: 100% ; border-collapse: collapse;   border: 1px solid black;display: flex; display: flex; flex-direction: row;\"><TR>";
+        htmlCode += "<TD style=\"table-layout: fixed; width: 100% ; border-collapse: collapse;   border: 1px solid black;display: block; overflow-x: auto;\">" + normalRowsCode + "</TD>";
+        htmlCode += "</TR></TABLE>";
+        return htmlCode;
+    }
+
+    public String fillFormCalendar() {
+        System.out.println("CALENDAR->query used: " + this.queryUsed);
+//        normalRowsCode = "<div id=\"calendar\" name=\"calendar\"  >*CALENDAR HERE</DIV>";
+
+//        pageSelectorCode = getCodePageSelector(rowsCounter, totalPages);
+        
+
+        rowsCode = "<div "
+                + " class=\"tabBody\""
+                + " id=\"" + this.getID() + "-" + this.getCopyTag() + "-ROWSDIV\" "
+                + "style=\" height:" + this.getFormHeight() + "; "
+                //                    + " background-color: coral;  "
+                + "resize: vertical;\n"
+                + "    overflow: auto; \""
+                + ">";
+
+        rowsCode += "<TABLE id=\"" + this.getID() + "-" + this.getCopyTag() + "-TABLE\"   >";
+        rowsCode += "<TR><TD>";
+
+        rowsCode += pageSelectorCode;
+
+        rowsCode += "</TD></TR>";
+        rowsCode += "</TABLE>";
+        rowsCode += "<TABLE id=\"" + this.getID() + "-" + this.getCopyTag() + "-ROWSTABLE\"   > <tbody>";
+        if (this.addRowPosition != null && this.addRowPosition.equalsIgnoreCase("TOP")) {
+            //===CASO FORMMASK CON ADD IN ALTO
+            if (formRightsRules.canCreate > 0) {
+                rowsCode += addingRowCode;
+            }
+            rowsCode += totalRowCode;
+            rowsCode += normalRowsCode;
+        } else {
+            rowsCode += normalRowsCode;
+            rowsCode += totalRowCode;
+            if (formRightsRules.canCreate > 0) {
+                rowsCode += addingRowCode;
+            }
+        }
+        rowsCode += "</tbody> </TABLE>";
+        rowsCode += "</TD></TR>";
+        rowsCode += "</div>";
+        //System.out.println("Righe DATI:" + lines);
+
+        Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
+        ResultSet rs;
+        Statement s;
+        try {
+            s = conny.prepareStatement(this.queryUsed,
+                    ResultSet.TYPE_SCROLL_INSENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY); //questo serve per poter scorrere i record e riocomeinciare da capo
+
+            rs = s.executeQuery(this.queryUsed);
+            righeScritte = 0;
+            while (rs.next()) {
+                righeScritte++;
+                smartRow myRow = new smartRow(this, rs, righeScritte);
+
+                smartObjRight rowRights = myRow.valutaRightsRiga(this.getDisableRules(), rs);/// analizzo il LOCKER del form per la riga
+                smartObjRight actualRowRights = joinRights(formRightsRules, rowRights);
+
+                myRow.setActualRowRights(actualRowRights);
+                myRow.setFormRightsRules(formRightsRules);
+                String rowCode = myRow.SMRTpaintRow("calendarDate");
+                normalRowsCode += rowCode;
+//                System.out.println("rowCode: " + rowCode);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        try {
+            conny.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        String htmlCode = rowsCode;
+//        htmlCode = "<TABLE style=\"table-layout: fixed; width: 100% ; border-collapse: collapse;   border: 1px solid black;display: flex; display: flex; flex-direction: row;\"><TR>";
+//        htmlCode += "<TD style=\"table-layout: fixed; width: 100% ; border-collapse: collapse;   border: 1px solid black;display: block; overflow-x: auto;\">" + normalRowsCode + "</TD>";
+//        htmlCode += "</TR></TABLE>";
+        return htmlCode;
     }
 
     public String fillFormData() {
@@ -2662,7 +2892,56 @@ public class smartForm {
 
         return htmlCode;
     }
- 
+
+    public static JSONObject RStoJSON(ResultSet rs)
+            throws SQLException, JSONException {
+//        JSONObject json = new JSONObject();
+        ResultSetMetaData rsmd = rs.getMetaData();
+
+        int numColumns = rsmd.getColumnCount();
+        JSONObject obj = new JSONObject();
+
+        for (int i = 1; i < numColumns + 1; i++) {
+            String column_name = rsmd.getColumnName(i);
+
+            if (rsmd.getColumnType(i) == java.sql.Types.ARRAY) {
+                obj.put(column_name, rs.getArray(column_name));
+            } else if (rsmd.getColumnType(i) == java.sql.Types.BIGINT) {
+                obj.put(column_name, rs.getInt(column_name));
+            } else if (rsmd.getColumnType(i) == java.sql.Types.BOOLEAN) {
+                obj.put(column_name, rs.getBoolean(column_name));
+            } else if (rsmd.getColumnType(i) == java.sql.Types.BLOB) {
+//         obj.put(column_name, rs.getBlob(column_name));
+            } else if (rsmd.getColumnType(i) == java.sql.Types.DOUBLE) {
+                obj.put(column_name, rs.getDouble(column_name));
+            } else if (rsmd.getColumnType(i) == java.sql.Types.FLOAT) {
+                obj.put(column_name, rs.getFloat(column_name));
+            } else if (rsmd.getColumnType(i) == java.sql.Types.INTEGER) {
+                obj.put(column_name, rs.getInt(column_name));
+            } else if (rsmd.getColumnType(i) == java.sql.Types.NVARCHAR) {
+                obj.put(column_name, rs.getNString(column_name));
+            } else if (rsmd.getColumnType(i) == java.sql.Types.VARCHAR) {
+                obj.put(column_name, rs.getString(column_name));
+            } else if (rsmd.getColumnType(i) == java.sql.Types.TINYINT) {
+                obj.put(column_name, rs.getInt(column_name));
+            } else if (rsmd.getColumnType(i) == java.sql.Types.SMALLINT) {
+                obj.put(column_name, rs.getInt(column_name));
+            } else if (rsmd.getColumnType(i) == java.sql.Types.DATE) {
+                obj.put(column_name, rs.getDate(column_name));
+            } else if (rsmd.getColumnType(i) == java.sql.Types.TIMESTAMP) {
+                try {
+                    obj.put(column_name, rs.getTimestamp(column_name));
+                } catch (Exception e) {
+
+                }
+            } else {
+                obj.put(column_name, rs.getObject(column_name));
+            }
+        }
+
+        return obj;
+    }
+
     public String fillRowData(String type, String whereClause) {
         String htmlCode = "";
         Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
@@ -2682,6 +2961,7 @@ public class smartForm {
         try {
             s = conny.createStatement();
             DATArs = s.executeQuery(this.queryUsed);
+            JSONObject prevRS = null;
             while (DATArs.next()) {
                 try {
                     smartRow myRow = new smartRow(this, DATArs, 0);
@@ -2689,10 +2969,11 @@ public class smartForm {
                     smartObjRight actualRowRights = joinRights(formRightsRules, rowRights);
                     myRow.setActualRowRights(actualRowRights);
                     myRow.setFormRightsRules(formRightsRules);
-                    htmlCode += myRow.SMRTpaintRow("normal");
+                    htmlCode += myRow.SMRTpaintRow("normal", prevRS);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                prevRS = RStoJSON(DATArs);
 //                break;// solo una riga
             }
         } catch (SQLException ex) {
@@ -3099,11 +3380,16 @@ public class smartForm {
             } catch (Exception e) {
 
             }
-
+//            htmlCode += "<div style=\"overflow:hidden; white-space: nowrap\">\n";
             htmlCode += label;
+//            htmlCode += "    </div>";
+
             htmlCode += "</td>";
             htmlCode += "<td style=\"font-size:10px; padding-right:10px; \"> ";
-            if (key != null && key.length() > 0) {
+            if (this.showKeyLink == null) {
+                this.showKeyLink = "FALSE";
+            }
+            if (this.showKeyLink.equalsIgnoreCase("TRUE") && key != null && key.length() > 0) {
                 htmlCode += " <font size='1'>[rif." + key + "]</font>";
             }
 
@@ -3199,6 +3485,7 @@ public class smartForm {
 
         String rootID = this.getID() + "-" + this.getCopyTag();
         htmlCode += ("<INPUT type=\"HIDDEN\" id=\"" + this.name + "-" + this.getCopyTag() + "-ID\" value=\"" + this.getID() + "-" + this.getCopyTag() + "\">\n");
+        htmlCode += ("<INPUT type=\"HIDDEN\" id=\"" + rootID + "-FORMTYPE\" value=\"SMART\">\n");
         htmlCode += ("<INPUT type=\"HIDDEN\" id=\"" + rootID + "-FATHER\" value=\"" + this.getFather() + "\">\n");
         htmlCode += ("<INPUT type=\"HIDDEN\" id=\"" + rootID + "-FATHERARGS\" value=\"" + this.getFatherFilters() + "\">\n");
         htmlCode += ("<INPUT type=\"HIDDEN\" id=\"" + rootID + "-FATHERKEYVALUE\" value=\"" + this.getFatherKEYvalue() + "\">\n");
@@ -3394,7 +3681,7 @@ public class smartForm {
         // cerca il FORM per nome e se non è compilato per ID
 
 //        System.out.println("query: " + this.query);
-//        System.out.println("fillFormData_formTable queryUsed: " + this.queryUsed);
+        System.out.println("fillFormData_formTable queryUsed: " + this.queryUsed);
         if (this.queryUsed == null || this.queryUsed == "") {
             return "ERROR LOADING FORM TABLE.";
         }
@@ -3402,7 +3689,7 @@ public class smartForm {
         rowsCounter = 0;
         totalPages = 0;
         try {
-            System.out.println("\n #### fillFormData_formTable >>SQLphrase DATI:" + this.queryUsed);
+//            System.out.println("\n getCodeRows #### fillFormData_formTable >>SQLphrase DATI:" + this.queryUsed);
 
 //=====CONTO LE RIGHE TOTALI=================================================
             Statement s = conny.prepareStatement(this.queryUsed,
@@ -3458,11 +3745,11 @@ public class smartForm {
                 for (int jj = 0; jj < this.objects.size(); jj++) {
                     this.objects.get(jj).objRights = analyzeRightsRuleJson(this.objects.get(jj).Content.getModifiable(), null, null, 400); //curObj.objRights=analyzeRightsRuleJson(curObj.Content.getModifiable(), null);
                 }
-
+                JSONObject prevRS = new JSONObject();
 //CICLO RIGHE TABELLA=========================================
                 while (rs.next()) {
                     //------------------------------------ 
-//                System.out.println("righeScritte :" + righeScritte);
+//                    System.out.println("righeScritte :" + righeScritte);
 //                System.out.println("rowsPerPage :" + rowsPerPage);
 //                System.out.println("currentPage :" + currentPage);
 //                System.out.println("splitterPagesEnabled :" + splitterPagesEnabled);
@@ -3472,11 +3759,11 @@ public class smartForm {
 //-----------------------------------------------
 //--ESEGIUO LE SOMME DELLE COLONNE CON TOTALI----             
 //-----------------------------------------------               
-//                     System.out.println("++oggetto "+this.objects.get(jj).getName()+" - HAS SUM ="+ this.objects.get(jj).Content.getHasSum() );
+//                     System.out.println("SMART FORM: ++oggetto "+this.objects.get(jj).getName()+" - HAS SUM ="+ this.objects.get(jj).Content.getHasSum()+"  [TYPE]:"+this.objects.get(jj).Content.getType() );
                         if (this.objects.get(jj).Content.getType() != null
-                                && this.objects.get(jj).Content.getType().equalsIgnoreCase("INT")
+                                && (this.objects.get(jj).Content.getType().equalsIgnoreCase("INT"))
                                 && this.objects.get(jj).Content.getHasSum() > 0) {
-                            int partial = this.objects.get(jj).Content.getActualSum();
+                            float partial = this.objects.get(jj).Content.getActualSum();
                             int thisValue = 0;
                             try {
                                 thisValue = rs.getInt(this.objects.get(jj).getName());
@@ -3484,7 +3771,23 @@ public class smartForm {
                                 thisValue = 0;
                             }
                             this.objects.get(jj).Content.setActualSum(partial + thisValue);
-//                        System.out.println("Tab_partial " + this.objects.get(jj).Content.getActualSum());
+//                            System.out.println("Tab_partial " + this.objects.get(jj).Content.getActualSum());
+
+                        } else if (this.objects.get(jj).Content.getType() != null
+                                && (this.objects.get(jj).Content.getType().equalsIgnoreCase("FLOAT")
+                                || this.objects.get(jj).Content.getType().equalsIgnoreCase("EURO")
+                                || this.objects.get(jj).Content.getType().equalsIgnoreCase("MINtoHOURS")
+                                || this.objects.get(jj).Content.getType().equalsIgnoreCase("MINStoHOURS"))
+                                && this.objects.get(jj).Content.getHasSum() > 0) {
+                            float partial = this.objects.get(jj).Content.getActualSum();
+                            float thisValue = 0;
+                            try {
+                                thisValue = rs.getFloat(this.objects.get(jj).getName());
+                            } catch (Exception e) {
+                                thisValue = 0;
+                            }
+                            this.objects.get(jj).Content.setActualSum(partial + thisValue);
+//                            System.out.println(this.objects.get(jj).name + " --> Tab_partial: " + partial + " ==> " + this.objects.get(jj).Content.getActualSum());
 
                         }
                     }
@@ -3506,7 +3809,7 @@ public class smartForm {
                         myRow.setActualRowRights(actualRowRights);
                         myRow.setFormRightsRules(formRightsRules);
 //                        System.out.println("------------------------riga:" + lines);
-                        normalRowsCode += myRow.SMRTpaintRow("normal");
+                        normalRowsCode += myRow.SMRTpaintRow("normal", prevRS);
 //                        System.out.println("------------------------fine riga:" + lines);
 //                    } catch (Exception e) {
 //                        
@@ -3515,12 +3818,17 @@ public class smartForm {
 //                    }
 
                     }
+                    try {
+                        prevRS = RStoJSON(rs);
+                    } catch (Exception e) {
+                        System.out.println("err 3580:" + e.toString());
+                    }
                 }
 
 //                System.out.println("Righe scritte a video:" + lines);
             } catch (Exception e) {
 
-                System.out.println("err 2028" + e.toString());
+                System.out.println("err 3581:" + e.toString());
             }
 //            System.out.println("Righe da query:" + righeScritte);
 //            System.out.println("normalRowsCode:" + normalRowsCode);
@@ -3606,8 +3914,9 @@ public class smartForm {
 
         //HEADER======================================= 
 //        System.out.println("\nthis.showHeader:" + this.showHeader);
+//            System.out.println("->### this.advancedFiltered:" + this.advancedFiltered);
         if (this.advancedFiltered != null && this.advancedFiltered.equalsIgnoreCase("TRUE")) {
-//            System.out.println(" this.advancedFiltered:" + this.advancedFiltered);
+//            System.out.println(" ### this.advancedFiltered:" + this.advancedFiltered);
             htmlCode += paintAdvancedFilters();
         } else {
             if ((this.showHeader != null && this.showHeader.equalsIgnoreCase("false"))
@@ -4606,6 +4915,7 @@ public class smartForm {
         myCRUD.setFatherKEYvalue(this.fatherKEYvalue);
 
         myCRUD.setSendToCRUD(this.sendToCRUD);
+        myCRUD.setToBeSent(this.toBeSent);
         query = myCRUD.standardReplace(query, null);
 
         if (rowValues != null) {

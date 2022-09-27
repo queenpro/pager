@@ -52,6 +52,50 @@ public class jsFunctionServer {
 
         String dbCode = " ";
         //====================================================
+// <editor-fold defaultstate="collapsed" desc="Drag&Drop">
+        dbCode += "function allowDrop(ev) {\n"
+                + "  ev.preventDefault();\n"
+                + "}\n"
+                + "\n"
+                + "function drag(ev) {\n"
+                + "  ev.dataTransfer.setData(\"text\", ev.target.id);\n"
+                + " console.log(\"DRAGGED:\" + ev.target.id);"
+                + "}\n"
+                + "\n"
+                + "function drop(ev, destination) {\n"
+                + "  ev.preventDefault();\n"
+                + "  var data = ev.dataTransfer.getData(\"text\");\n"
+                + " console.log(\"DROPPED:\" + data+\" to \" + destination);"
+                + "var caller = {};"
+                ///DROPPED:campi7b1d4-X-4-ROW to ELAB_da110-X-label-175
+                + "        var blocks = destination.split(\"-\");\n"
+                + "        if (blocks.length > 3) {\n"
+                + " caller.operation = \"softDrop\";"
+                + " caller.formID =  blocks[0];"
+                + " caller.copyTag =  blocks[1];"
+                + " caller.rifObj =  blocks[2];"
+                + " caller.keyValue =  blocks[3];}"
+                + "        var blocks = data.split(\"-\");\n"
+                + "        if (blocks.length > 3) {\n"
+                + " caller.bubble_formID =  blocks[0];"
+                + " caller.bubble_copyTag =  blocks[1];"
+                + " caller.bubble_keyValue =  blocks[2];"
+                + " smartDropAction(caller)"
+                + "}"
+                //                + "  ev.target.appendChild(document.getElementById(data));\n"
+                + "}";
+
+        //====================================================
+// <editor-fold defaultstate="collapsed" desc="clickedObject">
+        dbCode += "function toggleObj(objID){\n"
+                + "var obj= document.getElementById(objID);"
+                + "if (obj.style.display==\"none\"){"
+                + "obj.style.display = \"block\";"
+                + "}else{"
+                + "obj.style.display = \"none\";"
+                + "}"
+                + "}";
+        //====================================================
 // <editor-fold defaultstate="collapsed" desc="clickedObject">
         dbCode += "function dblclickedObject(jarguments){\n"
                 + "console.log(\"doppio click\");"
@@ -60,7 +104,7 @@ public class jsFunctionServer {
 // <editor-fold defaultstate="collapsed" desc="clickedObject">
         dbCode += "function clickedObject(jarguments){\n"
                 + "    var paramj = JSON.stringify(jarguments);\n"
-                + "    console.log(\"clickedObject--->jarguments=\" + paramj);\n"
+                //                + "    console.log(\"clickedObject--->jarguments=\" + paramj);\n"
                 + "    var myArg = JSON.parse(paramj);\n"
                 + "    var rifForm = myArg.rifForm;\n"
                 //                + "    console.log(\"clickedObject--->rifForm=\" + rifForm);\n"
@@ -111,7 +155,7 @@ public class jsFunctionServer {
                 // <editor-fold defaultstate="collapsed" desc="ExecuteRoutine">
                 + "    else if (action == \"ExecuteRoutine\") {\n"
                 + ""
-                + "console.log(\"ACTION EXECUTEROUTINE: \"+routine );\n"
+                //                + "console.log(\"ACTION EXECUTEROUTINE: \"+routine );\n"
                 + "if (askConfirm && (askConfirm==\"true\" || askConfirm==\"TRUE\")){"
                 + " var y = confirm(confirmPhrase);"
                 + " if (y==false) {"
@@ -126,9 +170,9 @@ public class jsFunctionServer {
                 //(trovo i suoi childs) qui non è detto che il valore selezionato sia sulla stessa riga del pulsante cliccato; 
                 //devo affidarmi al valore key del pulsante stesso
                 + "        var fatherKEYtype = document.getElementById(rifForm + \"-\" + copyTag + \"-KEYfieldType\").value;\n"
-                + "console.log(\"getJTBS per EXECUTEROUTINE: rifForm\"+rifForm+\" - copyTag: \"+copyTag+\" - fatherKEYvalue: \"+fatherKEYvalue );\n"
+                //                + "console.log(\"getJTBS per EXECUTEROUTINE: rifForm\"+rifForm+\" - copyTag: \"+copyTag+\" - fatherKEYvalue: \"+fatherKEYvalue );\n"
                 + "        var JTBS = getJTBS(rifForm, copyTag, fatherKEYvalue);\n"
-                + "console.log(\"JTBS: \"+JTBS );\n"
+                //                + "console.log(\"JTBS: \"+JTBS );\n"
                 + "        var destDiv = \"CH-\" + rifForm + \"-\" + copyTag + \"-\" + position;\n"
                 + "        var xmlhttp;\n"
                 + "        if (window.XMLHttpRequest)\n"
@@ -254,12 +298,12 @@ public class jsFunctionServer {
                 + "         }"
                 + "         var fatherKEYtype = document.getElementById(rifForm + \"-\" + copyTag + \"-KEYfieldType\").value;\n"
                 + "         var JTBS = getJTBS(rifForm, copyTag, fatherKEYvalue);\n"
-                + "         console.log(\"Azione OpenSecForm; valuto ges_routineOnLoad=\" + ges_routineOnLoad);\n"
+                //                + "         console.log(\"Azione OpenSecForm; valuto ges_routineOnLoad=\" + ges_routineOnLoad);\n"
                 + "         clearChilds(rifForm, copyTag);\n"
                 + "         document.getElementById(destDiv).innerHTML = \"<img src='wait.gif' alt='wait...' >\";\n"
                 + "         if (ges_routineOnLoad && ges_routineOnLoad != \"null\" && ges_routineOnLoad.length > 1 && ges_routineOnLoad != \"null\") {\n"
                 //                + "            // prima di aprire il form controllo se c'è da eseguire una routineOnLoad\n"
-                + "             console.log(\"[OpenSecForm] La routine On Load per il form è:\" + ges_routineOnLoad);\n"
+                //                + "             console.log(\"[OpenSecForm] La routine On Load per il form è:\" + ges_routineOnLoad);\n"
                 + "             XcuteRoutineOnLoad(ges_routineOnLoad, \"\", \"\", \"\", \"\");\n"
                 + "        }\n"
                 + "        var destDiv = \"CH-\" + rifForm + \"-\" + copyTag + \"-\" + position;\n"
@@ -276,28 +320,28 @@ public class jsFunctionServer {
                 + "            if (xmlhttp.readyState == 4 && xmlhttp.status == 200)\n"
                 + "            {\n"
                 + "                var response = xmlhttp.responseText;\n"
-                + "                console.log(\"DISEGNO FORM \"+formToLoad+\" SU DIV \"+destDiv);"
+                //                + "                console.log(\"DISEGNO FORM \"+formToLoad+\" SU DIV \"+destDiv);"
                 + "                drawForm(response, rifForm, formToLoad, destDiv);\n"
                 //-----------gestione prima scelta form filter
                 + "                    if (ges_routineOnLoad && ges_routineOnLoad.length > 1 && ges_routineOnLoad != \"null\") {\n"
                 + "                        var prefix = \"\";\n"
                 + "                        if (ges_routineOnLoad.length > 5) {\n"
                 + "                            prefix = ges_routineOnLoad.substring(0, 6);\n"
-                + "                            console.log(\"prefix:\" + prefix);\n"
+                //                + "                            console.log(\"prefix:\" + prefix);\n"
                 + "                        }\n"
                 + "                        // prima di aprire il form controllo se c'è da eseguire una routineOnLoad\n"
-                + "                        console.log(\"La routine On Load per il form '\" + form + \"' è:\" + ges_routineOnLoad);\n"
+                //                + "                        console.log(\"La routine On Load per il form '\" + form + \"' è:\" + ges_routineOnLoad);\n"
                 + "                        if ((type == \"PANEL\" || type == \"FILTER\") && prefix == \"click_\") {\n"
                 + "                            clickOnLoad = ges_routineOnLoad.substring(6, ges_routineOnLoad.length);\n"
-                + "                            console.log(\"devo cliccare il pulsante:\" + clickOnLoad);\n"
+                //                + "                            console.log(\"devo cliccare il pulsante:\" + clickOnLoad);\n"
                 + "                        } else {\n"
                 + "                            clickOnLoad = \"\";\n"
-                + "                            console.log(\"[getChildrenList] La routine On Load per il form è:\" + ges_routineOnLoad);\n"
+                //                + "                            console.log(\"[getChildrenList] La routine On Load per il form è:\" + ges_routineOnLoad);\n"
                 + "                            XcuteRoutineOnLoad(ges_routineOnLoad, fatherArgs, fatherformID, fathercopyTag, form);\n"
                 + "                        }\n"
                 + "                    }\n"
                 //---------
-                + "                console.log(\"CERCO I CHILDS CON findPanelChilds \" );"
+                //                + "                console.log(\"CERCO I CHILDS CON findPanelChilds \" );"
                 + "                findPanelChilds(response, rifForm, formToLoad, destDiv) ;"
                 //+ "jsFunction();"
                 + "            }\n"
@@ -340,7 +384,7 @@ public class jsFunctionServer {
                 + "                if (xmlhttp2.readyState == 4 && xmlhttp2.status == 200)\n"
                 + "                {\n"
                 + "                    var response2 = xmlhttp2.responseText;\n"
-                + "console.log(\"DISEGNO FORM \"+formToLoad2+\" SU DIV \"+destDiv2);"
+                //                + "console.log(\"DISEGNO FORM \"+formToLoad2+\" SU DIV \"+destDiv2);"
                 + "                    drawForm(response2, rifForm, formToLoad2, destDiv2);\n"
                 + "                }\n"
                 + "            }\n"
@@ -377,8 +421,8 @@ public class jsFunctionServer {
                 + "        document.getElementById(\"splash-copyTag\").value = copyTag;\n"
                 + "        document.getElementById(\"splash-keyValue\").value = keyValue;\n"
                 + "        var JTBS = getJTBS(rifForm, copyTag, keyValue);\n"
-                + "console.log(\"CLICCATO OPEN SPLASH.. form da aprire:\"+formToLoad );"
-                + "console.log(\"JTBS:\"+JTBS );"
+                //                + "console.log(\"CLICCATO OPEN SPLASH.. form da aprire:\"+formToLoad );"
+                //                + "console.log(\"JTBS:\"+JTBS );"
                 + "var params='\"params\":'+ document.getElementById(\"portalParams\").value;"
                 + "var utils='\"responseType\":\"text\"';"
                 + "var connectors='\"connectors\":[{"
@@ -417,8 +461,8 @@ public class jsFunctionServer {
                 + "        document.getElementById(\"splash-copyTag\").value = copyTag;\n"
                 + "        document.getElementById(\"splash-keyValue\").value = keyValue;\n"
                 + "        var JTBS = getJTBS(rifForm, copyTag, keyValue);\n"
-                + "console.log(\"CLICCATO OPEN IFRAME.. form CUSTOM da aprire:\"+formToLoad );"
-                + "console.log(\"JTBS:\"+JTBS );"
+                //                + "console.log(\"CLICCATO OPEN IFRAME.. form CUSTOM da aprire:\"+formToLoad );"
+                //                + "console.log(\"JTBS:\"+JTBS );"
                 + "var params='\"params\":'+ document.getElementById(\"portalParams\").value;"
                 + "var utils='\"responseType\":\"text\"';"
                 + "var connectors='\"connectors\":[{"
@@ -475,7 +519,7 @@ public class jsFunctionServer {
                 + " }"
                 + "}"
                 + " }else{"
-                + "       console.log(\"Xtype:\" + Xtype + \" BrifForm:\" + BrifForm + \" BcopyTag:\" + BcopyTag + \" BrifObj:\" + BrifObj + \" BkeyValue:\" + BkeyValue);\n"
+                //                + "       console.log(\"Xtype:\" + Xtype + \" BrifForm:\" + BrifForm + \" BcopyTag:\" + BcopyTag + \" BrifObj:\" + BrifObj + \" BkeyValue:\" + BkeyValue);\n"
                 + "        var TBS = \"\";\n"
                 + "        try {\n"
                 + "            TBS = getTBS(rifForm + \"-\" + copyTag, keyValue);\n"
@@ -504,14 +548,14 @@ public class jsFunctionServer {
                 //-------------------------------------
                 // <editor-fold defaultstate="collapsed" desc="PrintReport">
                 + "    else if (action == \"PrintReport\") {\n"
-                + "    console.log(\"SONO IN --->PrintReport \"  );\n"
+                //                + "    console.log(\"SONO IN --->PrintReport \"  );\n"
                 + "        var fatherKEYvalue = keyValue;\n" //a differenza di quando clicco sulla linea 
                 //(trovo i suoi childs) qui non è detto che il valore selezionato sia sulla stessa riga del pulsante cliccato; 
                 //devo affidarmi al valore key del pulsante stesso
                 + "        var fatherKEYtype = document.getElementById(rifForm + \"-\" + copyTag + \"-KEYfieldType\").value;\n"
-                + "console.log(\"getJTBS per PrintReport: rifForm\"+rifForm+\" - copyTag: \"+copyTag+\" - fatherKEYvalue: \"+fatherKEYvalue );\n"
+                //                + "console.log(\"getJTBS per PrintReport: rifForm\"+rifForm+\" - copyTag: \"+copyTag+\" - fatherKEYvalue: \"+fatherKEYvalue );\n"
                 + "        var JTBS = getJTBS(rifForm, copyTag, fatherKEYvalue);\n"
-                + "console.log(\"JTBS: \"+JTBS );\n"
+                //                + "console.log(\"JTBS: \"+JTBS );\n"
                 + "    var xmlhttp;\n"
                 + "    if (window.XMLHttpRequest)\n"
                 + "    {// code for IE7+, Firefox, Chrome, Opera, Safari\n"
@@ -575,9 +619,9 @@ public class jsFunctionServer {
                 + "var gp='{'+utils+','+params+','+connectors+'}';"
                 + "        var fatherKEYvalue = keyValue;\n"
                 + "        var fatherKEYtype = document.getElementById(rifForm + \"-\" + copyTag + \"-KEYfieldType\").value;\n"
-                + "console.log(\"getJTBS per WSktComm: rifForm\"+rifForm+\" - copyTag: \"+copyTag+\" - fatherKEYvalue: \"+fatherKEYvalue );\n"
+                //                + "console.log(\"getJTBS per WSktComm: rifForm\"+rifForm+\" - copyTag: \"+copyTag+\" - fatherKEYvalue: \"+fatherKEYvalue );\n"
                 + "        var JTBS = getJTBS(rifForm, copyTag, fatherKEYvalue);\n"
-                + "console.log(\"JTBS: \"+JTBS );\n"
+                //                + "console.log(\"JTBS: \"+JTBS );\n"
                 + "var connectors =  {\n"
                 + "    door:   \"clickedObject\",\n"
                 + "    event:   \"P2P\",\n"
@@ -612,14 +656,19 @@ public class jsFunctionServer {
 // <editor-fold defaultstate="collapsed" desc="filterChanges">
         dbCode += "function filterChanges(formID, copyTag) {\n"
                 + "    var curPage = 0;\n"
+                + "        var formName;\n"
+                + "        console.log(\"filterChanges formID:\" + formID);\n"
                 + "    try {\n"
-                + "        var formName = document.getElementById(formID + \"-\" + copyTag + \"-EXTENDEDNAME\").value;\n"
+                //                + "        var formName = document.getElementById(formID + \"-\" + copyTag + \"-EXTENDEDNAME\").value;\n"
+
+                + "        try{ formName = document.getElementById(formID + \"-\" + copyTag + \"-EXTENDEDNAME\").value;}catch(err){}\n"
                 + "        var filterText = document.getElementById(formID + \"-\" + copyTag + \"-FILTER\").value;\n"
                 + "    } catch (err) {\n"
                 + "        var filterText = \"\";\n"
-                + "        console.log(\"ERRORE IN filterChanges:\" + err);\n"
+                //                + "        console.log(\"ERRORE IN filterChanges:\" + err);\n"
                 + "    }\n"
                 + "    var destination = \"FORM-\" + formName + \"-\" + copyTag;\n"
+                + "        console.log(\"filterChanges destination:\" + destination);\n"
                 + "    if (filterText.length > 2) {\n"
                 + "\n"
                 + "        var loadType = \"TABLEFILTER;0;0;\" + curPage + \";\" + filterText;\n"
@@ -682,7 +731,8 @@ public class jsFunctionServer {
                 + "        xmlhttp.send(toSend);\n"
                 + "        document.getElementById(rifForm + \"-KEYfieldValue\").value = \"\";\n"
                 + "    } else {\n"
-                + "        var formName = document.getElementById(rifForm + \"-EXTENDEDNAME\").value;\n"
+                + "        var formName;\n"
+                + "        try{ formName = document.getElementById(rifForm + \"-EXTENDEDNAME\").value;}catch(err){}\n"
                 + "        var args = document.getElementById(rifForm + \"-FATHERARGS\").value;\n"
                 + "        var keyposition = document.getElementById(rifForm + \"-FIELDFILTERED\").value;\n"
                 + "        var fatherKEYvalue = document.getElementById(rifForm + \"-\" + keyposition).value;\n"
@@ -775,7 +825,9 @@ public class jsFunctionServer {
                 + "    var curPage = page;\n"
                 + "    var rifForm = formID + \"-\" + copyTag;\n"
                 + "    document.getElementById(rifForm + \"-CURPAGE\").value = page;\n"
-                + "    var formName = document.getElementById(rifForm + \"-EXTENDEDNAME\").value;\n"
+                //                + "    var formName = document.getElementById(rifForm + \"-EXTENDEDNAME\").value;\n"
+                + "        var formName;\n"
+                + "        try{ formName = document.getElementById(rifForm + \"-EXTENDEDNAME\").value;}catch(err){}\n"
                 + "    var destination = \"FORM-\" + formName + \"-\" + copyTag;\n"
                 + "    try {\n"
                 + "        var filterText = document.getElementById(rifForm + \"-FILTER\").value;\n"
@@ -804,7 +856,7 @@ public class jsFunctionServer {
                 + "         clearChilds(rifForm, copyTag);\n"
                 + "        document.getElementById(destDiv).innerHTML = \"<img src='wait.gif' alt='wait...' >\";\n"
                 + "        if (ges_routineOnLoad && ges_routineOnLoad != \"null\" && ges_routineOnLoad.length > 1 && ges_routineOnLoad != \"null\") {\n"
-                + "    console.log(\"[OpenForm] La routine On Load per il form è:\" + ges_routineOnLoad);\n"
+                //                + "    console.log(\"[OpenForm] La routine On Load per il form è:\" + ges_routineOnLoad);\n"
                 + "            XcuteRoutineOnLoad(ges_routineOnLoad, \"\", \"\", \"\", \"\");\n"
                 + "        }\n"
                 //-----------------------------------------------------
@@ -824,14 +876,14 @@ public class jsFunctionServer {
                 //----------*
 
                 //------------------*
-                + "console.log(\"DISEGNO FORM \"+formToLoadX+\" SU DIV \"+destDiv);"
-                + "console.log('\"filteredFormResponse\":'+JTBS);"
+                //                + "console.log(\"DISEGNO FORM \"+formToLoadX+\" SU DIV \"+destDiv);"
+                //                + "console.log('\"filteredFormResponse\":'+JTBS);"
                 + "                drawForm(response, rifForm, formToLoadX, destDiv);\n"
                 + "var jsonData = JSON.parse('{\"filteredFormResponse\":'+JTBS+'}');\n"
                 + "                         for (var i = 0; i < jsonData.filteredFormResponse.length; i++) {\n"
                 + "                             var myargX = jsonData.filteredFormResponse[i];\n"
                 + ""
-                + "                             console.log(\"myargX.childType: \"+myargX.childType+\"---->: \"+myargX.message+ \"    myargX.destination: \"+myargX.destination );\n"
+                //                + "                             console.log(\"myargX.childType: \"+myargX.childType+\"---->: \"+myargX.message+ \"    myargX.destination: \"+myargX.destination );\n"
                 + "                             if (myargX.childType==\"formMessage\"){\n"
                 + "                                 if (myargX.destination==\"SNACKBARMESSAGE\"){\n"
                 + "    var snackbarMessage  = myargX.message;\n"
@@ -859,7 +911,7 @@ public class jsFunctionServer {
                 + "        } catch (err) {\n"
                 + "        }\n"
                 + "        }\n"
-                + "                             console.log(\"SCRIVO SNACK: newFormID=\"+newFormID );\n"
+                //                + "                             console.log(\"SCRIVO SNACK: newFormID=\"+newFormID );\n"
                 + "                                     document.getElementById(newFormID + \"-\" + newFormCopyTag + \"-SNACKBAR\").innerHTML = snackbarMessage;\n"
                 + "                                 }\n"
                 + "                             }\n"
@@ -906,9 +958,15 @@ public class jsFunctionServer {
                 + ""
                 + "                                 toast(myarg.phrase,null);"
                 + "                             }else "
+                //-------------------------------------------------------------------------------------//-------------------------------------------------------------------------------------
+                + "                             if(myarg.action=='splash'){"
+                + "                             console.log(\"myarg.phrase: \"+myarg.phrase);\n"
+                + "        document.getElementById(\"selectors\").innerHTML = \" \"+myarg.phrase+\" \";\n"
+                + "        scrollTo(\"splashPanel\");\n"
+                + "                             }else "
                 //-------------------------------------------------------------------------------------
                 + "                             if(myarg.action=='refreshRow'){"
-                + "                                 console.log(\"refreshRow]=> repaintRow(\"+ rifForm+\",\"+copyTag+\",\"+myarg.keyvalue);"
+                //                + "                                 console.log(\"refreshRow]=> repaintRow(\"+ rifForm+\",\"+copyTag+\",\"+myarg.keyvalue);"
                 + "                                 repaintRow(rifForm, copyTag, myarg.keyvalue) ;"
                 + "                             }else "
                 //-------------------------------------------------------------------------------------
@@ -919,7 +977,7 @@ public class jsFunctionServer {
                 //                + "                                 console.log(\"targetID= valOf:\"+target+\"-\"+copyTag+\"-ID\");\n"
                 + "                                 var targetID = document.getElementById(target+\"-\"+copyTag+\"-ID\").value;"
                 + "                                 if(!targetID){targetID=\"\";}"
-                + "                                 console.log(\"targetID:\"+targetID);\n"
+                //                + "                                 console.log(\"targetID:\"+targetID);\n"
                 + "                                 if (targetID){"
                 // qui mi viene fornito l'ID del form comprensivo della partew '-X' cioè del copytag
                 + "                                     var res = targetID.split(\"-\");"
@@ -931,7 +989,7 @@ public class jsFunctionServer {
                 + "                             }else "
                 //-------------------------------------------------------------------------------------
                 + "                             if(myarg.action=='OpenFilteredForm'){"
-                + "console.log(\"myarg.action: \"+myarg.action + \"  -  myarg.target: \"+myarg.target+ \"  -  myarg.position: \"+myarg.position );\n"
+                //                + "console.log(\"myarg.action: \"+myarg.action + \"  -  myarg.target: \"+myarg.target+ \"  -  myarg.position: \"+myarg.position );\n"
                 + "var formToLoadX = myarg.target;"
                 //                + "console.log(\"JTBS DOPO=\" + JSON.stringify(myarg.StC));\n"
                 + "JTBS = JSON.stringify(myarg.StC);"
@@ -1036,7 +1094,8 @@ public class jsFunctionServer {
                 + "    var thisFormFather = document.getElementById(rifForm + \"-FATHER\").value;\n"
                 + "    var fatherKEYvalue = document.getElementById(rifForm + \"-FATHERKEYVALUE\").value;\n"
                 + "    var fatherKEYtype = document.getElementById(rifForm + \"-FATHERKEYTYPE\").value;\n"
-                + "    var fieldFiltered = document.getElementById(rifForm + \"-FIELDFILTERED\").value;\n"
+                + "    var fieldFiltered;\n"
+                + "    try{ fieldFiltered = document.getElementById(rifForm + \"-FIELDFILTERED\").value;}catch(err){}\n"
                 + "    var fatherValueBefore = \"\";\n"
                 + "\n"
                 + "    try {\n"
@@ -1187,7 +1246,7 @@ public class jsFunctionServer {
                 + "                var part = filter.split(\":\");\n"
                 + "                if (part.length > 1 && part[1].length > 1) {\n"
                 + "                    xt = part[1].substring(0, 1);\n"
-                + "                    if (xt = '#') {\n"
+                + "                    if (xt == '#') {\n"
                 + "                        var tempDOMid = part[1].substring(1, part[1].length);\n"
                 + "                        var tempDOMvalue = \"\";\n"
                 + "                        try {\n"
@@ -1232,7 +1291,7 @@ public class jsFunctionServer {
                 + "        } else if (cellType == \"D\") {\n"
                 + "            var dateValue = rawValue.split(\"/\").join(\"-\");\n"
                 + "            xt = dateValue.substring(2, 3);\n"
-                + "            if (xt = '-') {\n"
+                + "            if (xt == '-') {\n"
                 + "                xday = dateValue.substring(0, 2);\n"
                 + "                xmonth = dateValue.substring(3, 5);\n"
                 + "                xyear = dateValue.substring(6, 10);\n"
@@ -1312,7 +1371,7 @@ public class jsFunctionServer {
                 + "        } else if (cellType == \"D\") {\n"
                 + "            var dateValue = rawValue.split(\"/\").join(\"-\");\n"
                 + "            xt = dateValue.substring(2, 3);\n"
-                + "            if (xt = '-') {\n"
+                + "            if (xt == '-') {\n"
                 + "                xday = dateValue.substring(0, 2);\n"
                 + "                xmonth = dateValue.substring(3, 5);\n"
                 + "                xyear = dateValue.substring(6, 10);\n"
@@ -1366,12 +1425,14 @@ public class jsFunctionServer {
                 // aggiungo una riga prima della terza (lascio in basso i totals e l'addNewLine
                 + "                        var tableRef = document.getElementById(rifForm + \"-TABLE\");\n"
                 + "                        var lines = tableRef.rows.length;\n"
+                + "console.log (\"lines:\"+lines);"
                 + "                        var newLinePosition = 0;\n"
                 + "                        if (lines > 0) {\n"
                 + "                            newLinePosition = 2;\n"
                 + "                        } else {\n"
                 + "                            newLinePosition = 1;\n"
                 + "                        }\n"
+                + "console.log (\"newLinePosition:\"+newLinePosition);"
                 + "                        var newRow = tableRef.insertRow(newLinePosition);\n"
                 + "                        newRow.id = rifForm + \"-\" + answerNewID + \"-ROW\";\n"
                 + "                        newRow.innerHTML = \"NEW LINE\";\n"
@@ -1560,12 +1621,14 @@ public class jsFunctionServer {
 // <editor-fold defaultstate="collapsed" desc="objSelected">
         dbCode += "function objSelected(ID)\n"
                 + "{\n"
+                + "console.log(\"clicked object \"+ ID);"
                 + "    var res = ID.split(\"-\");\n"
                 + "    var rifForm = res[0];\n"
                 + "    var copyTag = res[1];\n"
                 + "    var objName = res[2];\n"
                 + "    var rowID = res[3];\n"
-                + "    rowSelected(rifForm + \"-\" + copyTag + \"-\" + rowID + \"-\" + objName);\n"
+                + "console.log(\"call rowSelected on \"+ rifForm + \"-\" + copyTag + \"-\" + objName + \"-\" +  rowID);"
+                + "    rowSelected(rifForm + \"-\" + copyTag + \"-\" + objName + \"-\" +  rowID);\n"
                 + "}\n"
                 + "\n";
 //=================================================
@@ -1575,7 +1638,7 @@ public class jsFunctionServer {
                 + "{\n"
                 + "try{"
                 + "        var thisFormName = document.getElementById(formID + \"-\" + copyTag + \"-EXTENDEDNAME\").value;\n"
-                + "console.log(\"thisFormName =\"+thisFormName );\n"
+                //                + "console.log(\"thisFormName =\"+thisFormName +\"    buttonID =\"+buttonID );\n"
                 + "        var x = document.getElementById(\"FORM-\" + thisFormName + \"-\" + copyTag).getElementsByClassName(\"SensibleLABELselected\");\n"
                 + "        while (x.length > 0) {\n"
                 + "            x[0].className = \"SensibleLABEL\";\n"
@@ -1644,12 +1707,12 @@ public class jsFunctionServer {
                 + " }]';"
                 + "var gp='{'+utils+','+params+','+connectors+'}';"
                 + "window.open (\"portal?target=requestsManager&gp=\" + encodeURIComponent(gp),\"_self\",false)"
-                + "}";
+                + "}\n";
 //=================================================
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="formRefresh">
         dbCode += "function formRefresh(formID, copyTag, FEform, loadType, destDiv) {\n"
-                + "    console.log(\"ordine  :formRefresh(formID =\"+formID+\", copyTag =\"+copyTag+\", FEform =\"+FEform+\", loadType =\"+loadType+\", destDiv =\"+destDiv+\") \");\n"
+                //                + "    console.log(\"ordine  :formRefresh(formID =\"+formID+\", copyTag =\"+copyTag+\", FEform =\"+FEform+\", loadType =\"+loadType+\", destDiv =\"+destDiv+\") \");\n"
                 + "    if (loadType == null || loadType.length < 1) {\n"
                 + "        try {\n"
                 + "            var filterText = document.getElementById(formID + \"-\" + copyTag + \"-FILTER\").value;\n"
@@ -1673,14 +1736,19 @@ public class jsFunctionServer {
                 + "    var JTBS = \"\";\n"
                 + "    \n"
                 + "    try {\n"
-                + "       // console.log(\"cerco getJTBS in : \"+thisFormFather+\"-\"+fatherCopyTag+\"-\"+fatherKEYvalue);\n"
-                + "       //JTBS = getJTBS(thisFormFather, fatherCopyTag, fatherKEYvalue);\n"
-                + "        console.log(\"cerco getJTBS in : \"+formID+\"-\"+copyTag+\"-\"+0);\n"
+                //                + "       // console.log(\"cerco getJTBS in : \"+thisFormFather+\"-\"+fatherCopyTag+\"-\"+fatherKEYvalue);\n"
+                //                + "       //JTBS = getJTBS(thisFormFather, fatherCopyTag, fatherKEYvalue);\n"
+                //                + "        console.log(\"cerco getJTBS in : \"+formID+\"-\"+copyTag+\"-\"+0);\n"
                 + "        JTBS = getJTBS(formID, copyTag, null);\n"
-                + "        console.log(\"getJTBS restituisce: \"+JTBS);\n"
+                //                + "        console.log(\"getJTBS restituisce: \"+JTBS);\n"
                 + "    } catch (err) {\n"
                 + "        console.log(\"errore in formRefresh---> getJTBS \");\n"
                 + "}"
+                + "        console.log(\"formRefresh---> formID: \"+formID);\n"
+                + "        console.log(\"formRefresh---> copyTag: \"+copyTag);\n"
+                + "        console.log(\"formRefresh---> FEform: \"+FEform);\n"
+                + "        console.log(\"formRefresh---> loadType: \"+loadType);\n"
+                + "        console.log(\"formRefresh---> destDiv: \"+destDiv);\n"
                 + "    document.getElementById(destDiv).innerHTML = \"<img src='wait.gif' alt='wait...' >\";\n"
                 + "    var xmlhttp;\n"
                 + "    if (window.XMLHttpRequest)\n"
@@ -2646,6 +2714,10 @@ public class jsFunctionServer {
                 + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-B\").innerHTML = \"\";}catch(err) {}\n"
                 + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-BR\").innerHTML = \"\";}catch(err) {}\n"
                 + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-BL\").innerHTML = \"\";}catch(err) {}\n"
+                + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-UBR\").innerHTML = \"\";}catch(err) {}\n"
+                + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-UBL\").innerHTML = \"\";}catch(err) {}\n"
+                + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-DBR\").innerHTML = \"\";}catch(err) {}\n"
+                + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-DBL\").innerHTML = \"\";}catch(err) {}\n"
                 + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-L\").innerHTML = \"\";}catch(err) {}\n"
                 + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-R\").innerHTML = \"\";}catch(err) {}\n"
                 + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-ExtR\").innerHTML = \"\";}catch(err) {}\n"
@@ -2661,6 +2733,12 @@ public class jsFunctionServer {
                 + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-ExtR5\").innerHTML = \"\";}catch(err) {}\n"
                 + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-ExtR6\").innerHTML = \"\";}catch(err) {}\n"
                 + "try{document.getElementById(\"CH-\" + formID + \"-\" + copyTag + \"-ExtRB\").innerHTML = \"\";}catch(err) {}\n"
+                + "try{"
+                + "console.log (\"cerco : \" + formID + \"-\" + copyTag + \"-EXTENDEDNAME\");\n"
+                + "var CformName = document.getElementById(formID + \"-\" + copyTag + \"-EXTENDEDNAME\").value;"
+                + "console.log (\"CformName :\" + CformName);\n"
+                + "clearChildsByName(CformName);\n"
+                + "}catch(err) {}\n"
                 // cancello divs basate sul NOME DEL FORM
 
                 + "        for (jj = 0; jj < activeForms.length; jj++) {\n"
@@ -2673,6 +2751,10 @@ public class jsFunctionServer {
                 + "try{document.getElementById(\"CH-\" + formName + \"-B\").innerHTML = \"\";}catch(err) {}\n"
                 + "try{document.getElementById(\"CH-\" + formName + \"-BL\").innerHTML = \"\";}catch(err) {}\n"
                 + "try{document.getElementById(\"CH-\" + formName + \"-BR\").innerHTML = \"\";}catch(err) {}\n"
+                + "try{document.getElementById(\"CH-\" + formName + \"-UBL\").innerHTML = \"\";}catch(err) {}\n"
+                + "try{document.getElementById(\"CH-\" + formName + \"-UBR\").innerHTML = \"\";}catch(err) {}\n"
+                + "try{document.getElementById(\"CH-\" + formName + \"-DBL\").innerHTML = \"\";}catch(err) {}\n"
+                + "try{document.getElementById(\"CH-\" + formName + \"-DBR\").innerHTML = \"\";}catch(err) {}\n"
                 + "try{document.getElementById(\"CH-\" + formName + \"-ExtB\").innerHTML = \"\";}catch(err) {}\n"
                 + "try{document.getElementById(\"CH-\" + formName + \"-R\").innerHTML = \"\";}catch(err) {}\n"
                 + "try{document.getElementById(\"CH-\" + formName + \"-ExtR\").innerHTML = \"\";}catch(err) {}\n"
@@ -2893,6 +2975,20 @@ public class jsFunctionServer {
 //                
         dbCode += "}\n"
                 //=================================================
+                + "function Fdownload(filename, text) {\n"
+                + "  var element = document.createElement('a');\n"
+                + "  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));\n"
+                + "  element.setAttribute('download', filename);\n"
+                + "  element.style.display = 'none';\n"
+                + "  document.body.appendChild(element);\n"
+                + "  element.click();\n"
+                + "  document.body.removeChild(element);\n"
+                + "}"
+                + ""
+                + ""
+                + ""
+                + ""
+                + ""
                 + "function PagerLogout()\n"
                 //overallProjectContext
                 + "{\n"
@@ -2961,8 +3057,9 @@ public class jsFunctionServer {
                 + "                                 var x = document.getElementById(\"snackbar\");\n"
                 + "                                 x.innerHTML =phrase;"
                 + "                                 var timeX = 3000;"
-                + "                                 try{timeX = 100* phrase.length; } catch (err) {}"
+                + "                                 try{timeX = 100* phrase.length;} catch (err) {}"
                 + "                                 if (timeX<3000) {timeX=3000;}\n"// almeno 3 secondi
+                + "                                 if (timeX>10000) {timeX=10000;}\n"// max 10 secondi
                 + "                                 x.className = \"show\";\n"
                 + "                                 if (speakOrder){speak(phrase); }   "
                 + "                                 setTimeout(function(){ "
@@ -3010,7 +3107,7 @@ public class jsFunctionServer {
                 //                + " console.log(\"element: \"+element.id) ;\n"
                 //                + " console.log(\"element checked: \"+element.checked) ;\n"
                 + "     try{ var cntr =   document.getElementById(element.id+\"-COUNTER\");\n"
-//                + "     console.log(\"cntr: \"+cntr.value) ;\n"
+                //                + "     console.log(\"cntr: \"+cntr.value) ;\n"
                 + "     count = parseInt(cntr.value); count ++;"
                 + "     cntr.value = count;"
                 + "     if (count>100){"
@@ -3112,17 +3209,17 @@ public class jsFunctionServer {
                 + "        mySpan = document.getElementById(\"statusLine\");\n"
                 + "        info = \"CONNECTED (\" + wsURI + \")\";\n"
                 + "        fatherServerConnected=1;\n"
-                + "        writeInfo();\n"
+                //                + "        writeInfo();\n"
                 + "    };\n"
                 + "    ws.onclose = function (evt) {\n"
                 + "         console.log(\"WS: evento chiusura.\");"
                 + "        if (WSactive>0){"
                 + "         mySpan = document.getElementById(\"statusLine\");\n"
                 + "         info = \"DISCONNECTED_ (\" + wsURI + \")\";\n"
-                + "         Semaphore(document.getElementById(\"ledLine\"),32,\"red\",\"\");"
+                + "         Semaphore(document.getElementById(\"ledLine\"),32,\"red\",info);"
                 + "         fatherServerConnected=0;\n"
                 + "         setTimeout(function(){openWS()}, 10000);\n"// dopo 10 seconfi tento la riconnessione
-                + "         writeInfo();\n"
+                //                + "         writeInfo();\n"
                 + "        }"
                 + "    };\n"
                 + "    ws.onmessage = function (evt) {\n"
@@ -3130,6 +3227,7 @@ public class jsFunctionServer {
                 + "    };\n"
                 + "    ws.onerror = function (event) {\n"
                 + "        console.log(\"WEBSOCKET Error \", event);\n"
+                //                + "        console.log(\"WEBSOCKET Error \", event);\n"
                 + "    }\n"
                 + "}\n";
 
@@ -3149,24 +3247,24 @@ public class jsFunctionServer {
 
         // </editor-fold>
         //--------------------------------
-        // <editor-fold defaultstate="collapsed" desc="connectionSemaphore">
-        dbCode += "function connectionSemaphore(color) {\n"
-                + "    ledWall = document.getElementById(\"ledLine\");\n"
-                //+ "console.log(\"color=\"+color);\n"
-
-                + "if (color==\"green\"){"
-                + " var posX= \"-32px\"; var posY= \"0px\"; "
-                + "}"
-                + "else if (color==\"red\"){"
-                + " var posX= \"0px\"; var posY= \"0px\"; "
-                + "}"
-                + "else if (color==\"orange\"){"
-                + " var posX= \"-64px\"; var posY= \"0px\"; "
-                + "}"
-                + " ledWall.innerHTML = \"<img src='./media/icons/semaphoreMap.png' alt=color  style=' object-fit: none; object-position: \" + posX+\" \"+posY+\"; width: 32px; height: 32px;'   >\";"
-                + "}"
-                + "";
-        // </editor-fold>
+//////        // <editor-fold defaultstate="collapsed" desc="connectionSemaphore">
+//////        dbCode += "function connectionSemaphore(color) {\n"
+//////                + "    ledWall = document.getElementById(\"ledLine\");\n"
+//////                //+ "console.log(\"color=\"+color);\n"
+//////
+//////                + "if (color==\"green\"){"
+//////                + " var posX= \"-32px\"; var posY= \"0px\"; "
+//////                + "}"
+//////                + "else if (color==\"red\"){"
+//////                + " var posX= \"0px\"; var posY= \"0px\"; "
+//////                + "}"
+//////                + "else if (color==\"orange\"){"
+//////                + " var posX= \"-64px\"; var posY= \"0px\"; "
+//////                + "}"
+//////                + " ledWall.innerHTML = \"<img id='ledLinePic' src='./media/icons/semaphoreMap.png' alt=''  style=' object-fit: none; object-position: \" + posX+\" \"+posY+\"; width: 32px; height: 32px;'   >\";"
+//////                + "}"
+//////                + "";
+//////        // </editor-fold>
         //--------------------------------
         // <editor-fold defaultstate="collapsed" desc="Semaphore(target,size,colorn,toolTipText)">
         dbCode += "function Semaphore(target,size,color,toolTipText) {\n"
@@ -3185,7 +3283,7 @@ public class jsFunctionServer {
                 + " shift = 3*size;"
                 + "}"
                 + " var posX= \"-\"+shift+\"px\"; var posY= \"0px\"; "
-                + " ledWall.innerHTML = \"<img src='./media/icons/semaphoreMap\"+size+\".png' "
+                + " ledWall.innerHTML = \"<img id='\" + target.id +\"Pic' src='./media/icons/semaphoreMap\"+size+\".png' "
                 + "alt='.' title='\"+toolTipText+\"' "
                 + "style=' object-fit: none; object-position: \" + posX+\" \"+posY+\"; width: \"+size+\"px; height: \"+size+\"px;'   >\";"
                 + "}"
@@ -3201,7 +3299,8 @@ public class jsFunctionServer {
                 + "        //  drawImageBinary(evt.data);\n"
                 + "    }\n"
                 + "    evt = null;\n"
-                + " Semaphore(document.getElementById(\"ledLine\"),32,\"green\",\"\");"
+                + "    info = \"CONNECTED (\" + wsURI + \")\";\n"
+                + "    Semaphore(document.getElementById(\"ledLine\"),32,\"green\",info);"
                 + "}\n"
                 + "\n";
         // </editor-fold>
@@ -3317,6 +3416,14 @@ public class jsFunctionServer {
                 //                + "        speak(\"ricevuto \" + msg + \"da \" + sender);\n"
                 + "    }\n"
                 // </editor-fold> 
+                // <editor-fold defaultstate="collapsed" desc="errlog">
+                + "    else if (type == \"errlog\") {\n"
+                + "    msg = json.VALUE;\n"
+                + "    mySpan = document.getElementById(\"statusLine\");\n"
+                + "    info = msg;\n"
+                + "    console.log(\"ERROR LOG: \"+msg);\n"
+                + "    }\n"
+                // </editor-fold> 
                 // <editor-fold defaultstate="collapsed" desc="status">
                 + "    else if (type == \"status\") {\n"
                 + "    msg = json.VALUE;\n"
@@ -3392,7 +3499,7 @@ public class jsFunctionServer {
                 + "        }\n"
                 + "    }\n" // </editor-fold> 
                 //*****************************************************
-                // <editor-fold defaultstate="collapsed" desc="wsResponse">
+                // <editor-fold defaultstate="collapsed" desc="wsResponse*********************">
                 + "else if (type == \"wsResponse\") {\n"
                 /*
                 CONCETTO IMPORTANTE
@@ -3434,6 +3541,20 @@ public class jsFunctionServer {
                 + "                 }\n"
                 + "             } "
                 //----------------------------------------------------------------------------------------
+                + "             else if(myarg.action=='synopticUpdate'){\n"//2022-01-28
+                + "                 var targetPosition = myarg.target;\n"
+                + "                 var myArr=myarg.updates;\n"
+                //                + "                 console.log(\"synopticUpdate lnght: \"+myArr.length );\n"
+                + "                 for (var i=0; i< myArr.length; i++) {\n"
+                + "                     var X = myArr[i];\n"
+                + "                     try{document.getElementById(X.n).value = X.v; "
+                + "                     }catch(err){"
+                + "                         console.log(\"synopticUpdate \"+i+\": \"+X.n+\" NOT FOUND!\" );\n"
+                + "                     }"
+                //                + "                     console.log(\">> \"+ X.n+\" = \"+ X.v);\n"
+                + "                 }\n"
+                + "             } "
+                //----------------------------------------------------------------------------------------
                 + "             else if(myarg.action=='refreshForm'){\n"
                 + "                 var target = myarg.target;\n"
                 + "                 var copyTag = myarg.copyTag;\n"
@@ -3468,6 +3589,13 @@ public class jsFunctionServer {
                 + "                 var target = myarg.target;"
                 + "                 javascript:smartRowSelected(target);"
                 //----------------------------------------------------------------------------------------
+                + "             }else  if(myarg.action=='clickObject'){\n"
+                + "                 console.log(\"clickObject-->myarg.target: \"+myarg.target );\n"
+                + "                 var target = myarg.target;"
+                + "                 var obj = document.getElementById(myarg.target);"
+                + "                 console.log(\"obj.value: \"+ obj.value );\n"
+                + "                 obj.onchange();"
+                //----------------------------------------------------------------------------------------
                 + "             }else  if(myarg.action=='toast'){"
                 + "                 var phrase = myarg.phrase;"
                 + "                 var speak = myarg.speak;"
@@ -3475,6 +3603,21 @@ public class jsFunctionServer {
                 + "                  toast(phrase,speak);\n"
                 + "                 }"
                 //----------------------------------------------------------------------------------------
+                + "             }else  if(myarg.action=='splash'){"
+                + "                 var phrase = myarg.phrase;"
+                + "                 if (phrase && phrase.length >0){"
+                + "                     document.getElementById(\"selectors\").innerHTML = \" \"+myarg.phrase+\" \";\n"
+                + "                     scrollTo(\"splashPanel\");\n"
+                + "                 }"
+                //----------------------------------------------------------------------------------------
+                + "             }else  if(myarg.action=='Fdownload'){"
+                + "                 var content = myarg.content;"
+                + "                 var filename = myarg.filename;"
+                + "                 if (content && content.length >0){"
+                + "                     Fdownload(filename,content);\n"
+                + "                 }"
+                //-------------------------------------------------------------------------------------
+
                 + "             }else  if(myarg.action=='synoptic'){"
                 + "                 var htmlCode = myarg.htmlCode;"
                 + "                 console.log(\"*synoptic-->myarg.target: \"+myarg.target );\n"
@@ -3710,14 +3853,17 @@ public class jsFunctionServer {
                 + "         if (ADDposition==\"top\" || ADDposition==\"Top\"|| ADDposition==\"TOP\"){\n"
                 //                + "         console.log(\"Posizione ADDER usata: TOP\" );"
                 // aggiungo una riga prima della terza (lascio in basso i totals e l'addNewLine
-                + "         var tableRef = document.getElementById(rifForm + \"-TABLE\");\n"
+                + "console.log (\"FORM DI ADDING:\"+rifForm + \"-TABLE\");"
+                + "         var tableRef = document.getElementById(rifForm + \"-ROWSTABLE\");\n"
                 + "         var lines = tableRef.rows.length;\n"
+                + "console.log (\"lines:\"+lines);"
                 + "         var newLinePosition = 0;\n"
                 + "     if (lines > 0) {\n"
                 + "         newLinePosition = 2;\n"
                 + "     } else {\n"
                 + "         newLinePosition = 1;\n"
                 + "     }\n"
+                + "console.log (\"newLinePosition:\"+newLinePosition);"
                 + "     var newRow = tableRef.insertRow(newLinePosition);\n"
                 + "     newRow.id = rifForm + \"-\" + answerNewID + \"-ROW\";\n"
                 + "     newRow.innerHTML = \"NEW LINE\";\n"
@@ -3828,17 +3974,29 @@ public class jsFunctionServer {
                 // </editor-fold> 
                 + "    }\n"
                 // </editor-fold> 
+                // <editor-fold defaultstate="collapsed" desc="busy">
+                + "     if (type == \"busy\") {\n"
+                + "     msg = json.VALUE;\n"
+                + "     if (msg == \"1\"){"
+                + "     document.body.style.cursor = 'wait';"
+                + "     }else{"
+                + "     document.body.style.cursor = 'auto';"
+                + "     }"
+                + "     busyLine = document.getElementById(\"busyLine\");\n"
+                + "     busyLine.innerHTML = \"<img src='./media/loader\"+msg+\".gif' style='width: 32px; height: 32px;'   >\";"
+                + "    }\n"
+                // </editor-fold> 
                 // <editor-fold defaultstate="collapsed" desc="default">
                 + "    else\n"
                 + "    {\n"
                 + "        image = null;\n"
                 + "    }\n"
                 // </editor-fold> 
-
                 + "    writeInfo();\n"
                 + "}\n"
                 // </editor-fold> 
                 //--------------------------------
+
                 // <editor-fold defaultstate="collapsed" desc="disabledEventPropagation">
                 + "function disabledEventPropagation(event)\n"
                 + "{\n"
@@ -4090,7 +4248,7 @@ public class jsFunctionServer {
                 + "                var part = filter.split(\":\");\n"
                 + "                if (part.length > 1 && part[1].length > 1) {\n"
                 + "                    xt = part[1].substring(0, 1);\n"
-                + "                    if (xt = '#') {\n"
+                + "                    if (xt == '#') {\n"
                 + "                        var tempDOMid = part[1].substring(1, part[1].length);\n"
                 + "                        var tempDOMvalue = \"\";\n"
                 + "                        try {\n"
@@ -4135,7 +4293,7 @@ public class jsFunctionServer {
                 + "        } else if (cellType == \"D\") {\n"
                 + "            var dateValue = rawValue.split(\"/\").join(\"-\");\n"
                 + "            xt = dateValue.substring(2, 3);\n"
-                + "            if (xt = '-') {\n"
+                + "            if (xt == '-') {\n"
                 + "                xday = dateValue.substring(0, 2);\n"
                 + "                xmonth = dateValue.substring(3, 5);\n"
                 + "                xyear = dateValue.substring(6, 10);\n"
@@ -4268,7 +4426,7 @@ public class jsFunctionServer {
                 + "        } else if (cellType == \"D\") {\n"
                 + "            var dateValue = rawValue.split(\"/\").join(\"-\");\n"
                 + "            xt = dateValue.substring(2, 3);\n"
-                + "            if (xt = '-') {\n"
+                + "            if (xt == '-') {\n"
                 + "                xday = dateValue.substring(0, 2);\n"
                 + "                xmonth = dateValue.substring(3, 5);\n"
                 + "                xyear = dateValue.substring(6, 10);\n"
@@ -4339,13 +4497,12 @@ public class jsFunctionServer {
         //--------------------------------
         // <editor-fold defaultstate="collapsed" desc="sendToServer">
         dbCode += "function sendToServer(message) {\n"
-                //                + " console.log(\"SONO IN sendToServer:invio\");"
-                //+ " connectionSemaphore(\"orange\");"
+//                                + " console.log(\"SONO IN sendToServer:invio\");" 
                 + " Semaphore(document.getElementById(\"ledLine\"),32,\"orange\",\"sending\");"
                 + " ws.send(encodeURIComponent(message));\n"
-                //+ " connectionSemaphore(\"green\");"
-                + " Semaphore(document.getElementById(\"ledLine\"),32,\"green\",\"CONNESSO\");"
-                //                + " console.log(\"SONO IN sendToServer:FATTO.\");"
+                + "    info = \"CONNECTED (\" + wsURI + \")\";\n"
+                + "    Semaphore(document.getElementById(\"ledLine\"),32,\"green\",info);"
+//                                + " console.log(\"SONO IN sendToServer:FATTO.\");"
                 + "}\n";
         // </editor-fold>
         //--------------------------------
@@ -4378,14 +4535,10 @@ public class jsFunctionServer {
         //--------------------------------
         // <editor-fold defaultstate="collapsed" desc="onOpen">
         dbCode += "function onOpen() {\n"
-                + "    mySpan = document.getElementById(\"statusLine\");\n"
+                //                + "    mySpan = document.getElementById(\"statusLine\");\n"
                 + "    info = \"CONNECTED (\" + wsURI + \")\";\n"
-                + " ele = document.getElementById(\"ledLine\");"
-                + "if (ele!=null){"
-                //+ " connectionSemaphore(\"green\");"
-                + " Semaphore(ele,32,\"green\",\"CONNESSO\");"
-                + " }"
-                + "   writeInfo();\n"
+                + "    Semaphore(document.getElementById(\"ledLine\"),32,\"green\",info);"
+                //                + "    writeInfo();\n"
                 + "}\n";
         // </editor-fold>
         //--------------------------------
@@ -4418,7 +4571,13 @@ public class jsFunctionServer {
                 + "\"payload\":\"' + encodeURIComponent(wsRequest) + '\","
                 + "\"params\":\"' + encodeURIComponent(txtParams) + '\"}';\n"
                 + "console.log(\"sendRequest ha preparato il messaggio:\"+message);"
-                + "    sendToServer(encodeURIComponent(message));\n"
+                + "try{msgEncoded = encodeURIComponent(message);"
+                + "message = msgEncoded;"
+//                + "console.log(\"messaggio codificato per invio:\"+message);"
+                + "}catch(err){"
+//                + "console.log(\"sendRequest-->errore in URIencoding:\"+message);"
+                + "}"
+                + "    sendToServer( message );\n"
                 + "}\n";
         // </editor-fold>
         //-------------------------------- 
@@ -4939,20 +5098,24 @@ public class jsFunctionServer {
                 + "              console.log (\"Cerco un value da elemento: \"+browForm + \"-X-ID\");"//incarde5e1-X
 
                 + "          try {\n"
-                + "              var browFormName = document.getElementById(browForm + \"-X-ID\").value;\n" //incarichiLotti-X-ID
-                + "console.log (\"nome Element con il dato: \"+browFormName+\"-KEYfieldValue\");"//incarde5e1-X
-
                 + "if (browType==\"KEY\"){"//incarde5e1-X-KEYfieldValue
+                + "              var browFormName = document.getElementById(browForm + \"-X-ID\").value;\n" //incarichiLotti-X-ID               
                 + "                        var localValue = document.getElementById(browFormName+\"-KEYfieldValue\").value;\n"
                 + "}"
                 + "else if (browType==\"FORMBUTTON\"){"//lavag78b9b-X-contenitori-lavag78b9b-X
+                + "              var browFormName = document.getElementById(browForm + \"-X-ID\").value;\n" //incarichiLotti-X-ID               
                 + "                        console.log (\"cerco localValue in : \"+browFormName+\"-\"+browField+\"-\"+browFormName);"
                 + "                        var localValue = document.getElementById(browFormName+\"-\"+browField+\"-\"+browFormName).value;\n"
                 + "}"
-                + "                        console.log (\"localValue: \"+localValue);"
-                + "                    } catch (err) {\n"
-                + "                        var localValue = \"null\";\n"
-                + "                    }\n"
+                + "else if (browType==\"FORMELEMENT\"){"//lavaggi-X-YEAR
+                + "                        console.log (\"cerco localValue in : \"+browForm+\"-\"+browField);"
+                + "                        var localValue = document.getElementById(browForm+\"-\"+browField).value;\n"
+                + "}"
+                + "  console.log (\"localValue: \"+localValue);"
+                + "         } catch (err) {\n"
+                + "              var localValue = \"null\";\n"
+                + "  console.log (\"error: \"+err);"
+                + "         }\n"
                 + "                }\n"
                 + "                thisStC = '{\"childType\":\"' + childType.trim() + '\" , \"childMarker\":\"' + childMarker.trim() + '\", \"value\":\"' + localValue + '\"}';\n"
                 + "                if (myStC.length > 0) {\n"
@@ -4977,7 +5140,7 @@ public class jsFunctionServer {
                 + "        if (valueToSend && filtername && filtername.includes(\"date\")) {\n"
                 + "            var dateValue = valueToSend.split(\"/\").join(\"-\");\n"
                 + "            xt = dateValue.substring(2, 3);\n"
-                + "            if (xt = '-') {\n"
+                + "            if (xt == '-') {\n"
                 + "                xday = dateValue.substring(0, 2);\n"
                 + "                xmonth = dateValue.substring(3, 5);\n"
                 + "                xyear = dateValue.substring(6, 10);\n"
@@ -5071,7 +5234,7 @@ public class jsFunctionServer {
                 + "                } else if (type == \"browserElement\") {\n"
                 // field sarà del tipo: nomeForm.tipo.campo
                 // es incarichiLotto.KEY.KEYfieldValue cercherà ID=incarde5e1-X-KEYfieldValue
-                + "console.log (\"Cerco un elemento da browser! \");"
+                + "console.log (\"getSmartTBS-->Cerco un elemento da browser ! \");"
                 + "        var browArgs = field.split(\".\");\n"
                 + "        var browForm = browArgs[0];\n"
                 + "        var browType = browArgs[1];\n"
@@ -5082,15 +5245,20 @@ public class jsFunctionServer {
                 + "              console.log (\"getSmartTBS-->Cerco un value da elemento: \"+browForm + \"-X-ID\");"//incarde5e1-X
 
                 + "          try {\n"
-                + "              var browFormName = document.getElementById(browForm + \"-X-ID\").value;\n" //incarichiLotti-X-ID
-                //                + "console.log (\"nome Element con il dato: \"+browFormName+\"-KEYfieldValue\");"//incarde5e1-X
-
                 + "if (browType==\"KEY\"){"//incarde5e1-X-KEYfieldValue
+                + "              var browFormName = document.getElementById(browForm + \"-X-ID\").value;\n" //incarichiLotti-X-ID
+
                 + "                        var localValue = document.getElementById(browFormName+\"-KEYfieldValue\").value;\n"
                 + "}"
                 + "else if (browType==\"FORMBUTTON\"){"//lavag78b9b-X-contenitori-lavag78b9b-X
+                + "              var browFormName = document.getElementById(browForm + \"-X-ID\").value;\n" //incarichiLotti-X-ID
+
                 + "                        console.log (\"cerco localValue in : \"+browFormName+\"-\"+browField+\"-\"+browFormName);"
                 + "                        var localValue = document.getElementById(browFormName+\"-\"+browField+\"-\"+browFormName).value;\n"
+                + "}"
+                + "else if (browType==\"FORMELEMENT\"){"//lavaggi-X-YEAR
+                + "                        console.log (\"cerco localValue in : \"+browForm+\"-X-\"+browField);"
+                + "                        var localValue = document.getElementById(browForm+\"-X-\"+browField).value;\n"
                 + "}"
                 + "                        console.log (\"localValue: \"+localValue);"
                 + "                    } catch (err) {\n"
@@ -5130,7 +5298,7 @@ public class jsFunctionServer {
                 + "        if (valueToSend && filtername && filtername.includes(\"date\")) {\n"
                 + "            var dateValue = valueToSend.split(\"/\").join(\"-\");\n"
                 + "            xt = dateValue.substring(2, 3);\n"
-                + "            if (xt = '-') {\n"
+                + "            if (xt == '-') {\n"
                 + "                xday = dateValue.substring(0, 2);\n"
                 + "                xmonth = dateValue.substring(3, 5);\n"
                 + "                xyear = dateValue.substring(6, 10);\n"
@@ -5173,13 +5341,18 @@ public class jsFunctionServer {
                 // <editor-fold defaultstate="collapsed" desc="function getPaginationArguments">
                 + "function getPaginationArguments(connector,formID, copyTag, rifFieldPressed,keyValue){\n"
                 + "        console.log(\"getPaginationArguments \");\n"
-                //+ "console.log(\"Actual rifFieldPressed:\"+rifFieldPressed);"
+                + "console.log(\"Actual rifFieldPressed:\"+rifFieldPressed);"
                 //1. trovo il valore dei filtri
-                + "var FIELDFILTERED = document.getElementById(formID+\"-\"+copyTag+\"-FIELDFILTERED\").value;\n"
+                //                + "var FIELDFILTERED = document.getElementById(formID+\"-\"+copyTag+\"-FIELDFILTERED\").value;\n"
+                + "var rifForm = formID+\"-\"+copyTag;\n"
+                + "    var FIELDFILTERED;\n"
+                + "    try{ FIELDFILTERED = document.getElementById(rifForm + \"-FIELDFILTERED\").value;}catch(err){}\n"
+                + " console.log(\"FIELDFILTERED in \"+rifForm + \"-FIELDFILTERED\"+\": \"+FIELDFILTERED);\n"
                 + "if (FIELDFILTERED){"
                 + " var res = FIELDFILTERED.split(\";\");\n"
                 + " var jsonFilters = [];"
                 + " if ( res.length >0){"
+                + " console.log(\"Trovati campi filtro: \"+res.length);\n"
                 // trovo il maxPos
                 + "var maxPos=0;"
                 + "for (i=0;i<res.length;i++){\n"
@@ -5206,6 +5379,7 @@ public class jsFunctionServer {
                 + " console.log(\"Ridefinito nome filtro: \"+rifField);\n"
                 + "}\n"
                 + "}catch (err){}\n"
+                + " console.log(\"Fase di ordinamento. \" );\n"
                 + "         try{\n"
                 + "         var fieldValue = document.getElementById(formID+\"-\"+copyTag+\"-\"+rifField+\"-FILTER\").value;\n"
                 + "         var item ={};\n"
@@ -5236,12 +5410,15 @@ public class jsFunctionServer {
                 + "}"
                 // 2. trovo i valori del form
                 + "    var rifForm = formID + \"-\" + copyTag;\n"
+                + "              console.log(\"rifForm:\" +rifForm);"
                 + "    var fatherForm = \"\";\n"
                 + "    try {\n"
                 + "        fatherForm = document.getElementById(rifForm + \"-FATHER\").value;\n"
                 + "    } catch (err) {\n"
                 + "    }\n"
-                + "    var formName = document.getElementById(rifForm + \"-EXTENDEDNAME\").value;\n"
+                //                + "    var formName = document.getElementById(rifForm + \"-EXTENDEDNAME\").value;\n"
+                + "        var formName;\n"
+                + "        try{ formName = document.getElementById(rifForm + \"-EXTENDEDNAME\").value;}catch(err){}\n"
                 + "    var fatherKEYvalue = document.getElementById(rifForm + \"-FATHERKEYVALUE\").value;\n"
                 + "    var fatherKEYtype = document.getElementById(rifForm + \"-FATHERKEYTYPE\").value;\n"
                 + "    var fatherCopyTag = document.getElementById(rifForm + \"-FATHERCOPYTAG\").value;\n"
@@ -5253,7 +5430,7 @@ public class jsFunctionServer {
                 + "     console.log(\"getPaginationArguments-->STC decodificati: \"+STC);\n"
                 + "     StC = JSON.parse(STC);\n"
                 + "    } catch (err) {\n"
-                + "     console.log(\"errore in advancedFilterChanges \");\n"
+                + "     console.log(\"errore in getPaginationArguments \");\n"
                 + "}\n"
                 + "selectedRowID = document.getElementById(formID + \"-\" + copyTag + \"-KEYfieldValue\").value ;\n"
                 + "var curPage =  document.getElementById(formID + \"-\" + copyTag +  \"-CURPAGE\").value;\n"
@@ -5288,10 +5465,11 @@ public class jsFunctionServer {
                 + "}\n"
                 + ""
                 // </editor-fold>
+                //=================================================
                 // <editor-fold defaultstate="collapsed" desc="function smartFilterChanges">
                 + "function smartFilterChanges(formID, copyTag, objName ) {\n"
                 + "var jsonRequest ={};\n"
-                + "console.log(\"VISUAL FILTER CHANGED: \"+formID+\"-\"+copyTag);" + "\n"
+                + "console.log(\"VISUAL FILTER CHANGED: \"+formID+\"-\"+copyTag+\"    OBJ:\"+objName);" + "\n"
                 + "var connectors=[];"
                 + "var connector={};"
                 + "connector = getPaginationArguments(connector,formID, copyTag,objName,null);\n"
@@ -5996,7 +6174,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "                var part = filter.split(\":\");\n"
                 + "                if (part.length > 1 && part[1].length > 1) {\n"
                 + "                    xt = part[1].substring(0, 1);\n"
-                + "                    if (xt = '#') {\n"
+                + "                    if (xt == '#') {\n"
                 + "                        var tempDOMid = part[1].substring(1, part[1].length);\n"
                 + "                        var tempDOMvalue = \"\";\n"
                 + "                        try {\n"
@@ -6043,7 +6221,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "        } else if (cellType == \"D\") {\n"
                 + "            var dateValue = rawValue.split(\"/\").join(\"-\");\n"
                 + "            xt = dateValue.substring(2, 3);\n"
-                + "            if (xt = '-') {\n"
+                + "            if (xt == '-') {\n"
                 + "                xday = dateValue.substring(0, 2);\n"
                 + "                xmonth = dateValue.substring(3, 5);\n"
                 + "                xyear = dateValue.substring(6, 10);\n"
@@ -6174,7 +6352,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "        } else if (cellType == \"D\") {\n"
                 + "            var dateValue = rawValue.split(\"/\").join(\"-\");\n"
                 + "            xt = dateValue.substring(2, 3);\n"
-                + "            if (xt = '-') {\n"
+                + "            if (xt == '-') {\n"
                 + "                xday = dateValue.substring(0, 2);\n"
                 + "                xmonth = dateValue.substring(3, 5);\n"
                 + "                xyear = dateValue.substring(6, 10);\n"
@@ -6231,21 +6409,44 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
         dbCode += "function smartButtonClick(params) {\n"
                 + "    var paramj = JSON.stringify(params);\n"
                 + "    var unquotedParams=paramj.replace('&quot;', '\\\"'); \n"
-                + "    var myArg = JSON.parse(unquotedParams);\n"
-                + " console.log(\"smartButtonClick params = \" + unquotedParams);\n"
+                + "    var  myArg = JSON.parse(unquotedParams);\n"
+                + "console.log(\"unquotedParams: \"+unquotedParams);"
+                + "   xt = unquotedParams.substring(0, 1);\n"
+                + "    if (xt == '[') {\n"
+                + "     var xunquotedParams ='{\"al\":' + unquotedParams+'}';\n"
+                + "     console.log(\"xunquotedParams: \"+xunquotedParams);\n"
+                + "     var myArgList = JSON.parse(xunquotedParams);\n"
+                + "     myArg = myArgList.al[0];\n"// prendo solo il primo elemento
+                + "    }else{"
+                + "      myArg = JSON.parse(unquotedParams);\n"
+                + "    }"
+                //                + " console.log(\"smartButtonClick params = \" + unquotedParams);\n"
                 /* smartButtonClick params = {"routine":"LockUnlock","paramsToSend":"","action":"ExecuteRoutine",
                 "rifForm":"inser29239","copyTag":"X","fatherForm":"dateS2ba71","ges_routineOnLoad":"","rifObj":"ilocked","keyValue":"72"} */
+                //                + "console.log(\"rifObj DA PULSANTE CLICCATO:\"+ rifObj);\n"
+                //                + "console.log(\"KEYVAKLUE DA PULSANTE CLICCATO:\"+ keyValue);\n"
+                //manderò a Pager solo l'identificativo del button cliccato e nulla più: sarà lui a cercate l'action corretta e a eseguirla
+                + "var jsonRequest ={};\n"
+                + "var connectors=[];"
+                + "var connector={};"
+                //----------------------------------   
+
+                + "    var sure = myArg.confirm;\n"
+                + "    var requests = myArg.requests;\n"
                 + "    var action = myArg.action;\n"
                 + "    var formID = myArg.rifForm;\n"
                 + "    var copyTag = myArg.copyTag;\n"
                 + "    var rifObj = myArg.rifObj;\n"
                 + "    var keyValue = myArg.keyValue;\n"
-                + "console.log(\"rifObj DA PULSANTE CLICCATO:\"+ rifObj);\n"
-                + "console.log(\"KEYVAKLUE DA PULSANTE CLICCATO:\"+ keyValue);\n"
-                //manderò a Pager solo l'identificativo del button cliccato e nulla più: sarà lui a cercate l'action corretta e a eseguirla
-                + "var jsonRequest ={};\n"
-                + "var connectors=[];"
-                + "var connector={};"
+                + "if (sure && sure==\"true\"){"
+                + "var txt;\n"
+                + "  if (confirm(\"Sicuro ?\")) {\n"
+                + "  } else {\n"
+                + "return;"
+                + "  }"
+                + "}"
+                
+                
                 + "if (action && action == \"ExecuteRoutine\"){"//l'action del button genera un EVENT di chiamata sullla Door 'CLickedObject'
                 + "     var event= \"ExecuteRoutine\";"
                 + "     connector = getPaginationArguments(connector,formID, copyTag,rifObj,keyValue);\n"
@@ -6261,18 +6462,69 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "     var event= \"OpenSecForm\";"
                 + "     clearChilds(formID, copyTag);\n"
                 + "     connector = getPaginationArguments(connector,formID, copyTag,rifObj,keyValue);\n"
+                + "     buttonSelected(formID+\"-\"+rifObj,formID,copyTag);"
                 + "}"
-                + "console.log(\" connector: \"+ JSON.stringify(connector));"
+                
+                + "if (requests && requests.length>0){"
+//                + "console.log(\"REQUESTS:\"+ requests);"
+                + "var res;"
+                + "try{"
+                + "  res = requests.split(\"#\");\n"
+//                + "  console.log(\"res0:\"+  res[0]);"
+//                + "  console.log(\"length:\"+ res.length);"
+                + "  var reqNumber=0;"
+                + " if ( res.length >0){"
+                
+                + "     for (i=0;i<res.length;i++){\n"
+                + "     reqNumber++;"
+                + "     console.log(\"Request number :\"+ reqNumber);"
+                + "     try{"
+                + "         var rqst = res[i].split(\"|\");\n"
+//                + "         console.log(\"rqst length :\"+ rqst.length);"
+                + "         var BRjsonData = {};" //browser requested data
+                + "         BRjsonData[\"childType\"] = rqst[1];"
+                + "         BRjsonData[\"childMarker\"] = rqst[2];"
+                + "         var newpw = window.prompt(rqst[0], \"\");"
+                + "         BRjsonData[\"value\"] = newpw ;"
+                + "         connector.STC.push(BRjsonData);"
+                + "     }catch(err){"
+//                + "     console.log(\"error :\"+ err);"
+                + "}"
+                + "     }"
+                + ""
+                + "}"
+                 
+                
+                
+                
+                
+                + "}catch (err){"
+                + " res= requests;"
+                + "}"
+                // aggiungerò le requests compilate al json onnector.STC (che è una matrice) sotto forma di {"childType":"formField","value":"2022","childMarker":"YEAR"},
+                
+                /// da inserire DOPO aver creato il connector!!!     + " connector.STC.push(BRjsonData);"
+                + ""
+                + "}"
+                
+                
+                
+                
+                
+                
+                
+                //                + "console.log(\" connector: \"+ JSON.stringify(connector));"
                 + " connector.door=\"clickedObject\"; \n"
                 + " connector.formID=formID; \n"
                 + " connector.copyTag=copyTag; \n"
                 + " connector.event=event; \n"
                 + " connector.rifObj=rifObj; \n"
                 + " connector.keyValue=keyValue; \n"
+                //-------------------------------------------------------            
                 + " connectors.push (connector);"
                 + "jsonRequest.connectors = connectors;\n"
                 + "var myJSON = JSON.stringify(jsonRequest);"
-                + "console.log(\"FIELDFILTERED: \"+myJSON);"
+                //                + "console.log(\"FIELDFILTERED: \"+myJSON);"
                 + "sendRequest(myJSON);"
                 /*
                 CLICK SU OGGETTO: CONNECTOR SCHEMA:
@@ -6341,16 +6593,16 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "                 break;"
                 + "             }\n"
                 + "         }"
-                + "         console.log(\"oggetto: \"+formID+\"-\"+copyTag+\"-\"+cellName+\"-FILTER\" );"
-                + "         console.log(\"IMPOSTO VALORE a \"+ rate_value);"
+                //                + "         console.log(\"oggetto: \"+formID+\"-\"+copyTag+\"-\"+cellName+\"-FILTER\" );"
+                //                + "         console.log(\"IMPOSTO VALORE a \"+ rate_value);"
                 + "         document.getElementById(formID+\"-\"+copyTag+\"-\"+cellName+\"-FILTER\" ).value = rate_value;"
                 + "     } else if (cellType==\"DF\") {"//****dateFIlter
                 + "         var rawValue = document.getElementById(formID+\"-\"+copyTag+\"-\"+cellName+\"-FILTERblock\").value;\n"
-                + "         console.log(\"oggetto: \"+formID+\"-\"+copyTag+\"-\"+cellName+\"-FILTERblock\" );"
-                + "         console.log(\"rawValue: \"+ rawValue);"
+                //                + "         console.log(\"oggetto: \"+formID+\"-\"+copyTag+\"-\"+cellName+\"-FILTERblock\" );"
+                //                + "         console.log(\"rawValue: \"+ rawValue);"
                 + "         var dateValue = rawValue.split(\"/\").join(\"-\");\n"
                 + "         xt = dateValue.substring(2, 3);\n"
-                + "         if (xt = '-') {\n"
+                + "         if (xt == '-') {\n"
                 + "                xday = dateValue.substring(0, 2);\n"
                 + "                xmonth = dateValue.substring(3, 5);\n"
                 + "                xyear = dateValue.substring(6, 10);\n"
@@ -6360,8 +6612,8 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "     }"
                 + ""
                 //                + "        executeRoutineOnChange(params);\n"
-                + "    console.log(\"vado in clearChilds:\"+formID+\".\"+copyTag);\n"
-                + "        clearChilds(formID, copyTag);\n"
+                //                + "    console.log(\"vado in clearChilds:\"+formID+\".\"+copyTag);\n"
+                //                + "        clearChilds(formID, copyTag);\n"
                 + "        getSmartChildrenList(formID, copyTag,null);\n"
                 + "    }\n"
                 + "}\n";
@@ -6389,7 +6641,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "    var copyTag = res[1];\n"
                 + "    var rowID = res[2];\n"
                 //                + "    var event = res[3];\n"
-                + "    console.log(\"vado in clearChilds:\"+formID+\".\"+copyTag);\n"
+                //                + "    console.log(\"vado in clearChilds:\"+formID+\".\"+copyTag);\n"
                 + "    var curIndex = document.getElementById(formID + \"-\" + copyTag + \"-KEYfieldValue\").value;\n"
                 + "    if (rowID != \"NEW\") {\n"
                 + "        var thisFormName = document.getElementById(formID + \"-\" + copyTag + \"-EXTENDEDNAME\").value;\n"
@@ -6407,7 +6659,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "            }\n"
                 + "        }\n"
                 //                + "    console.log(\"vado in clearChilds:\"+formID+\".\"+copyTag);\n"
-                + "        clearChilds(formID, copyTag);\n"
+                //                + "        clearChilds(formID, copyTag);\n"
                 + "        getSmartChildrenList(formID, copyTag,rowID);\n"
                 + "    }\n"
                 + "}\n"
@@ -6423,7 +6675,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "    copyTag = toAnalyze[1];\n"
                 + "    rowID = toAnalyze[2];\n"
                 + "}"
-                + "console.log(\"smartTreeGetBranch \"+objID);"
+                //                + "console.log(\"smartTreeGetBranch \"+objID);"
                 + "var jsonRequest ={};\n"
                 + "var connectors=[];"
                 + "var connector={};"
@@ -6437,7 +6689,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "var myJSON = JSON.stringify(jsonRequest);"
                 + "sendRequest(myJSON);"
                 //----
-                + "console.log(\"ORA MI OCCUPO DEI CHILDS... \"+formID+\"-\"+copyTag+\"-\"+rowID);"
+                //                + "console.log(\"ORA MI OCCUPO DEI CHILDS... \"+formID+\"-\"+copyTag+\"-\"+rowID);"
                 + "        clearChilds(formID, copyTag);\n"
                 + "var jsonRequest ={};\n"
                 + "var connectors=[];"
@@ -6483,7 +6735,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
         dbCode += "function suggestSmartList(event,jarguments)\n"
                 + "{\n"
                 + "  var xEvent = event.which || event.keyCode;\n"
-                + "console.log(\"suggestSmartList->The Unicode value is: \" + xEvent);"
+                //                + "console.log(\"suggestSmartList->The Unicode value is: \" + xEvent);"
                 + "    var paramj = JSON.stringify(jarguments);\n"
                 + "    var myArg = JSON.parse(paramj);\n"
                 + "     var formID= myArg.formID;\n"
@@ -6502,13 +6754,13 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + ""
                 + "     if (operation == \"getSuggestedList\") {\n"
                 + "     var newValue = element.value;\n"//testo scritto nella casella di ricerca
-                + "     console.log(\"Trovato: \"+newValue);\n"
+                //                + "     console.log(\"Trovato: \"+newValue);\n"
                 + "     if (newValue.length <=3){return;}\n"
                 + "}\n"
                 //
                 + "             if (operation == \"setSuggestedList\") {\n "
-                + "console.log(\"SELEZIONATO: \"+newValue);"//ID di riga nella lista dei suggerimenti
-                + "console.log(\"CORRISPOPNDENTE A : \"+newLabel);\n"
+                //                + "console.log(\"SELEZIONATO: \"+newValue);"//ID di riga nella lista dei suggerimenti
+                //                + "console.log(\"CORRISPOPNDENTE A : \"+newLabel);\n"
                 + "     element.value = newLabel;\n"
                 + "     element.ondblclick();\n"
                 // selezionati una riga dalla lista
@@ -6516,7 +6768,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + ""
                 + "}\n"
                 + "             if (xEvent == 13) {\n "
-                + "console.log(\"ESEGUIRE AZIONE! \");"//ID di riga nella lista dei suggerimenti
+                //                + "console.log(\"ESEGUIRE AZIONE! \");"//ID di riga nella lista dei suggerimenti
                 + "     element.ondblclick();\n"
                 // selezionati una riga dalla lista
                 + ""
@@ -6583,7 +6835,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "     \"exitRoutine\":\"' + exitRoutine + '\"  "
                 + " }]';"
                 + "var gp='{'+utils+','+params+','+connectors+'}';"
-                + "console.log(\"suggestSmartList>>gp:\" +gp );"
+                //                + "console.log(\"suggestSmartList>>gp:\" +gp );"
                 + "    xmlhttp.open(\"POST\", \"portal\", true);\n"
                 + "    xmlhttp.setRequestHeader(\"Content-type\", \"application/x-www-form-urlencoded\");\n"
                 + "    xmlhttp.send(\"target=requestsManager&gp=\" + encodeURIComponent(gp));\n"
@@ -6594,7 +6846,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 //-------------------------------------------------------------
                 // <editor-fold defaultstate="collapsed" desc="smartFUNCTION smartToggleBody">
                 + "function smartToggleBody(destPosition,destObj) {\n"
-                + "console.log(\"toggle tab-> \" + destPosition + \"-HIDABLE\");"
+                //                + "console.log(\"toggle tab-> \" + destPosition + \"-HIDABLE\");"
                 + ""
                 + "    if (document.getElementById(destPosition + \"-HIDABLE\").style.display == \"none\") {\n"
                 + "smartShowBody(destPosition,destObj) ;"
@@ -6637,11 +6889,11 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "         var valueKEY  = document.getElementById( cellName).value;\n"
                 + "         cellName = valueKEY;"
                 + "         if (check){newValue=1;}else{newValue=0; }\n"
-                + "         console.log(\"smartASK for SETGROUP: \"+formID+\"-\"+copyTag);"
+                //                + "         console.log(\"smartASK for SETGROUP: \"+formID+\"-\"+copyTag);"
                 + "         connector.event=\"SETGROUP\"; \n"
                 + " }else{\n"//getGroups
                 + "         var jsonRequest ={};\n"
-                + "         console.log(\"smartASK for GETGROUPS: \"+formID+\"-\"+copyTag);\n"
+                //                + "         console.log(\"smartASK for GETGROUPS: \"+formID+\"-\"+copyTag);\n"
                 + "         connector.event=\"GETGROUPS\"; \n"
                 + "}"
                 + "         var jsonRequest ={};\n"
@@ -6659,6 +6911,49 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "         connector.exitRoutine= myArg.exitRoutine;\n"
                 + "         connector.cellName= cellName;\n"
                 + "         connector.newValue= newValue;\n"
+                + "         connectors.push (connector);"
+                + "         jsonRequest.connectors = connectors;\n"
+                + "         var myJSON = JSON.stringify(jsonRequest);\n"
+                + "         sendRequest(myJSON);\n"
+                + "}\n"
+                // </editor-fold>
+                //-------------------------------------------------------------
+                // <editor-fold defaultstate="collapsed" desc="smartFUNCTION smartDropAction">
+                + "function smartDropAction(jarguments)\n"
+                + "{\n"
+                + "    var paramj = JSON.stringify(jarguments);\n"
+                + "    var myArg = JSON.parse(paramj);\n"
+                + "     var operation= myArg.operation;\n"
+                + "     var formID= myArg.formID;\n"
+                + "     var copyTag= myArg.copyTag;\n"
+                + "     var rifObj= myArg.rifObj;\n"
+                + "     var keyValue= myArg.keyValue;\n"
+                + "     var bubble_formID= myArg.bubble_formID;\n"
+                + "     var bubble_copyTag= myArg.bubble_copyTag;\n"
+                + "     var bubble_keyValue= myArg.bubble_keyValue;\n"
+                + "         var connectors=[];\n"
+                + "         var connector={};\n"
+                + "connector = getPaginationArguments(connector,formID, copyTag,null,null);\n"
+                + "if (operation == \"softDrop\") {"
+                //                + "         console.log(\"smartASK for SOFTDROP: \"+formID+\"-\"+copyTag);"
+                + "         connector.event=\"SOFTDROP\"; \n"
+                + " }else{\n"//getGroups
+                + "         var jsonRequest ={};\n"
+                //                + "         console.log(\"smartASK for HARDDROP: \"+formID+\"-\"+copyTag);\n"
+                + "         connector.event=\"HARDDROP\"; \n"
+                + "}"
+                + "         var jsonRequest ={};\n"
+                //                + "         connector = getFormActionArguments(connector,formID, copyTag);\n"
+
+                //                + "connector = getPaginationArguments(connector,formID, copyTag,null,null);\n"
+                + "         connector.door=\"SMARTDROP\"; \n"
+                + "         connector.formID= myArg.formID;\n"
+                + "         connector.copyTag= myArg.copyTag;\n"
+                + "         connector.rifObj= myArg.rifObj;\n"
+                + "         connector.keyValue= myArg.keyValue;\n"
+                + "         connector.bubble_formID= myArg.bubble_formID;\n"
+                + "         connector.bubble_copyTag= myArg.bubble_copyTag;\n"
+                + "         connector.bubble_keyValue= myArg.bubble_keyValue;\n"
                 + "         connectors.push (connector);"
                 + "         jsonRequest.connectors = connectors;\n"
                 + "         var myJSON = JSON.stringify(jsonRequest);\n"
@@ -6710,7 +7005,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 //-------------------------------------------------------------
                 // <editor-fold defaultstate="collapsed" desc="smartFUNCTION smartShowBody">
                 + "function smartShowBody(destPosition,destObj) {\n"
-                + "console.log(\"destObj-> \" + destObj + \"-COLLAPSE\");"
+                //                + "console.log(\"destObj-> \" + destObj + \"-COLLAPSE\");"
                 + "        document.getElementById(destPosition + \"-HIDABLE\").style.display = \"block\";\n"
                 + "        document.getElementById(destPosition + \"-TOGGLERIMG\").src = \"./media/icons/gaiaTopHide.png\";\n"
                 + "var toHide= document.getElementById(destObj + \"-COLLAPSE\").value;\n"
@@ -6722,13 +7017,13 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "             }\n"
                 + "             }\n"
                 + "         }\n"
-                + "console.log(\"toHide-> \" + toHide  );"
+                //                + "console.log(\"toHide-> \" + toHide  );"
                 + "}\n"
                 // </editor-fold>
                 //-------------------------------------------------------------
                 // <editor-fold defaultstate="collapsed" desc="smartFUNCTION getFormActionArguments">
                 + "function getFormActionArguments(connector,formID, copyTag){\n"
-                + "        console.log(\"getFormActionArguments \");\n"
+                //                + "        console.log(\"getFormActionArguments \");\n"
                 //                + "console.log(\"Actual rifFieldPressed:\"+rifFieldPressed);"
                 //1. trovo il valore dei filtri
 
@@ -6739,7 +7034,9 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "        fatherForm = document.getElementById(rifForm + \"-FATHER\").value;\n"
                 + "    } catch (err) {\n"
                 + "    }\n"
-                + "    var formName = document.getElementById(rifForm + \"-EXTENDEDNAME\").value;\n"
+                //                + "    var formName = document.getElementById(rifForm + \"-EXTENDEDNAME\").value;\n"
+                + "        var formName;\n"
+                + "        try{ formName = document.getElementById(rifForm + \"-EXTENDEDNAME\").value;}catch(err){}\n"
                 + "    var fatherKEYvalue = document.getElementById(rifForm + \"-FATHERKEYVALUE\").value;\n"
                 + "    var fatherKEYtype = document.getElementById(rifForm + \"-FATHERKEYTYPE\").value;\n"
                 + "    var fatherCopyTag = document.getElementById(rifForm + \"-FATHERCOPYTAG\").value;\n"
@@ -6748,10 +7045,10 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "    var STC = \"[]\";\n"
                 + "    try {\n"
                 + "    STC = decodeURIComponent(document.getElementById(rifForm + \"-STC\").value);\n"
-                + "        console.log(\"getFormActionArguments->STC decodificati: \"+STC);\n"
+                //                + "        console.log(\"getFormActionArguments->STC decodificati: \"+STC);\n"
                 + "  StC = JSON.parse(STC);\n"
                 + "    } catch (err) {\n"
-                + "        console.log(\"errore in advancedFilterChanges \");\n"
+                + "        console.log(\"errore in getFormActionArguments \");\n"
                 + "}\n"
                 + " selectedRowID = document.getElementById(formID + \"-\" + copyTag + \"-KEYfieldValue\").value ;\n"
                 + "connector.formID=formID; \n"

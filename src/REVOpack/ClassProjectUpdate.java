@@ -52,7 +52,7 @@ import org.apache.http.util.EntityUtils;
 
 /*
 ATTENZIONE
-20221-01-15
+2022-01-15
 questa classe è stata sostituita da ClassQPmanageUpdate che non fa più uso della connessione diretta 
 su porta 3306 aul server queenpro, ma interroga un servizio che risponde con le info necessarie
 
@@ -1219,7 +1219,7 @@ public class ClassProjectUpdate {
                 int numFields = myTable.getFields().size();
 
                 feed = "\n\n-----\n>> " + (1 + currentTable) + "/" + nofTables
-                        + " . AGGIORNAMENTO TABELLA  >" + tableName;
+                        + " . AGGIORNAMENTO TABELLA  ->" + tableName;
                 feedback = feedback + "\n" + el.log(PROJECT_ID, feed);
                 try {
                     SQLphrase = "SELECT * FROM COLUMNS\n"

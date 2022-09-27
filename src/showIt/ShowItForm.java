@@ -165,6 +165,7 @@ public class ShowItForm {
 
     EVOpagerParams myParams;
     Settings mySettings;
+    public  ArrayList<schema_column> columns ;
     public ArrayList<ShowItObject> objects;
     public ArrayList<ShowItObject> formObjects;
 
@@ -1053,6 +1054,242 @@ public class ShowItForm {
     }
 
     // </editor-fold>       
+    
+    
+    
+      public String buildSmartSchemaLight() {
+         ////////
+////////        System.out.println("*************************************");
+////////        System.out.println("**INIZIO BUILD SCHEMA****************");
+////////        System.out.println("*************************************");
+        // <editor-fold defaultstate="collapsed" desc="buildSchema">   
+//        System.out.println(" -buildSchema- PRIMA DI LOAD FORM SETTINGS this.sendToCRUD:" + this.sendToCRUD);
+        loadFormSettings();
+//        System.out.println(" -buildSchema- LEGGO formPanel:" + this.ges_formPanel);
+        getFormPanel();
+//        System.out.println(" -buildSchema- DOPO LOAD FORM SETTINGS this.sendToCRUD:" + this.sendToCRUD);
+        //myParams.printParams("ShowItForm_buildSchema");
+        //mySettings.printSettings("ShowItForm_buildSchema");
+//1. mi connetto al LOCAL DB per cercare la tabella richiesta da 'query'
+        Connection FEconny = null;
+        try {
+            FEconny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalFE();
+        } catch (Exception e) {
+            System.out.println(" -buildSchema- ERROR connecting FEdb:" + myParams.getCKprojectName());
+        }
+        ResultSet rs;
+        int totalWidth = 0;
+        // cerca il FORM per nome e se non è compilato per ID
+        try {
+            Statement s = FEconny.createStatement();
+// </editor-fold>
+//////////////////===================================================================  
+////////////////// <editor-fold defaultstate="collapsed" desc="VERIFICO PERMESSI FORM">   
+//////////////////=============================================
+////////////////            //===GESTIONE RIGHTS PER IL FORM===========================
+////////////////            //  formati validi:
+////////////////            //1) DEFAIULT:1; ADMIN:5;
+////////////////            //2) [{"ruleType":"default","right":"23"},{"ruleType":"userInStandardGroup","test":"==", "valueB":"MEDICI","right":"17","level":"10"}]
+////////////////            //========================================================
+////////////////            // in questa fase il resultset è ancora nullo
+////////////////            //quindi la decisiione sui diritti si basa SOLO su gruppi di appartenenza o default
+////////////////            formRightsRules = analyzeRightsRuleJson(userRights, null, null, 10);
+////////////////            System.out.println("RIGHTS DA FORM:" + userRights);
+//////////////////            System.out.println("GENERA RIGHTS PER IL FORM:" + formRightsRules.totalRight + " LEVEL:" + formRightsRules.level);
+////////////////// </editor-fold>
+//////////////////===================================================================    
+////////////////// <editor-fold defaultstate="collapsed" desc="CARICO INFORMAZIONI TBS dal father">                   
+////////////////            // System.out.println("buildSchema STEP 3:CARICO INFORMAZIONI TBS dal father" );
+////////////////            //1. carico le informazioni arrivate dalla finestra chiamante
+////////////////            /*
+////////////////            
+////////////////             jsonTranslate JT = new jsonTranslate();
+////////////////             sentFieldList = JT.makeList(this.getInfoReceived());
+////////////////             //1. carico le informazioni di filtro
+////////////////             JT = new jsonTranslate();
+////////////////             filterList = JT.makeList(this.getSendToCRUD());
+////////////////             System.out.println("ShowItForm_buildSchema_caricoTBSreceived():" + sentFieldList.size());
+////////////////             System.out.println("ShowItForm_buildSchema_caricoFilterList():" + filterList.size());
+////////////////             */
+////////////////            // </editor-fold>       
+//////////////////===================================================================        
+////////////////// <editor-fold defaultstate="collapsed" desc="CARICO BOUND FIELD LIST da fatherFilters">           
+////////////////            System.out.println("buildSchema STEP 4:CARICO BOUND FIELD LIST da fatherFilters");
+////////////////            // System.out.println("ShowItForm_buildSchema_CARICO BOUND FIELD LIST");
+////////////////            String formAdderArgs = "";
+////////////////            boundFieldList = new ArrayList<>();
+////////////////            // System.out.println("ANALIZZO fatherFilters per vedere se devo eseguire sostituzioni nella query");
+////////////////            try {
+////////////////                if (this.fatherFilters != null && this.fatherFilters.length() > 4) {
+////////////////                    //System.out.println("Query before " + this.query);
+////////////////                    // System.out.println("Carico fatherFilters " + this.fatherFilters);
+////////////////                    // es:  Macchina=TRZ_08;Coda=78
+////////////////
+////////////////                    // non so perchè sottopongo gli stessi filters a sostituzione standard (es. NOW, KEY ecc)
+////////////////                    this.fatherFilters = browserArgsReplace(this.fatherFilters);
+////////////////                    // System.out.println("diventa: " + this.fatherFilters);
+////////////////
+////////////////                    //SPLITTO I FILTERS
+////////////////                    String[] items = this.fatherFilters.split(";");
+////////////////                    List<String> itemList = Arrays.asList(items);
+////////////////
+////////////////                    for (int jj = 0; jj < itemList.size(); jj++) {
+////////////////                        // System.out.println(">> " + itemList.get(jj).toString());
+////////////////                        String[] couple = itemList.get(jj).split("=");
+////////////////                        List<String> couples = Arrays.asList(couple);
+////////////////                        // System.out.println("____" + couples.get(0).toString() + " == " + couples.get(1).toString());
+////////////////                        String replaced = "[" + couples.get(0).toString() + "]";
+////////////////                        String replacer = couples.get(1).toString();
+////////////////                        // System.out.println("replaced:" + replaced + " == replacer:" + replacer);
+////////////////                        if (formAdderArgs.length() > 0) {
+////////////////                            formAdderArgs += "|";
+////////////////                        }
+////////////////                        formAdderArgs += replaced + "=" + replacer;
+////////////////
+////////////////                        if (replaced != null && replacer != null) {
+////////////////                            this.query = this.query.replace(replaced, replacer);
+////////////////                        }
+////////////////                    }
+////////////////                    // System.out.println("\n\nQuery after " + this.query);
+////////////////                }
+////////////////            } catch (Exception e) {
+////////////////                System.out.println("Error in step 4: " + e.toString());
+////////////////            }
+////////////////            // System.out.println("\n  boundFieldList:" + boundFieldList.size() + " elementi.");
+////////////////            ArrayList<schema_column> columns = new ArrayList<schema_column>();
+////////////////            // </editor-fold>       
+//////////////////===================================================================        
+////////////////// <editor-fold defaultstate="collapsed" desc="CREO SCHEMA DELLE COLONNE da information-Schema">           
+////////////////            System.out.println("CREO SCHEMA DELLE COLONNE da information-Schema");
+////////////////            //  System.out.println("ShowItForm_buildSchema_CREO SCHEMA DELLE COLONNE");
+////////////////            if (getMainTable() == null || getMainTable().equalsIgnoreCase("NULL")) {
+////////////////                System.out.println("WARNING: MAIN TABLE NAME NOT COMPILED. TYPE:" + this.getType());
+////////////////            } else {
+////////////////
+////////////////                Connection schemaconny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalSchema();
+////////////////
+////////////////                Statement schemast = schemaconny.createStatement();
+////////////////                // Statement localSt = localconny.createStatement();
+////////////////                String SQLphrase = "SELECT * FROM COLUMNS\n"
+////////////////                        + "           WHERE TABLE_NAME = '" + getMainTable() + "'\n"
+////////////////                        + "             AND TABLE_SCHEMA = '" + this.database.getDbExtendedName() + "' ORDER BY ORDINAL_POSITION;";
+////////////////                //       System.out.println("CREO SCHEMA DELLE COLONNE da information-Schema: SQLphrase=" + SQLphrase);
+////////////////
+////////////////                ResultSet schemars = schemast.executeQuery(SQLphrase);
+////////////////                int i = 0;
+////////////////                /* 
+////////////////                 String IS_NULLABLE[]=new String[100]; // ES. 'YES' oppure 'NO'
+////////////////                 String COLUMN_KEY[]=new String[100]; // ES. 'PRI'=PRIMARY
+////////////////                 String EXTRA[]=new String[100]; // ES. 'auto_increment'
+////////////////                 */
+////////////////
+////////////////                while (schemars.next()) {
+////////////////                    i++;
+////////////////                    schema_column column = new schema_column();
+////////////////                    column.setCOLUMN_NAME(schemars.getString("COLUMN_NAME"));
+////////////////                    column.setCOLUMN_DEFAULT(schemars.getString("COLUMN_DEFAULT"));
+////////////////                    column.setCOLUMN_KEY(schemars.getString("COLUMN_KEY"));
+////////////////                    column.setDATA_TYPE(schemars.getString("DATA_TYPE"));
+////////////////                    column.setEXTRA(schemars.getString("EXTRA"));
+////////////////                    column.setIS_NULLABLE(schemars.getString("IS_NULLABLE"));
+////////////////                    column.setCOLUMN_TYPE(schemars.getString("COLUMN_TYPE"));
+////////////////                    column.setORDINAL_POSITION(schemars.getInt("ORDINAL_POSITION"));
+////////////////
+////////////////                    BigDecimal result = schemars.getBigDecimal("CHARACTER_MAXIMUM_LENGTH");
+////////////////                    column.setCHARACTER_MAXIMUM_LENGTH(result == null ? null : result.toBigInteger());
+////////////////
+////////////////                    column.setNUMERIC_PRECISION(schemars.getInt("NUMERIC_PRECISION"));
+////////////////                    //System.out.println("COLUMN_KEY=" + schemars.getString("COLUMN_KEY")+"  EXTRA=" + schemars.getString("EXTRA"));
+////////////////
+////////////////                    columns.add(column);
+////////////////                }
+////////////////                schemaconny.close();
+////////////////
+////////////////                // System.out.println("schema colonne:");
+////////////////                for (int jj = 0; jj < columns.size(); jj++) {
+////////////////                    // System.out.println("column:" + columns.get(jj).getCOLUMN_NAME() + " . KEY:" + columns.get(jj).getCOLUMN_KEY() + "  - extra:" + columns.get(jj).getEXTRA());
+////////////////                }
+////////////////
+////////////////            }
+////////////////
+////////////////            /*
+////////////////             Orac ostruisco l'array list degli oggetti presenti nel form
+////////////////             e faccio il cast nel bean in form
+////////////////             
+////////////////             */
+////////////////            // </editor-fold>       
+//////////////////===================================================================        
+// <editor-fold defaultstate="collapsed" desc="COSTRUISCO ARRAY OGGETTI">                   
+            System.out.println("ShowItForm_buildSchema_COSTRUISCO ARRAY OGGETTI");
+            this.objects = new ArrayList<ShowItObject>();
+            String SQLphrase = "SELECT * FROM " + mySettings.getLocalFE_objects() + " WHERE `rifForm`='" + this.ID + "' ORDER BY position";
+            //   System.out.println("CARICO CARATTERISTICHE OGGETTO:" + SQLphrase);
+            rs = s.executeQuery(SQLphrase);
+            int lines = 0;
+            int foundKey = 0;
+            Connection accountConny = new EVOpagerDBconnection(myParams, mySettings).ConnAccountDB();
+            EVOuser myUser;
+            try {
+                myUser = new EVOuser(myParams, mySettings);
+                myUser.setTABLElinkUserGroups("archivio_correlazioni");
+                myUser.setFIELDlinkUserGroupsRifOperatore("partAvalue");
+                myUser.setFIELDlinkUserGroupsRifGruppo("partBvalue");
+
+                myUser.setTABLEgruppi("archivio_operatoriGruppi");
+                myUser.setFIELDGruppiIDgruppo("IDgruppo");
+                myUser.setTABLEoperatori("archivio_operatori");
+                myUser.setFIELDoperatoriID("ID");
+                while (rs.next()) {
+                    lines++; 
+                    ShowItObject myObject = new ShowItObject("new"); 
+                    myObject.loadFromDB(rs); 
+                    if (myObject.CG.getType() != null
+                            && myObject.CG.getType().equalsIgnoreCase("FORMBUTTON")) {
+                        myObject.Content.setThisRowModifiable(1);// altrimenti il pulsante non si vede se i permessi sono inferiori
+                        String header = "";
+                        header = myObject.labelHeader;
+                        myObject.ValueToWrite = header;
+                        this.formObjects.add(myObject);
+                        // System.out.println("AGGIUNGO OGGETTO FORMBUTTON:" + myObject.getName());
+                    } else {
+                        this.objects.add(myObject);
+                        // System.out.println("AGGIUNGO OGGETTO " + myObject.CG.getType() + ":" + myObject.getName());
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Errore utente..." + e.toString());
+
+            }
+            accountConny.close();
+            // </editor-fold>       
+//===================================================================        
+ 
+            FEconny.close();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ShowItForm.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("error in line 1247");
+        }
+
+        // adesso che la costruzione è terminata, valuto se le informazioni di formEnabled
+        // determinano la disabilitaizone
+        // System.out.println("\nInfoReceived:" + this.getInfoReceived() + "\n");
+        //System.out.println("getDisableRules:"+ this.getDisableRules() );
+        // </editor-fold>       
+//===================================================================        
+// <editor-fold defaultstate="collapsed" desc="COSTRUISCO LE LISTE ACCESSORIE DEGLI OGGETTI">           
+//===============================================================
+        //  System.out.println("COSTRUISCO LE LISTE ACCESSORIE DEGLI OGGETTI" ); 
+//        System.out.println("ShowItForm_buildSchema_COSTRUISCO LE LISTE ACCESSORIE DEGLI OGGETTI" + this.Label);
+        buildObjectsOriginList();
+        // </editor-fold>       
+//===================================================================        
+//        System.out.println("*************************************");
+        System.out.println("**FINE SCHEMA************************");
+//        System.out.println("*************************************");
+        return null; 
+      }
+    
     public String buildSchema() {
 ////////
 ////////        System.out.println("*************************************");
@@ -1152,7 +1389,11 @@ public class ShowItForm {
                 System.out.println("Error in step 4: " + e.toString());
             }
             // System.out.println("\n  boundFieldList:" + boundFieldList.size() + " elementi.");
-            ArrayList<schema_column> columns = new ArrayList<schema_column>();
+//            ArrayList<schema_column> columns = new ArrayList<schema_column>();
+            
+           columns = new ArrayList<schema_column>();
+            
+            
             // </editor-fold>       
 //===================================================================        
 // <editor-fold defaultstate="collapsed" desc="CREO SCHEMA DELLE COLONNE da information-Schema">           
@@ -1767,7 +2008,7 @@ public class ShowItForm {
 
     }
 
-    public ShowItFormResponse paintForm() {
+     public ShowItFormResponse paintForm() {
 
         /*
         _________________________________________
@@ -2291,8 +2532,14 @@ public class ShowItForm {
         divBottom += "</TR><TR>\n";
         divBottom += "<TD colspan=\"2\"><div class=\"bottomTab\" id=\"CH-" + this.getName() + "-B\"></div></TD>\n";
         divBottom += "</TR><TR>\n";
+        divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-UBL\" ></div></TD>\n";
+        divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-UBR\" ></div></TD>\n";
+        divBottom += "</TR><TR>\n";
         divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-BL\" ></div></TD>\n";
         divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-BR\" ></div></TD>\n";
+        divBottom += "</TR><TR>\n";
+        divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-DBL\" ></div></TD>\n";
+        divBottom += "<TD><div class=\"bottomTab\" id=\"" + divPrefix + "-DBR\" ></div></TD>\n";
         divBottom += "</TR></TABLE>\n";
         divBottom += "</div>";
         //    divBottom="BOTTOM";
@@ -2392,14 +2639,14 @@ public class ShowItForm {
         String divExtB = "<div class=\"bottomTab\" id=\"" + divPrefix + "-ExtB\" ></div>\n";
         divExtB += "<div class=\"bottomTab\" id=\"CH-" + this.getName() + "-ExtB\" ></div>\n";
         //==============================================================================
-        String divIntRight = "<div class=\"bottomTab\" id=\"" + divPrefix + "-IntR\" ></div>\n";
-        divIntRight += "<div class=\"bottomTab\" id=\"CH-" + this.getName() + "-IntR\" ></div>\n";
+        String divIntRight = "<div class=\"rightTab\" id=\"" + divPrefix + "-IntR\" ></div>\n";
+        divIntRight += "<div class=\"rightTab\" id=\"CH-" + this.getName() + "-IntR\" ></div>\n";
         //==============================================================================
         String outL = "<div class=\"sideText\" id=\"" + divPrefix + "-OutL\" ></div>\n";
         outL += "<div class=\"bottomTab\" id=\"CH-" + this.getName() + "-OutL\" ></div>\n";
         //==============================================================================
-        String outR = "<div class=\"bottomTab\" id=\"" + divPrefix + "-OutR\" ></div>\n";
-        outR += "<div class=\"bottomTab\" id=\"CH-" + this.getName() + "-OutR\" ></div>\n";
+        String outR = "<div class=\"rightTab\" id=\"" + divPrefix + "-OutR\" ></div>\n";
+        outR += "<div class=\"rightTab\" id=\"CH-" + this.getName() + "-OutR\" ></div>\n";
         //==============================================================================
 
         String divBodyUpDown = "";
@@ -2749,6 +2996,7 @@ public class ShowItForm {
         }
 //        System.out.println("paintFormAttributes=====> SQL:\n" + queryUsed);
         htmlCode += ("<INPUT type=\"HIDDEN\" id=\"" + this.name + "-" + this.getCopyTag() + "-ID\" value=\"" + this.getID() + "-" + this.getCopyTag() + "\">\n");
+        htmlCode += ("<INPUT type=\"HIDDEN\" id=\"" + this.getID() + "-" + this.getCopyTag() + "-FORMTYPE\" value=\"SHOWIT\">\n");        
         htmlCode += ("<INPUT type=\"HIDDEN\" id=\"" + this.getID() + "-" + this.getCopyTag() + "-FATHER\" value=\"" + this.getFather() + "\">\n");
         htmlCode += ("<INPUT type=\"HIDDEN\" id=\"" + this.getID() + "-" + this.getCopyTag() + "-FATHERARGS\" value=\"" + this.getFatherFilters() + "\">\n");
         htmlCode += ("<INPUT type=\"HIDDEN\" id=\"" + this.getID() + "-" + this.getCopyTag() + "-FATHERKEYVALUE\" value=\"" + this.getFatherKEYvalue() + "\">\n");
@@ -5715,7 +5963,7 @@ public class ShowItForm {
                 if (retreivedStyle.contains("background-color:")) {
 
                 } else {
-                    retreivedStyle += " background-color:lightGreen; ";
+                    retreivedStyle += " background-color:darkGrey; ";
                 }
 
                 htmlCode += retreivedStyle;

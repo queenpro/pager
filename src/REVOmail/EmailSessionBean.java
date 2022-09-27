@@ -20,6 +20,9 @@
  */
 package REVOmail;
 
+import REVOdbManager.EVOpagerDirectivesManager;
+import REVOdbManager.EVOpagerParams;
+import REVOdbManager.Settings;
 import java.sql.Date;
 import java.util.Calendar;
 import java.util.Properties;
@@ -35,9 +38,9 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
- 
 public class EmailSessionBean {
-/* private int port = 465;
+
+    /* private int port = 465;
 private String host = "smtp.example.com";
 private String from = "matt@example.com";
 private boolean auth = true;
@@ -45,8 +48,8 @@ private String username = "matt@example.com";
 private String password = "secretpw";
 private Protocol protocol = Protocol.SMTPS;
 private boolean debug = true;
-*/
-/*
+     */
+ /*
 private int port = 465;
 private String host = "smtp.gmail.com";
 private String from = "sitiffs@gmail.com";
@@ -55,82 +58,99 @@ private String username = "sitiffs@gmail.com";
 private String password = "marocchi";
 private EmailProtocol protocol = EmailProtocol.SMTPS;
 private boolean debug = true;
-*/
-    
-private int port = 25;
-private String host = "mail.queenpro.it";
-private String from = "info@queenpro.it";
+     */
+    private int port = 25;
+    private String host = "mail.queenpro.it";
+    private String from = "info@queenpro.it";
 
-private String username = "info@queenpro.it";
-private String password = "Qcosta32!quee17";
+    private String username = "info@queenpro.it";
+    private String password = "Qcosta32!quee17";
 
-private boolean auth = true;
-private EmailProtocol protocol = EmailProtocol.SMTP;
-private boolean debug = true;
+    private boolean auth = true;
+    private EmailProtocol protocol = EmailProtocol.SMTP;
+    private boolean debug = true;
 
+    public void SendMail(EVOpagerParams myParams, Settings mySettings) {
+        EVOpagerDirectivesManager myManager = new EVOpagerDirectivesManager(myParams, mySettings);
+        String lastBackupDate = myManager.getEvoDirective("lastBackupDate");
+    }
 
+    public void SendEmail(String to, String subject, String body) {
 
+        System.out.println("SONO IN EmailSessionBean--> SENDMAIL protocol:" + protocol + " HOST:" + host + " PORT:" + port);
+        Properties props = new Properties();
+        props.put("mail.smtp.host", host);
+        props.put("mail.smtp.port", String.valueOf(port));
 
-
-
-public void SendEmail (String to, String subject, String body){
-    Properties props = new Properties();
-props.put("mail.smtp.host", host);
-props.put("mail.smtp.port", port);
-switch (protocol) {
-    case SMTPS:
-        props.put("mail.smtp.ssl.enable", true);
-        break;
-    case TLS:
-        props.put("mail.smtp.starttls.enable", true);
-        break;
-}
-
-Authenticator authenticator = null;
-if (auth) {
-    props.put("mail.smtp.auth", true);
-    authenticator = new Authenticator() {
-        private PasswordAuthentication pa = new PasswordAuthentication(username, password);
-        @Override
-        public PasswordAuthentication getPasswordAuthentication() {
-            return pa;
+        switch (protocol) {
+            case SMTPS:
+                props.put("mail.smtp.ssl.enable", true);
+                break;
+            case TLS:
+                props.put("mail.smtp.starttls.enable", true);
+                break;
+            default:
+                //
         }
-    };
-}
-Session session = Session.getInstance(props, authenticator);
-session.setDebug(debug);
-MimeMessage message = new MimeMessage(session);
-try {
-    message.setFrom(new InternetAddress(from));
-    InternetAddress[] address = {new InternetAddress(to)};
-    message.setRecipients(Message.RecipientType.TO, address);
-    message.setSubject(subject);
-    Calendar cal = Calendar.getInstance();
-java.sql.Date stmt= new java.sql.Date(cal.getTimeInMillis());
 
-    message.setSentDate(stmt);
-    //message.setText(body);
-    
-Multipart multipart = new MimeMultipart("alternative");
-MimeBodyPart textPart = new MimeBodyPart();
-String textContent = "Benvenuto!";
-textPart.setText(textContent);
+        Authenticator authenticator = null;
+        if (auth) {
+            System.out.println("SONO IN EmailSessionBean--> Authenticator  username:" + username + " password:" + password);
+            props.put("mail.smtp.auth", true);
+            authenticator = new Authenticator() {
+                private PasswordAuthentication pa = new PasswordAuthentication(username, password);
 
-MimeBodyPart htmlPart = new MimeBodyPart();
+                @Override
+                public PasswordAuthentication getPasswordAuthentication() {
+                    return pa;
+                }
+            };
+        }
+        Session session = Session.getInstance(props, authenticator);
+        System.out.println("SONO IN EmailSessionBean--> Imposto debug.");
+        session.setDebug(debug);
+        System.out.println("SONO IN EmailSessionBean--> Creo messaggio MIME.");
+        MimeMessage message = null;
+        System.out.println("SONO IN EmailSessionBean-->Messaggio MIME dichiarato.");
+        try {
+            message = new MimeMessage(session);
+            System.out.println("SONO IN EmailSessionBean-->Messaggio MIME creato.");
+        } catch (Exception ex) {
+            System.out.println("ERRORE." + ex.toString());
+        }
+
+        try {
+
+            System.out.println("SONO IN EmailSessionBean--> Procedo in richiesta invio.");
+
+            message.setFrom(new InternetAddress(from));
+            InternetAddress[] address = {new InternetAddress(to)};
+            message.setRecipients(Message.RecipientType.TO, address);
+            message.setSubject(subject);
+            Calendar cal = Calendar.getInstance();
+            java.sql.Date stmt = new java.sql.Date(cal.getTimeInMillis());
+
+            message.setSentDate(stmt);
+            //message.setText(body);
+
+            Multipart multipart = new MimeMultipart("alternative");
+            MimeBodyPart textPart = new MimeBodyPart();
+            String textContent = "Benvenuto!";
+            textPart.setText(textContent);
+
+            MimeBodyPart htmlPart = new MimeBodyPart();
 //body = "<html><h1>Hi</h1><p>Nice to meet you!</p></html>";
-htmlPart.setContent(body, "text/html");
+            htmlPart.setContent(body, "text/html");
 
-multipart.addBodyPart(textPart);
-multipart.addBodyPart(htmlPart);
-message.setContent(multipart);    
-    
-    
-    
-    Transport.send(message);
-} catch (MessagingException ex) {
-    ex.printStackTrace();
-}
-}
+            multipart.addBodyPart(textPart);
+            multipart.addBodyPart(htmlPart);
+            message.setContent(multipart);
 
+            Transport.send(message);
+        } catch (MessagingException ex) {
+            System.out.println("ERRORE.");
+            ex.printStackTrace();
+        }
+    }
 
 }

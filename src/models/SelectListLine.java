@@ -34,6 +34,20 @@ public class SelectListLine {
     private String SpareValue;
     private int Type;
     private String Marker;
+    private String infoType; 
+
+ 
+    
+
+    public String getInfoType() {
+        return infoType;
+    }
+
+    public void setInfoType(String infoType) {
+        this.infoType = infoType;
+    }
+    
+    
 
     public String getMarker() {
         return Marker;

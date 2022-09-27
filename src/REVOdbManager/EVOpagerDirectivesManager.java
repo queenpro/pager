@@ -132,27 +132,27 @@ public class EVOpagerDirectivesManager {
             ps = null;
             rs = null;
             try {
-                if (lines > 0 && customByInstance.equalsIgnoreCase("TRUE")) {
+//                if (lines > 0 && customByInstance.equalsIgnoreCase("TRUE")) {
 
-                    SQLphrase = "SELECT * FROM " + mySettings.getLocalCUSTOM_directives()
-                            + " WHERE ID='" + infoID + "'"
-                            + " OR  infoName='" + infoName + "'";
-                    //System.out.println("cerco anche in " + mySettings.getLocalCUSTOM_directives() + ":\n" + SQLphrase);
+                SQLphrase = "SELECT * FROM " + mySettings.getLocalCUSTOM_directives()
+                        + " WHERE ID='" + infoID + "'"
+                        + " OR  infoName='" + infoName + "'";
+                //System.out.println("cerco anche in " + mySettings.getLocalCUSTOM_directives() + ":\n" + SQLphrase);
 
-                    ps = FEconny.prepareStatement(SQLphrase);
+                ps = FEconny.prepareStatement(SQLphrase);
 
-                    // System.out.println("Preparato statement... ");
-                    rs = ps.executeQuery();
-                    // System.out.println("Eseguita richiesta... ");
-                    while (rs.next()) {
-                        //System.out.println("Trovato valore infoName:" + rs.getString("infoName"));
-                        customValue = rs.getString("infoValue");
-                        //System.out.println("Trovato valore CUSTOM:" + customValue);
-                        defaultValue = customValue;
-                        typeFound = "CUSTOM";
-                    }
-                    //System.out.println("Conclusa ricerca... \n");
+                // System.out.println("Preparato statement... ");
+                rs = ps.executeQuery();
+                // System.out.println("Eseguita richiesta... ");
+                while (rs.next()) {
+                    //System.out.println("Trovato valore infoName:" + rs.getString("infoName"));
+                    customValue = rs.getString("infoValue");
+                    //System.out.println("Trovato valore CUSTOM:" + customValue);
+                    defaultValue = customValue;
+                    typeFound = "CUSTOM";
                 }
+                //System.out.println("Conclusa ricerca... \n");
+//                }
 
             } catch (SQLException ex) {
                 System.out.println("Error:" + ex);
@@ -246,6 +246,9 @@ public class EVOpagerDirectivesManager {
                     Blob blob;
                     try {
                         blob = rs.getBlob("media");
+                        
+                        
+                        
                         if (blob != null) {
                             InputStream in = null;
                             try {
@@ -294,6 +297,132 @@ public class EVOpagerDirectivesManager {
 
         }
         return myPic;
+    }
+
+    public BufferedImage getDirectiveMediaBI(String infoName) {
+        BufferedImage bi = null;
+//        System.out.println("Cerco media info:" + infoName);
+        // se sto cercando una direttiva PRIMA del login, potrei non avere compilao il contextID 
+        // el.log("EVOpagerDirectivesManager", "Cerco informazione:" + infoName);
+        //     EVOpagerDBconnection myDBC;
+        String defaultValue = null;
+        String infoID = null;
+        String customValue = null;
+        String infoValue = null;
+        String customByInstance = "";
+        Image myPic = null;
+        Image myPic2 = null;
+        try {
+            Connection FEconny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalFE();
+
+            String SQLphrase;
+            PreparedStatement ps;
+            ResultSet rs;
+            SQLphrase = "SELECT * FROM " + mySettings.getLocalFE_directives() + " WHERE infoName='" + infoName + "'";
+            //System.out.println("SQLphrase:" + SQLphrase);
+            //  el.log("EVOpagerDirectivesManager", SQLphrase);
+
+            ps = FEconny.prepareStatement(SQLphrase);
+            rs = ps.executeQuery();
+            int lines = 0;
+            while (rs.next()) {
+                lines++;
+
+                Blob blob;
+                try {
+                    infoID = rs.getString("ID");
+                    customByInstance = rs.getString("customByInstance");
+                    blob = rs.getBlob("media");
+                    if (blob != null) {
+                        InputStream in = null;
+                        try {
+                            in = blob.getBinaryStream();
+
+                            myPic = null;
+                            try {
+                                bi = ImageIO.read(in);
+                                try {
+                                    myPic = Image.getInstance(bi, null);
+                                } catch (BadElementException ex) {
+                                    Logger.getLogger(EVOpagerDirectivesManager.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+
+                            } catch (IOException ex) {
+                                Logger.getLogger(EVOpagerDirectivesManager.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        } catch (SQLException ex) {
+
+                        }
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(EVOpagerDirectivesManager.class.getName()).log(Level.SEVERE, null, ex);
+                    blob = null;
+                }
+
+                break;
+            }
+
+            if (lines > 0 && customByInstance.equalsIgnoreCase("TRUE")) {
+
+                SQLphrase = "SELECT * FROM " + mySettings.getLocalCUSTOM_directives() + " WHERE ID='" + infoID + "'";
+                // System.out.println("cerco anche in " + mySettings.getLocalCUSTOM_directives() + ":" + SQLphrase);
+
+                ps = FEconny.prepareStatement(SQLphrase);
+                rs = ps.executeQuery();
+                int lines2 = 0;
+                while (rs.next()) {
+                    lines2++;
+
+                    Blob blob;
+                    try {
+                        blob = rs.getBlob("media");
+                        if (blob != null) {
+                            InputStream in = null;
+                            try {
+                                in = blob.getBinaryStream();
+
+                                myPic2 = null;
+                                try {
+                                    bi = ImageIO.read(in);
+                                    try {
+                                        myPic2 = Image.getInstance(bi, null);
+                                    } catch (BadElementException ex) {
+                                        Logger.getLogger(EVOpagerDirectivesManager.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+
+                                } catch (IOException ex) {
+                                    Logger.getLogger(EVOpagerDirectivesManager.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            } catch (SQLException ex) {
+                            }
+                        }
+
+                    } catch (SQLException ex) {
+                        Logger.getLogger(EVOpagerDirectivesManager.class.getName()).log(Level.SEVERE, null, ex);
+                        blob = null;
+                    }
+
+                    break;
+                }
+
+                if (lines2 > 0) {
+                    // significa che ho trovato un valore personalizzato
+                    // quindi prevarica sul valore standard
+                    myPic = myPic2;
+
+                }
+
+            }
+
+            FEconny.close();
+
+        } catch (SQLException ex) {
+
+            System.out.println("Error:" + ex);
+            //   el.log("EVOpagerDirectivesManager", "Connection error:" + ex.toString());
+
+        }
+        return bi;
     }
 
 //////    public String setDirective(String infoName, String infoValue) {

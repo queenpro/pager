@@ -18,8 +18,6 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package REVOsetup;
 
 import REVOdbManager.EVOpagerDirectivesManager;
@@ -27,7 +25,10 @@ import REVOdbManager.EVOpagerParams;
 import REVOdbManager.Settings;
 import REVOpager.Database;
 import REVOpager.EVOpagerDBconnection;
+import java.io.BufferedReader;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -70,7 +71,7 @@ public class EVOsetup {
         semaphore mySem = new semaphore();
         // se sono qui è perchè la valutazione di necessità è già stata fatta !
         // faccio backup senza controllare nulla
-        String backMessage = ""; 
+        String backMessage = "";
         feedback = null;
         feed = null;
         updateNeeded = false;
@@ -78,8 +79,6 @@ public class EVOsetup {
 
         //----------------------------------
         // ESEGUI IL UPDATE-----------------
-        
-
         //**************
         EVOpagerDirectivesManager myManager = new EVOpagerDirectivesManager(myParams, mySettings);
         String lastSoftwareVersion = myManager.getDirective("lastSoftwareVersion");
@@ -87,56 +86,56 @@ public class EVOsetup {
         System.out.println("lastSoftwareVersion: " + lastSoftwareVersion + " - actualVersion:" + actualVersion);
         if (lastSoftwareVersion != null && !lastSoftwareVersion.equalsIgnoreCase(actualVersion)) {
             //Verifico che la versione indicata sia supoeriore alla attuale
-            int dataAttuale=0;
-            int dataQP=0;
-            try{
-                dataAttuale = Integer.parseInt(actualVersion);
-            }catch (Exception e){
-                
-            }
-             try{
-                dataQP = Integer.parseInt(lastSoftwareVersion);
-            }catch (Exception e){
-                
-            }
-            
-            if (dataQP>dataAttuale){
-            
-            System.out.println("Lancio Update.");
-            String webappsFolder = myManager.getDirective("webappsFolder");
-            String autoUpdateSourceURL = myManager.getDirective("autoUpdateSourceURL");
-
-            System.out.println("webappsFolder: " + webappsFolder + " - autoUpdateSourceURL:" + autoUpdateSourceURL);
-            String destFolder = webappsFolder;
-            String sourceFilename = mySettings.getProjectName() + "/" + lastSoftwareVersion + "_" + mySettings.getProjectName() + ".war";
-            String destFilename = mySettings.getProjectName() + ".war";
-            String sourceURL = autoUpdateSourceURL + sourceFilename;
-
-            String destPath = webappsFolder + destFilename;
-            System.out.println("sourceURL: " + sourceURL + "\n destPath:" + destPath);
+            int dataAttuale = 0;
+            int dataQP = 0;
             try {
-                URL website = new URL(sourceURL);
-                ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-                FileOutputStream fos = new FileOutputStream(destPath);
-                long success = fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                if (success > 0) {
-                    mySem.setValue(1);
-                    mySem.setTooltipText("AGGIORNAMENTO SOFTWARE ESEGUITO CON SUCCESSO.");
-                } else {
-                    mySem.setValue(-1);
-                    mySem.setTooltipText("ERRORE:AGGIORNAMENTO SOFTWARE FALLITO.");
-                }
-
+                dataAttuale = Integer.parseInt(actualVersion);
             } catch (Exception e) {
-                mySem.setValue(-1);
-                mySem.setTooltipText("ERRORE IN AGGIORNAMENTO SOFTWARE.");
+
             }
-            System.out.println("Concluso Update.");
-            }else{
+            try {
+                dataQP = Integer.parseInt(lastSoftwareVersion);
+            } catch (Exception e) {
+
+            }
+
+            if (dataQP > dataAttuale) {
+
+                System.out.println("Lancio Update.");
+                String webappsFolder = myManager.getDirective("webappsFolder");
+                String autoUpdateSourceURL = myManager.getDirective("autoUpdateSourceURL");
+
+                System.out.println("webappsFolder: " + webappsFolder + " - autoUpdateSourceURL:" + autoUpdateSourceURL);
+                String destFolder = webappsFolder;
+                String sourceFilename = mySettings.getProjectName() + "/" + lastSoftwareVersion + "_" + mySettings.getProjectName() + ".war";
+                String destFilename = mySettings.getProjectName() + ".war";
+                String sourceURL = autoUpdateSourceURL + sourceFilename;
+
+                String destPath = webappsFolder + destFilename;
+                System.out.println("sourceURL: " + sourceURL + "\n destPath:" + destPath);
+                try {
+                    URL website = new URL(sourceURL);
+                    ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+                    FileOutputStream fos = new FileOutputStream(destPath);
+                    long success = fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                    if (success > 0) {
+                        mySem.setValue(1);
+                        mySem.setTooltipText("AGGIORNAMENTO SOFTWARE ESEGUITO CON SUCCESSO.");
+                    } else {
+                        mySem.setValue(-1);
+                        mySem.setTooltipText("ERRORE:AGGIORNAMENTO SOFTWARE FALLITO.");
+                    }
+
+                } catch (Exception e) {
+                    mySem.setValue(-1);
+                    mySem.setTooltipText("ERRORE IN AGGIORNAMENTO SOFTWARE.");
+                }
+                System.out.println("Concluso Update.");
+            } else {
                 // la versione attuale è superiore a quella pubblicata
                 System.out.println("la versione attuale è una beta-release.");
-                 mySem.setTooltipText("la versione attuale è una beta-release.");
-            mySem.setValue(0);
+                mySem.setTooltipText("la versione attuale è una beta-release.");
+                mySem.setValue(0);
             }
         } else {
             mySem.setTooltipText("");
@@ -358,6 +357,12 @@ public class EVOsetup {
         //   feedback = feedback + "\n" + el.log("EVOsetup", feed);
         String dirpath = backupMySqlServerPath; // posizione del DB su disco
         String destpath = backupDestinationPath;  // posizione del file prodotto sul disco
+        try {
+            dirpath = dirpath.replace("[]", "");
+            destpath = destpath.replace("[]", "");
+        } catch (Exception e) {
+
+        }
 
         //---------------
         //---ATTENZIONE:--
@@ -442,7 +447,7 @@ public class EVOsetup {
         System.out.println(historyMessage);
         history += historyMessage + "\n";
         //----------------------------------
-        String Response = "";
+
         int nofBackupFiles = 0;
         int lastNofBackupFile = 0;
         String backupMySqlServerPath = "";//  es. /share/MD0_DATA/.qpkg/qmysql/mysql/bin
@@ -451,6 +456,14 @@ public class EVOsetup {
         backupDestinationPath = myManager.getDirective("backupDestinationPath");
         backupMySqlServerPath = myManager.getDirective("backupMySqlServerPath");
         String XnofBackupFiles = myManager.getDirective("nofBackupFiles");
+        String backupExtension = myManager.getDirective("backupExtension");
+        if (backupExtension == null || backupExtension.length() == 0) {
+            backupExtension = ".bak";
+        }
+        if (!backupExtension.startsWith(".")) {
+            backupExtension = "." + backupExtension;
+        }
+
         try {
             nofBackupFiles = Integer.parseInt(XnofBackupFiles);
         } catch (Exception e) {
@@ -483,6 +496,14 @@ public class EVOsetup {
 
         String dirpath = backupMySqlServerPath; // posizione del DB su disco
         String destpath = backupDestinationPath;  // posizione del file prodotto sul disco
+
+        try {
+            dirpath = dirpath.replace("[]", "");
+            destpath = destpath.replace("[]", "");
+        } catch (Exception e) {
+
+        }
+
         if (dirpath == null || dirpath == "" || destpath == null || destpath == "") {
             //----------------------------------
             historyMessage = "Configurazione backup assente!" + backupDestinationPath;
@@ -495,11 +516,7 @@ public class EVOsetup {
             return mySem;
         }
         //---------------
-        //---ATTENZIONE:--
-        //- questa routine funziona solo se il software gira da server !!------
 
-        Process runtimeProcess;
-        int processComplete = -1;
         //*****FAST BACKUP*****
         if (nofBackupFiles < 1) {
             nofBackupFiles = 1;
@@ -518,49 +535,135 @@ public class EVOsetup {
         if (myParams != null && myParams.getCKcontextID() != null && myParams.getCKcontextID().length() > 0) {
             dbName += "_" + myParams.getCKcontextID();
         }
+        String project = mySettings.getProjectName();
+        project = project.replaceAll("[^a-zA-Z0-9]", "");
+        project = project.replaceAll(" ", "");
         historyMessage = "\ndbName = " + dbName;
-        System.out.println(historyMessage);
-        String executeCmd = dirpath + "mysqldump -u "
-                + mySettings.getData_DATABASE_USER() + " -p"
-                + mySettings.getData_DATABASE_PW() + " --add-drop-database -B "
-                + dbName + " -r "
-                + backupDestinationPath + dbName + "_BACKUP-" + lastNofBackupFile + ".bak";
-
-        //----------------------------------
-        historyMessage = ":EXE:" + executeCmd;
-        System.out.println(historyMessage);
-        history += historyMessage + "\n";
-        //----------------------------------
+        String opSystem = "linux";
         try {
-            runtimeProcess = Runtime.getRuntime().exec(executeCmd);
-            processComplete = runtimeProcess.waitFor();
-            mySem.setTooltipText("Backup appena eseguito !");
-            mySem.setValue(1);
-
-        } catch (Exception ex) {
-//            ex.printStackTrace();
-             System.out.println("Backup ha generato un errore !");
-            processComplete = -1;
-            mySem.setTooltipText("Backup ha generato un errore !");
-            mySem.setValue(0);
+            opSystem = myManager.getDirective("opSystem");
+        } catch (Exception e) {
         }
-
         //----------------------------------
-        historyMessage = "processComplete=" + processComplete;
+        historyMessage = "opSystem:" + opSystem;
         System.out.println(historyMessage);
         history += historyMessage + "\n";
-        //----------------------------------
+        System.out.println(historyMessage);
 
-        if (processComplete > -1) {
+////////        
+////////        System.out.println("BACKUP PATH: " + backupDestinationPath + dbName + "-" + project + "_BACKUP-" + lastNofBackupFile + backupExtension);
+////////        String executeCmd = dirpath + "mysqldump -u "
+////////                + mySettings.getData_DATABASE_USER() + " -p"
+////////                + mySettings.getData_DATABASE_PW() + " --add-drop-database -B "
+////////                + dbName + " -r "
+////////                + backupDestinationPath + dbName + "-" + project + "_BACKUP-" + lastNofBackupFile + backupExtension;
+////////        if (opSystem != null && opSystem.equalsIgnoreCase("linux")) {
+////////            executeCmd = dirpath + "mysqldump -u "
+////////                    //                    +"franco"
+////////                    + mySettings.getData_DATABASE_USER()
+////////                    + " -p"
+////////                    + mySettings.getData_DATABASE_PW()
+////////                    //                    +"costa32bfh4m"
+////////                    + " --add-drop-database -B "
+////////                    + dbName + " -r "
+////////                    + backupDestinationPath + dbName + "-" + project + "_BACKUP-" + lastNofBackupFile + backupExtension;
+////////        }
+////////
+////////        //----------------------------------
+////////        try {
+////////            historyMessage = ":EXE:" + executeCmd.replace(mySettings.getData_DATABASE_PW(), "S3CRET");
+////////            System.out.println(historyMessage);
+////////        } catch (Exception e) {
+////////        }
+////////        history += historyMessage + "\n";
+////////// el.log("EVOsetup", "FASTBACKUP DATABASE");
+////////        //----------------------------------
+////////        try {
+////////
+////////            runtimeProcess = Runtime.getRuntime().exec(executeCmd);
+////////            processComplete = runtimeProcess.waitFor();
+////////            if (runtimeProcess.exitValue() != 0) {
+////////                System.out.println();
+////////                System.out.println("Command: " + executeCmd);
+////////                InputStream errorStream = runtimeProcess.getErrorStream();
+////////                int c = 0;
+////////                historyMessage = "";
+////////                while ((c = errorStream.read()) != -1) {
+////////                    System.out.print((char) c);
+////////                    historyMessage += ((char) c);
+////////                }
+////////                history += historyMessage + "\n";
+////////            }
+////////
+////////            historyMessage = "Backup appena eseguito :" + processComplete;
+////////            mySem.setTooltipText(historyMessage);
+////////            history += historyMessage + "\n";
+////////            mySem.setValue(1);
+////////            if (runtimeProcess != null && runtimeProcess.exitValue() != 0) {
+////////                historyMessage = "Backup appena eseguito: Not Success -exit code " + runtimeProcess.exitValue();
+////////                history += historyMessage + "\n";
+////////                System.out.println(historyMessage);
+////////                mySem.setValue(0);
+////////            } else {
+////////                history += "Backup appena eseguito !" + "\n";
+////////            }
+////////        } catch (Exception ex) {
+//////////            ex.printStackTrace();
+////////            System.out.println("Backup ha generato un errore !");
+////////            processComplete = -1;
+////////            mySem.setTooltipText("Backup ha generato un errore !");
+////////            mySem.setValue(0);
+////////
+////////            history += "Backup ha generato un errore !" + "\n";
+////////        }
+////////
+////////        //----------------------------------
+////////        historyMessage = "processComplete=" + processComplete;
+////////        System.out.println(historyMessage);
+////////        history += historyMessage + "\n";
+////////        //----------------------------------
+////////
+////////
+////////
+////////        if (processComplete > -1) {
+////////
+////////            Response = ("Fast Backup terminato con successo:" + backupDestinationPath + dbName + "-" + project + "_BACKUP-" + lastNofBackupFile + backupExtension);
+////////
+////////            //----------------------------------
+////////            historyMessage = Response;
+////////            System.out.println(historyMessage);
+////////            history += historyMessage + "\n";
+////////            setEvoDirective(myParams, "lastNofBackupFile", "" + lastNofBackupFile);
+////////
+////////            //----------------------------------
+////////        } else {
+////////            //----------------------------------
+////////            historyMessage = "Could not create the backup";
+////////            System.out.println(historyMessage);
+////////            history += historyMessage + "\n";
+////////            mySem.setValue(0);
+////////        }
+        backupOrder myBo = new backupOrder();
+        myBo.backupDestinationPath = backupDestinationPath;
+        myBo.dbName = dbName;
+        myBo.project = project;
+        myBo.backupExtension = backupExtension;
+        myBo.opSystem = opSystem;
+        myBo.dirpath = dirpath;
+        myBo.historyMessage = historyMessage;
+        myBo.history = history;
+        myBo.mySem = mySem;
+        myBo.lastNofBackupFile = lastNofBackupFile;
+        myBo = goBackupDB(myBo);
+        history = myBo.history;
+        mySem = myBo.mySem;
 
-            Response = ("Fast Backup terminato con successo:" + destpath + lastNofBackupFile + ".bak");
-
+        if (myBo.processComplete > -1) {
             //----------------------------------
-            historyMessage = Response;
-            System.out.println(historyMessage);
-            history += historyMessage + "\n";
-            setEvoDirective(myParams, "lastNofBackupFile", "" + lastNofBackupFile);
-
+            historyMessage = "Fast Backup terminato con successo:" + myBo.backupDestinationPath + myBo.dbName + "-" + myBo.project + "_BACKUP-" + myBo.lastNofBackupFile + myBo.backupExtension;
+            System.out.println(myBo.historyMessage);
+            history += myBo.historyMessage + "\n";
+            setEvoDirective(myParams, "lastNofBackupFile", "" + myBo.lastNofBackupFile);
             //----------------------------------
         } else {
             //----------------------------------
@@ -569,16 +672,33 @@ public class EVOsetup {
             history += historyMessage + "\n";
             mySem.setValue(0);
         }
+//  secondaryDB
 
+        String secondaryDB = myManager.getDirective("secondaryDB");
+        if (secondaryDB != null && secondaryDB.length() > 0) {
+            myBo.dbName = secondaryDB;
+            myBo = goBackupDB(myBo);
+        }
+// el.log("EVOsetup", "FASTBACKUP FILES");
+        //----------------------------------
 // prendo la cartella in backupFilesSourcePath e la copio in backupFilesDestinationPath
+        Process runtimeProcess;
+        int processComplete;
         String backupFilesSourcePath = myManager.getDirective("backupFilesSourcePath");
         String backupFilesDestinationPath = myManager.getDirective("backupFilesDestinationPath");
-        String executeCmd2 = "cp -avr " + backupFilesSourcePath + " " + backupFilesDestinationPath;
-        historyMessage = "Backup cartella files" + executeCmd2;
-        System.out.println(historyMessage);
-        history += historyMessage + "\n";
+
+        String command = "cp -avr ";
+        if (opSystem != null && opSystem.equalsIgnoreCase("windows")) {
+            command = "Xcopy /E /I /Y ";
+        }
+
         if ((backupFilesDestinationPath != null && backupFilesDestinationPath.length() > 0)
                 && (backupFilesSourcePath != null && backupFilesSourcePath.length() > 0)) {
+            String executeCmd2 = command + backupFilesSourcePath + " " + backupFilesDestinationPath;
+            historyMessage = "Backup cartella files: " + executeCmd2;
+            System.out.println(historyMessage);
+            history += historyMessage + "\n";
+// el.log("EVOsetup", "FASTBACKUP FILES->"+historyMessage);
             try {
                 runtimeProcess = Runtime.getRuntime().exec(executeCmd2);
                 processComplete = runtimeProcess.waitFor();
@@ -588,17 +708,119 @@ public class EVOsetup {
                 System.out.println(historyMessage);
                 history += historyMessage + "\n";
 
+// el.log("EVOsetup", "FASTBACKUP FILES->"+historyMessage);
             } catch (Exception ex) {
                 //ex.printStackTrace();
-                
+
                 processComplete = -1;
+                el.log("EVOsetup", "FASTBACKUP ERROR:" + executeCmd2 + " --> " + ex.toString());
                 //response = 0;
                 historyMessage = "backup files folder error: " + executeCmd2;
+
                 System.out.println(historyMessage);
                 history += historyMessage + "\n";
             }
         }
+
+// el.log("EVOsetup", "FASTBACKUP FILES->DONE" );
         setEvoDirective(myParams, "lastHistory", history);
         return mySem;
     }
+
+    private class backupOrder {
+
+        String backupDestinationPath;
+        String dbName;
+        String project;
+        String backupExtension;
+        String opSystem;
+        String dirpath;
+        String historyMessage;
+        String history;
+        semaphore mySem;
+        int lastNofBackupFile;
+        int processComplete;
+    }
+
+    private backupOrder goBackupDB(backupOrder bo) {
+        //---ATTENZIONE:--
+        //- questa routine funziona solo se il software gira da server !!------
+
+        Process runtimeProcess;
+        bo.processComplete = -1;
+        System.out.println("BACKUP PATH: " + bo.backupDestinationPath + bo.dbName + "-" + bo.project + "_BACKUP-" + bo.lastNofBackupFile + bo.backupExtension);
+        String executeCmd = bo.dirpath + "mysqldump -u "
+                + mySettings.getData_DATABASE_USER() + " -p"
+                + mySettings.getData_DATABASE_PW() + " --add-drop-database -B "
+                + bo.dbName + " -r "
+                + bo.backupDestinationPath + bo.dbName + "-" + bo.project + "_BACKUP-" + bo.lastNofBackupFile + bo.backupExtension;
+        if (bo.opSystem != null && bo.opSystem.equalsIgnoreCase("linux")) {
+            executeCmd = bo.dirpath + "mysqldump -u "
+                    //                    +"franco"
+                    + mySettings.getData_DATABASE_USER()
+                    + " -p"
+                    + mySettings.getData_DATABASE_PW()
+                    //                    +"costa32bfh4m"
+                    + " --add-drop-database -B "
+                    + bo.dbName + " -r "
+                    + bo.backupDestinationPath + bo.dbName + "-" + bo.project + "_BACKUP-" + bo.lastNofBackupFile + bo.backupExtension;
+        }
+
+        //----------------------------------
+        try {
+            bo.historyMessage = ":EXE:" + executeCmd.replace(mySettings.getData_DATABASE_PW(), "S3CRET");
+            System.out.println(bo.historyMessage);
+        } catch (Exception e) {
+        }
+        bo.history += bo.historyMessage + "\n";
+// el.log("EVOsetup", "FASTBACKUP DATABASE");
+        //----------------------------------
+        try {
+
+            runtimeProcess = Runtime.getRuntime().exec(executeCmd);
+            bo.processComplete = runtimeProcess.waitFor();
+            if (runtimeProcess.exitValue() != 0) {
+                System.out.println();
+                System.out.println("Command: " + executeCmd);
+                InputStream errorStream = runtimeProcess.getErrorStream();
+                int c = 0;
+                bo.historyMessage = "";
+                while ((c = errorStream.read()) != -1) {
+                    System.out.print((char) c);
+                    bo.historyMessage += ((char) c);
+                }
+                bo.history += bo.historyMessage + "\n";
+            }
+
+            bo.historyMessage = "Backup appena eseguito :" + bo.processComplete;
+            bo.mySem.setTooltipText(bo.historyMessage);
+            bo.history += bo.historyMessage + "\n";
+            bo.mySem.setValue(1);
+            if (runtimeProcess != null && runtimeProcess.exitValue() != 0) {
+                bo.historyMessage = "Backup appena eseguito: Not Success -exit code " + runtimeProcess.exitValue();
+                bo.history += bo.historyMessage + "\n";
+                System.out.println(bo.historyMessage);
+                bo.mySem.setValue(0);
+            } else {
+                bo.history += "Backup appena eseguito !" + "\n";
+            }
+        } catch (Exception ex) {
+//            ex.printStackTrace();
+            System.out.println("Backup ha generato un errore !");
+            bo.processComplete = -1;
+            bo.mySem.setTooltipText("Backup ha generato un errore !");
+            bo.mySem.setValue(0);
+
+            bo.history += "Backup ha generato un errore !" + "\n";
+        }
+
+        //----------------------------------
+        bo.historyMessage = "processComplete=" + bo.processComplete;
+        System.out.println(bo.historyMessage);
+        bo.history += bo.historyMessage + "\n";
+        //----------------------------------
+
+        return bo;
+    }
+
 }

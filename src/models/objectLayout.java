@@ -18,8 +18,6 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package models;
 
 import org.json.simple.JSONObject;
@@ -44,6 +42,7 @@ public class objectLayout {
     String color;
     String lines;
     String columns;
+    boolean droppable;
 
     public void loadBoxLayout(String jSonCode, String picWidth, String picHeight) {
 
@@ -51,21 +50,19 @@ public class objectLayout {
         this.picHeight = picHeight;
         this.width = picWidth;
         this.height = picHeight;
-        try{
-        loadBoxLayout(jSonCode);
-        }catch (Exception e){
+        try {
+            loadBoxLayout(jSonCode);
+        } catch (Exception e) {
             System.out.println("error box layout:" + e.toString());
         }
-        System.out.println("creating box picWidth:" +  this.picWidth);
-        System.out.println("creating box picHeight:" + this.picHeight);
-        System.out.println("creating box width:" + this.width);
-        System.out.println("creating box height:" + this.height);
-        
-        
-        
+//        System.out.println("creating box picWidth:" +  this.picWidth);
+//        System.out.println("creating box picHeight:" + this.picHeight);
+//        System.out.println("creating box width:" + this.width);
+//        System.out.println("creating box height:" + this.height);
+
     }
 
-    public void loadBoxLayout(String jSonCode) {
+    public void loadBoxLayout(String jSonCode) { 
         if (jSonCode != null) {
 //            System.out.println("curObj.C.getJsClass():" + jSonCode);
             JSONParser jsonParser = new JSONParser();
@@ -81,7 +78,7 @@ public class objectLayout {
                 try {
                     String pW = jsonObject.get("picWidth").toString();
                     if (pW != null && !pW.equalsIgnoreCase("null")) {
-                       pW= pW.replace("px", "");
+                        pW = pW.replace("px", "");
                         picWidth = pW;
                     }
 
@@ -91,11 +88,20 @@ public class objectLayout {
                 try {
                     String pH = jsonObject.get("picHeight").toString();
                     if (pH != null && !pH.equalsIgnoreCase("null")) {
-                       pH= pH.replace("px", "");
+                        pH = pH.replace("px", "");
                         picHeight = pH;
                     }
                 } catch (Exception e) {
 
+                }
+                try {
+                    this.droppable = false;
+                    String drp = jsonObject.get("droppable").toString();
+                    if (drp.equalsIgnoreCase("true")) {
+                        this.droppable = true;
+                    }
+                } catch (Exception e) {
+                    width = null;
                 }
                 try {
                     width = jsonObject.get("width").toString();
@@ -152,6 +158,10 @@ public class objectLayout {
 
             }
         }
+    }
+
+    public boolean isDroppable() {
+        return droppable;
     }
 
     public String getPicWidth() {

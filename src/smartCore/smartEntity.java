@@ -406,8 +406,17 @@ public class smartEntity {
 //                        System.out.println("valStringB  :" + valStringB);
                     }
 
-                }
+                } else if (myRule.getTypeB().equalsIgnoreCase("userRango") && rs != null) {
 
+                    try {
+                        EVOuser myUser = new EVOuser(myParams, mySettings);
+                        int xRango;
+                        xRango = myUser.getStoredRango(myParams.getCKuserID());
+                        valIntB = xRango;
+//                            System.out.println("valIntB  :" + valIntB);
+                    } catch (Exception ex) {
+                    }
+                }
                 // Adesso eseguo il test*************************************************************
 //                System.out.println("confrontoNumerico:" + confrontoNumerico);
 //                System.out.println("tipoConfronto:" + tipoConfronto);

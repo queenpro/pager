@@ -137,6 +137,10 @@ public class gate {
     public String child_keyField;
     public String child_keyValue;
 
+    public String bubble_formID;
+    public String bubble_copyTag;
+    public String bubble_keyValue;
+
     public gate() {
         routineResponse = new JSONObject();
         actions = new JSONArray();
@@ -192,6 +196,37 @@ public class gate {
 
     }
 
+    public void insertAction_splashReport(EVOpagerParams myParams, Settings mySettings, String phrase, Boolean speak) {
+        JSONObject action = new JSONObject();
+        action.put("action", "splash");
+        action.put("phrase", phrase);
+        action.put("speak", speak);
+
+        this.actions.add(action);
+
+    }
+
+    public void insertAction_fileDownload(EVOpagerParams myParams, Settings mySettings, String content, String filename) {
+        JSONObject action = new JSONObject();
+        action.put("action", "Fdownload");
+        action.put("content", content);
+        action.put("filename", filename);
+
+        this.actions.add(action);
+
+    }
+
+    public void insertAction_clickObject(EVOpagerParams myParams, Settings mySettings, String destTarget) {
+//AMMIN18de3-X-selYear-FILTER  
+
+        JSONObject action = new JSONObject();
+        action.put("action", "clickObject");
+        action.put("target", destTarget);// oggetto da cliccare
+        action.put("htmlCode", "");// codice html
+        this.actions.add(action);
+
+    }
+
     public void insertAction_focusOnRow(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XkeyValue) {
 
         String destTarget = XformID + "-" + XCopyTag + "-" + XkeyValue + "-SEL";
@@ -229,6 +264,14 @@ public class gate {
 
     }
 
+    public void insertAction_synopticLabelsUpdate(EVOpagerParams myParams, Settings mySettings, JSONArray jObj) {
+        JSONObject action = new JSONObject();
+        action.put("action", "synopticUpdate");
+        action.put("updates", jObj);
+        this.actions.add(action);
+
+    }
+
     public void insertAction_repaintFormByName(EVOpagerParams myParams, Settings mySettings, String YformID, String XCopyTag, String XkeyValue) {
         System.out.println("\n ---SONO IN insertAction_repaintFormByName");
         // XkeyValue sarò la riga evidenziata
@@ -251,17 +294,17 @@ public class gate {
 ////////        connector.put("fatherKEYtype", this.getFatherKEYtype());
         connector.put("curPage", this.getCurPage());
 //        connector.put("newValue", this.getFormID()); 
-        System.out.println("il connector che mando per insertAction_repaintFormDataOnly è: " + connector.toString());
+//        System.out.println("il connector che mando per insertAction_repaintFormDataOnly è: " + connector.toString());
 
         smartAction myAction = new smartAction(myParams, mySettings);
         String JhtmlCode = myAction.makeFormRepaintOrder(connector);
-        System.out.println("\n\n JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
+//        System.out.println("\n\n JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
 
         try {
             JhtmlCode = java.net.URLDecoder.decode(JhtmlCode, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
         }
-        System.out.println(" decoded JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
+//        System.out.println(" decoded JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
         JSONParser jsonParser = new JSONParser();
         JSONObject myJC = new JSONObject();
         try {
@@ -274,8 +317,8 @@ public class gate {
         if (!YformID.equalsIgnoreCase(this.getFormName())) {
             destTarget = "FRAME-" + YformID + "-" + this.getCopyTag();
         }
-        
-        System.out.println(" this.getFormName() :" + this.getFormName()+" YformID :" + YformID+" destTarget :" + destTarget);
+
+        System.out.println(" this.getFormName() :" + this.getFormName() + " YformID :" + YformID + " destTarget :" + destTarget);
         JSONObject action = new JSONObject();
         action.put("action", "repaintForm");
         action.put("target", destTarget);// spazio destDiv da refreshare
@@ -345,14 +388,16 @@ public class gate {
         Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
         PreparedStatement ps = null;
         ResultSet rs;
-        String SQLphrase = "INSERT INTO `archivio_timedTokens`(`info1`, `lifeInSeconds`, `info2`, `token` "
+        String SQLphrase = "INSERT INTO archivio_timedTokens (info1, lifeInSeconds, info2, token "
                 + ") VALUES ("
                 + "'REPORT',200,?,'" + newToken + "' "
                 + ")";
+        System.out.println("SQLphrase:" + SQLphrase);
         try {
             ps = conny.prepareStatement(SQLphrase);
             ps.setString(1, Xconnector);
             int i = ps.executeUpdate();
+            System.out.println("i:" + i);
         } catch (SQLException ex) {
             Logger.getLogger(gate.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -418,17 +463,17 @@ public class gate {
 ////////        connector.put("fatherKEYtype", this.getFatherKEYtype());
         connector.put("curPage", this.getCurPage());
 //        connector.put("newValue", this.getFormID()); 
-        System.out.println("il connector che mando per insertAction_repaintFormDataOnlyByName è: " + connector.toString());
+//        System.out.println("il connector che mando per insertAction_repaintFormDataOnlyByName è: " + connector.toString());
 
         smartAction myAction = new smartAction(myParams, mySettings);
         String JhtmlCode = myAction.makeFormRefreshOrder(connector);
-        System.out.println("\n\n JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
+//        System.out.println("\n\n JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
 
         try {
             JhtmlCode = java.net.URLDecoder.decode(JhtmlCode, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
         }
-        System.out.println(" decoded JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
+//        System.out.println(" decoded JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
         JSONParser jsonParser = new JSONParser();
         JSONObject myJC = new JSONObject();
         try {
@@ -438,6 +483,24 @@ public class gate {
 
         }
         String destTarget = XformID + "-" + this.getCopyTag() + "-ROWSDIV";
+        JSONObject action = new JSONObject();
+        action.put("action", "repaintForm");
+        action.put("target", destTarget);// spazio destDiv da refreshare
+        action.put("htmlCode", XhtmlCode);// codice html
+        actions.add(action);
+
+    }
+
+    public void insertAction_repaintCalendarByName(EVOpagerParams myParams, Settings mySettings, String XformName, String XCopyTag, String XhtmlCode) {
+        System.out.println("\n\n\n OCCORRE REPAINTARE IL FORM (name) :" + XformName);
+
+        JSONObject connector = loadConnector();
+        String XformID = formIDfromName(myParams, mySettings, XformName);
+        System.out.println("\n\n\n OCCORRE REPAINTARE IL FORM :" + XformID);
+        connector.put("formID", XformID);
+        connector.put("copyTag", XCopyTag);
+        connector.put("curPage", this.getCurPage());
+        String destTarget = XformID + "-" + this.getCopyTag() + "-ROWSTABLE";
         JSONObject action = new JSONObject();
         action.put("action", "repaintForm");
         action.put("target", destTarget);// spazio destDiv da refreshare
@@ -464,17 +527,17 @@ public class gate {
 ////////        connector.put("fatherKEYtype", this.getFatherKEYtype());
         connector.put("curPage", this.getCurPage());
 //        connector.put("newValue", this.getFormID()); 
-        System.out.println("il connector che mando per insertAction_repaintFormDataOnly è: " + connector.toString());
+//        System.out.println("il connector che mando per insertAction_repaintFormDataOnly è: " + connector.toString());
 
         smartAction myAction = new smartAction(myParams, mySettings);
         String JhtmlCode = myAction.makeFormRefreshOrder(connector);
-        System.out.println("\n\n JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
+//        System.out.println("\n\n JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
 
         try {
             JhtmlCode = java.net.URLDecoder.decode(JhtmlCode, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
         }
-        System.out.println(" decoded JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
+//        System.out.println(" decoded JhtmlCode da makeFormRefreshOrder :" + JhtmlCode);
         JSONParser jsonParser = new JSONParser();
         JSONObject myJC = new JSONObject();
         try {
@@ -493,6 +556,30 @@ public class gate {
     }
 //    public JSONArray STC;
 //    public JSONArray tbs;
+
+    public String getBubble_formID() {
+        return bubble_formID;
+    }
+
+    public void setBubble_formID(String bubble_formID) {
+        this.bubble_formID = bubble_formID;
+    }
+
+    public String getBubble_copyTag() {
+        return bubble_copyTag;
+    }
+
+    public void setBubble_copyTag(String bubble_copyTag) {
+        this.bubble_copyTag = bubble_copyTag;
+    }
+
+    public String getBubble_keyValue() {
+        return bubble_keyValue;
+    }
+
+    public void setBubble_keyValue(String bubble_keyValue) {
+        this.bubble_keyValue = bubble_keyValue;
+    }
 
     public String getChild_formID() {
         return child_formID;
@@ -1241,6 +1328,23 @@ public class gate {
         }
         try {
             this.setRoutine(connector.get("routine").toString());
+        } catch (Exception e) {
+        }
+        try {
+            this.setParamsToSend(connector.get("paramsToSend").toString());
+        } catch (Exception e) {
+        }
+
+        try {
+            this.setBubble_formID(connector.get("bubble_formID").toString());
+        } catch (Exception e) {
+        }
+        try {
+            this.setBubble_copyTag(connector.get("bubble_copyTag").toString());
+        } catch (Exception e) {
+        }
+        try {
+            this.setBubble_keyValue(connector.get("bubble_keyValue").toString());
         } catch (Exception e) {
         }
 

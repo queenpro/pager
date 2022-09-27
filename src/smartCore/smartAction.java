@@ -302,15 +302,17 @@ public class smartAction {
                 if (event.equalsIgnoreCase("REFILTER")) {
                     try {
                         String filtroLike = "";
-//                        System.out.println("resolveAction--->EVENTO REFILTER ");
+                        System.out.println("resolveAction--->EVENTO REFILTER ");
                         String jfilter = "";
                         String JcurPage = "";
                         String newOrder = "";
                         try {
                             jfilter = connector.get("filter").toString();
-//                            System.out.println("*jfilter: " + jfilter);
+                            
+                            
+                            System.out.println("*jfilter: " + jfilter);
                             JSONArray array = (JSONArray) connector.get("filter");
-//                            System.out.println("array.size: " + array.size());
+                            System.out.println("array.size: " + array.size());
 
                             try {
 
@@ -318,7 +320,7 @@ public class smartAction {
 
                                 for (int i = 0; i < array.size(); i++) {
                                     list.add((JSONObject) array.get(i));
-//                                    System.out.println("list.add: " + ((JSONObject) array.get(i)).get("field").toString());
+                                    System.out.println("list.add: " + ((JSONObject) array.get(i)).get("field").toString());
                                 }
                                 if (list != null && list.size() > 0) {
                                     Collections.sort(list, new MyJSONComparator());
@@ -361,7 +363,7 @@ public class smartAction {
                                     } else {
                                         newOrder += " ASC ";
                                     }
-//                                    System.out.println("newOrder:" + newOrder);
+                                    
 
                                 }
                             } catch (Exception e) {
@@ -393,14 +395,15 @@ public class smartAction {
                         myForm.buildSchema();
                         myForm.loadPagingInstructions();
                         String newFilter = filtroLike;
-//                        System.out.println("newFilter: " + newFilter);
+                        System.out.println("newFilter: " + newFilter);
+                        System.out.println("newOrder:" + newOrder); 
                         String newGroup = "";
 
 //                        System.out.println("Come base per il filter uso la query già sostituita: " + myForm.queryUsed);
 //                        if (newFilter != null && newFilter.length() > 0) {
                         smartQuery mySquery = new smartQuery(myForm.queryUsed, myForm.filteredElements, myForm.visualFilter);
                         myForm.queryUsed = mySquery.regenerateQuery(newFilter, newOrder, newGroup, true, "AND", true, true);
-//                        System.out.println("regenerateQuery-->Query used: " + myForm.queryUsed);
+                        System.out.println("regenerateQuery-->Query used: " + myForm.queryUsed);
 //                        }
 
 //                    myForm.queryUsed += newOrder;
@@ -443,9 +446,7 @@ public class smartAction {
 
                     actionResponse = new JSONObject();
                     actionResponse = WSRloadTreeBranch(connector);
-                    
-                    
-                    
+
                     //         
 //        gate myGate = new gate();
 //        JSONObject Jaction = new JSONObject();
@@ -455,9 +456,6 @@ public class smartAction {
 //        myGate.actions.add(Jaction);
 //        
 //       JSONObject    actionResponse = myGate.insertAction_packResponse(myParams, mySettings);
-
-                    
-
                     System.out.println("resolveAction--->done EVENTO LOADTREEBRANCH: " + actionResponse.toString());
                 } else // </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="GETSUGGESTEDLIST">
@@ -502,24 +500,37 @@ public class smartAction {
 //                    connector.put("opToken", idOne);
                     String CRUDrepsonse = null;
                     try {
-                        CRUDrepsonse = myCrud.executeCRUD();
+//                        CRUDrepsonse = myCrud.executeCRUD();
+                        CRUDrepsonse = myCrud.executeSmartCRUD();
                     } catch (Exception e) {
+                        System.out.println("er4:D" + e.toString());
                     }
                     System.out.println("deployAction--->concluso  executeCRUD");
-                    JSONParser parser = new JSONParser();
-                    JSONObject Rjson = (JSONObject) parser.parse(CRUDrepsonse);
+                    System.out.println("deployAction--->CRUDrepsonse" + CRUDrepsonse.toString());
+                    JSONObject Rjson = null;
                     String newID = "";
-                    newID = Rjson.get("newID").toString();
-                    // adesso ricavo la riga da mettere in lista 
-                    System.out.println("smartAction --->QUERY: " + myCrud.getMyForm().getQuery());
-                    System.out.println("smartAction --->newID: " + newID);
-                    connector.remove("keyValue");
-                    connector.put("keyValue", Rjson.get("newID").toString());
-//                    System.out.println("smartAction --->connector: " + connector.toString());
+                    try {
+                        JSONParser parser = new JSONParser();
+                        Rjson = (JSONObject) parser.parse(CRUDrepsonse);
+
+                        newID = Rjson.get("newID").toString();
+                        // adesso ricavo la riga da mettere in lista 
+                        System.out.println("smartAction --->QUERY: " + myCrud.getMyForm().getQuery());
+                        System.out.println("smartAction --->newID: " + newID);
+                        System.out.println("smartAction --->myCrud.getOperation(): " + myCrud.getOperation());
+                        try {
+                            connector.remove("keyValue");
+                        } catch (Exception e) {
+                        }
+                        connector.put("keyValue", Rjson.get("newID").toString());
+                    } catch (Exception e) {
+                        System.out.println("smartAction --->NON NEW ID: " + e.toString());
+                    }
+
+                    System.out.println("smartAction --->connector: " + connector.toString());
 //                    System.out.println("smartAction --->FORM TYPE: " + myCrud.getFormType());
 //                    System.out.println("smartAction --->CRUDrepsonse: " + CRUDrepsonse);
 //                    System.out.println("smartAction --->getGes_formPanel: " + myCrud.getMyForm().getGes_formPanel());
-
                     if (myCrud.getOperation().equalsIgnoreCase("ADD")) {
                         String action = "SHOWADDEDROW";
                         // <editor-fold defaultstate="collapsed" desc="caso SMARTTREE">
@@ -669,9 +680,14 @@ public class smartAction {
                         actionResponse.put("TYPE", "wsResponse");
                         actionResponse.put("payload", outPayload);
                         actionResponse.put("clientParams", clientParams);
+
                     } else if (myCrud.getOperation().equalsIgnoreCase("DEL")) {
 
                     } else if (myCrud.getOperation().equalsIgnoreCase("UPD")) {
+
+                        System.out.println("deployAction--->actionResponse" + actionResponse.toString());
+                        connector.put("routineOnUpdateObj", Rjson.get("routineOnUpdateObj").toString());
+                        System.out.println("connector ---> " + connector.toString());
                         String action = "CRUD-UPD-RESPONSE";
                         if (myCrud.getFormType() != null && myCrud.getFormType().equalsIgnoreCase("SMARTTREE")) {
                             action = "CRUD-UPD-RESPONSE-LEAF";
@@ -687,8 +703,10 @@ public class smartAction {
                         actionResponse.put("TYPE", "wsResponse");
                         actionResponse.put("payload", outPayload);
                         actionResponse.put("clientParams", clientParams);
-
+                        System.out.println("actionResponse ---> " + actionResponse.toString());
                     }
+
+                } else {
 
                 }
                 // </editor-fold>    
@@ -742,6 +760,16 @@ public class smartAction {
                             }
                         }
                     }
+                    // se ancora non trovo una routine da eseguire o non trovo l'oggetto nel form 
+                    // ad esempio nei form calendar i pulsanti per cambiare anno e mese
+                    // allora eseguo una routine con lo stesso nome del pulsante
+                    if (found == false) {
+                        System.out.println("Non trovato oggetto, allora eseguo una routine con lo stesso nome del pulsante. " + myGate.getRifObj());
+                        connector.put("routine", myGate.getRifObj()); 
+                                found = true;  
+                    }
+                    
+                    
                     // dovrò rimandare a AppWS il nome della routine da eseguire
                     // mettendolo in connector.routine
                     String destDiv = "";
@@ -782,7 +810,35 @@ public class smartAction {
                     actionResponse = WSRgetGroups(connector);
                 } else if (event.equalsIgnoreCase("SETGROUP")) {
                     System.out.println("resolveAction--->EVENTO SETGROUP ");
-                    actionResponse = WSRsetGroup(connector);
+                    actionResponse = WSRsetGroup(connector);// nel payload ho il nome della routine da eseguire come AfterProcessByObjectRoutine
+                }
+            }
+//////            else // </editor-fold>
+            // <editor-fold defaultstate="collapsed" desc="DOOR SMARTDROP">
+            if (door.equalsIgnoreCase("SMARTDROP")) {
+                System.out.println("resolveAction--->DOOR SMARTDROP ");
+                if (event.equalsIgnoreCase("SOFTDROP")) {
+                    System.out.println("resolveAction--->EVENTO SOFTDROP");
+                    gate myGate = new gate();
+                    myGate.connector2gate(connector);
+                    String routine = "defaultSOFTDROP";
+                    String paramsToSend = myGate.getParamsToSend();
+                    connector.put("routine", routine);
+                    connector.put("paramsToSend", paramsToSend);
+                    JSONObject outPayload = new JSONObject();
+                    outPayload.put("CONNECTOR", connector);
+                    outPayload.put("DESTDIV", "");
+                    outPayload.put("CODE", "");
+                    actionResponse = new JSONObject();
+
+                    JSONObject clientParams = myParams.makeJSONobjParams();
+                    actionResponse.put("ip", "0000");
+                    actionResponse.put("TYPE", "wsResponse");
+                    actionResponse.put("payload", outPayload);
+                    actionResponse.put("clientParams", clientParams);// NECESSARIO perchè AppWS possa eseguire a sua volta operazione di DB
+                } else if (event.equalsIgnoreCase("HARDDROP")) {
+                    System.out.println("resolveAction--->EVENTO HARDDROP ");
+
                 }
             }
 
@@ -1098,7 +1154,7 @@ public class smartAction {
         }
 //        System.out.println(" routine on change per oggettoo groupchecker:" + AfterProcessByObjectRoutine);
 
-////////         request.setAfterProcessByObjectRoutines(AfterProcessByObjectRoutine);
+//////         request.setAfterProcessByObjectRoutines(AfterProcessByObjectRoutine);
         Linker myLinker = new Linker();
         myLinker.readParamsJson(params);
 
@@ -1165,6 +1221,8 @@ public class smartAction {
         payload.put("ACTION", "REFRESHROW");
         payload.put("DESTDIV", destDiv);
         payload.put("CODE", htmlCode);
+        payload.put("AfterProcessByObjectRoutine", AfterProcessByObjectRoutine);
+
         JSONObject myJObj = new JSONObject();
         myJObj.put("ip", "0000");
         myJObj.put("TYPE", "wsResponse");
@@ -1669,7 +1727,6 @@ public class smartAction {
         outPayload.put("CONNECTOR", (connector));
         outPayload.put("DATA", encodeURIComponent(data.toString()));
         JSONObject clientParams = myParams.makeJSONobjParams();
-        
 
         //-----------------------------------
         actionResponse.put("ip", "0000");
@@ -1682,7 +1739,7 @@ public class smartAction {
     }
 
     private JSONObject WSRloadChildren(JSONObject connector) {
-  System.out.println("\n++++\nWSRloadChildren : " + connector.toString());
+        System.out.println("\n++++\nWSRloadChildren : " + connector.toString());
         String formName = connector.get("formName").toString();
         Connection FEconny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalFE();
         String SQLphrase = "";
@@ -1706,18 +1763,90 @@ public class smartAction {
                 myChild.position = rs.getString("destination");
                 myChild.rifChild = rs.getString("rifChild");
                 try {
+                    myChild.conditions = rs.getString("conditions");
+                } catch (Exception e) {
+                }
+                try {
                     myChild.rifChild = myChild.rifChild.replaceAll("[\n\r]", "");
                 } catch (Exception e) {
                 }
                 if (myChild.position == null || myChild.position == "null" || myChild.position == "") {
                     myChild.position = "B";
                 }
-                myChilds.add(myChild);
 
+                if (myChild.conditions != null && myChild.conditions.length() > 2) {
+                    System.out.println("CONDIZIONE PER CHILD PRESENTE !!! ");
+                    JSONParser jsonParser = new JSONParser();
+                    JSONObject jsonObject;
+
+                    jsonObject = (JSONObject) jsonParser.parse(myChild.conditions);
+                    //{"type":"TBSequals","field":"TIPOFILE","value":"ASCII"}
+                    String type = getJSONarg(jsonObject, "type");
+                    System.out.println("type: " + type);
+                    if (type.equalsIgnoreCase("TBSequals")) {
+                        String field = getJSONarg(jsonObject, "field");
+                        String value = getJSONarg(jsonObject, "value");
+
+                        String TBSarray = null;
+                        String xchildType = null;
+                        String xchildMarker = null;
+                        String xvalue = null;
+                        TBSarray = getJSONarg(connector, "tbs");
+
+                        System.out.println("TBSarray: " + TBSarray);
+                        if (TBSarray != null && TBSarray.length() > 0) {
+                            JSONParser parser = new JSONParser();
+                            Object obj;
+
+                            try {
+                                obj = parser.parse(TBSarray);
+                                JSONArray array = (JSONArray) obj;
+                                String ValoreInviato = "";
+                                for (Object riga : array) {
+                                    jsonObject = (JSONObject) jsonParser.parse(riga.toString());
+
+                                    try {
+                                        xchildType = jsonObject.get("childType").toString();
+                                    } catch (Exception e) {
+                                    }
+                                    try {
+                                        xchildMarker = jsonObject.get("childMarker").toString();
+                                    } catch (Exception e) {
+                                    }
+                                    try {
+                                        xvalue = jsonObject.get("value").toString();
+                                    } catch (Exception e) {
+                                    }
+                                    if (xchildMarker.equalsIgnoreCase(field)) {
+                                        ValoreInviato = xvalue;
+
+                                        if (value.equalsIgnoreCase(ValoreInviato)) {
+                                            myChilds.add(myChild);
+                                        }
+                                        break;
+                                    }
+
+                                }
+
+                            } catch (ParseException ex) {
+                                Logger.getLogger(smartAction.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+
+                        }
+
+                    } else {
+                        myChilds.add(myChild);
+                    }
+
+                } else {
+                    myChilds.add(myChild);
+                }
             }
 
         } catch (SQLException ex) {
             System.out.println("error in line 5317");
+        } catch (ParseException ex) {
+            Logger.getLogger(smartAction.class.getName()).log(Level.SEVERE, null, ex);
         }
         JSONArray myChildsArray = new JSONArray();
         for (int child = 0; child < myChilds.size(); child++) {
@@ -1765,17 +1894,17 @@ public class smartAction {
     public JSONObject WSRloadChild(childLink myChild, JSONObject connector) throws SQLException {
         //WebsocketResponse
         JSONObject itemjObj = new JSONObject();
-        
+
         String Name = myChild.getRifChild();
-       String ID = myChild.getRifChildID();
-       String Type = "SMARTTABLE";
-       String FatherKEYvalue = getJSONarg(connector,"selectedRowID") ;//connector.get("selectedRowID").toString();
-       String FatherKEYtype = "VARCHAR";
-       String Father =getJSONarg(connector,"formID") ;// connector.get("formID").toString();
-       String FatherCopyTag = getJSONarg(connector,"copyTag") ;//connector.get("copyTag").toString();
-       String InfoReceived = getJSONarg(connector,"tbs") ;//connector.get("tbs").toString();
-       String CopyTag = getJSONarg(connector,"copyTag") ;//connector.get("copyTag").toString();
-        
+        String ID = myChild.getRifChildID();
+        String Type = "SMARTTABLE";
+        String FatherKEYvalue = getJSONarg(connector, "selectedRowID");//connector.get("selectedRowID").toString();
+        String FatherKEYtype = "VARCHAR";
+        String Father = getJSONarg(connector, "formID");// connector.get("formID").toString();
+        String FatherCopyTag = getJSONarg(connector, "copyTag");//connector.get("copyTag").toString();
+        String InfoReceived = getJSONarg(connector, "tbs");//connector.get("tbs").toString();
+        String CopyTag = getJSONarg(connector, "copyTag");//connector.get("copyTag").toString();
+
         System.out.println("Name:" + Name);
         System.out.println("ID:" + ID);
         System.out.println("Type:" + Type);
@@ -1785,7 +1914,6 @@ public class smartAction {
         System.out.println("FatherCopyTag:" + FatherCopyTag);
         System.out.println("InfoReceived:" + InfoReceived);
         System.out.println("CopyTag:" + CopyTag);
-        
 
         smartForm mySmartForm = new smartForm(myChild.getRifChildID(), myParams, mySettings);
         mySmartForm.setName(Name);
@@ -1803,7 +1931,7 @@ public class smartAction {
         // come ho implementato ?
 //                                mySmartForm.setCurKEYvalue(selectedRowID);
 //                                mySmartForm.setCurKEYtype(""); 
-        mySmartForm.setSendToCRUD(getJSONarg(connector,"tbs"));//connector.get("tbs").toString());
+        mySmartForm.setSendToCRUD(getJSONarg(connector, "tbs"));//connector.get("tbs").toString());
         mySmartForm.setLoadType("{\"type\":\"SMARTTABLE\",\"visualType\":\"FULLFORM\"}");
         System.out.println("VADO IN SMARTTABLE, getVisualType:" + mySmartForm.getVisualType());
 
@@ -1814,22 +1942,23 @@ public class smartAction {
         //*****************************************************
         System.out.println(" mySmartForm.getType():" + mySmartForm.getType());
         String action = "REFRESHFORM";
+        System.out.println(" action:" + action);
         String DATA = "";
 
         smartFormResponse myFormResponse = mySmartForm.paintForm();
         String fW = mySmartForm.formWidth;
         String fH = mySmartForm.formHeight;
-        
-        if (fW!=null && fW.length()>0){
-            fW =fW.replaceAll("px", "");
-            fW=fW.trim();
+
+        if (fW != null && fW.length() > 0) {
+            fW = fW.replaceAll("px", "");
+            fW = fW.trim();
         }
-         if (fH!=null && fH.length()>0){
-            fH =fH.replaceAll("px", "");
-            fH=fH.trim();
+        if (fH != null && fH.length() > 0) {
+            fH = fH.replaceAll("px", "");
+            fH = fH.trim();
         }
-         System.out.println("TREE FORM SIZE:::::" + fW+" x "+fH);
-        
+//         System.out.println("TREE FORM SIZE:::::" + fW+" x "+fH);
+
         String htmlCode = myFormResponse.getHtmlCode();
         htmlCode = encodeURIComponent(htmlCode);
 
@@ -1839,12 +1968,18 @@ public class smartAction {
             DATA = encodeURIComponent(DATA);
         }
         String destDiv = "";
-        
-        String formID= getJSONarg(connector,"formID");
-        String copyTag= getJSONarg(connector,"copyTag");
-        
-        destDiv += "CH-" + formID + "-" + copyTag + "-" + myChild.getPosition();
-        System.out.println("destDiv: " + destDiv);
+
+        String formID = getJSONarg(connector, "formID");
+        String copyTag = getJSONarg(connector, "copyTag");
+
+        if (myChild.getPosition() != null && myChild.getPosition().startsWith("@")) {
+            String absolutePosition = myChild.getPosition().substring(1, myChild.getPosition().length());
+            destDiv += absolutePosition;
+
+        } else {
+            destDiv += "CH-" + formID + "-" + copyTag + "-" + myChild.getPosition();
+        }
+        //System.out.println("destDiv: " + destDiv);
 
         JSONObject outPayload = new JSONObject();
         outPayload.put("ACTION", action);
@@ -1936,16 +2071,23 @@ public class smartAction {
                 }
 
             } else if (actionParams.startsWith("[")) {// matrice di form secondari
-                JSONObject childs = new JSONObject();
-                childs.put("secForms", actionParams);
-                JSONArray array = new JSONArray();
+//                JSONObject childs = new JSONObject();
+
+//                childs.put("secForms", actionParams);
+                System.out.println("DA CARICARE: " + actionParams.toString());
+                JSONParser parser = new JSONParser();
+                JSONArray array;
+
+//                JSONArray array = new JSONArray();
                 try {
-                    array = (JSONArray) childs.get("secForms");
+//                    array = (JSONArray) childs.get("secForms");
+                    array = (JSONArray) parser.parse(actionParams);
                     ArrayList<JSONObject> list = new ArrayList<>();
                     for (int i = 0; i < array.size(); i++) {
                         list.add((JSONObject) array.get(i));
+                        System.out.println("Aggiungo alla lista: " + array.get(i));
                     }
-
+                    System.out.println("Totale lista: " + list.size());
                     for (JSONObject jsonObject : list) {
                         childLink myChild = new childLink();
                         myChild.position = getJSONarg(jsonObject, "destDiv");
@@ -1961,6 +2103,7 @@ public class smartAction {
                     }
 
                 } catch (Exception e) {
+                    System.out.println("Errore lista: " + e.toString());
                 }
             }
 
@@ -1985,14 +2128,13 @@ public class smartAction {
                         myChild.setRoutineAfterLoad(rs.getString("ges_routineAfterLoad"));
                     } catch (Exception e) {
                     }
-                    
+
                     myChilds.get(child).setQuery(myChild.getQuery());
                     myChilds.get(child).setRifChildID(myChild.getRifChildID());
                     myChilds.get(child).setRoutineBeforeLoad(myChild.getRoutineBeforeLoad());
                     myChilds.get(child).setType(myChild.getType());
                     myChilds.get(child).setRoutineAfterLoad(myChild.getRoutineAfterLoad());
-                    
-                    
+
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(smartAction.class.getName()).log(Level.SEVERE, null, ex);
@@ -2581,6 +2723,7 @@ public class smartAction {
         String rifChild;
         String rifChildID;
         String type;
+        String conditions;
 
         public JSONObject makeJSON() {
             JSONObject myObj = new JSONObject();
