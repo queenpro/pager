@@ -18,8 +18,6 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package models;
 
 import com.itextpdf.text.BaseColor;
@@ -54,9 +52,65 @@ public class PDFreportRow {
     boolean keepTogether;
     boolean SplitRows;
     boolean SplitLate;
-    
+
+    int fixedHeight;
+
+    int paddingRight;
+    int paddingLeft;
+    int paddingTop;
+    int paddingBottom;
+    int leading; // di solito è 1,5 volte l'altezza del carattere
+
     String style;
     public int position;
+
+    public int getLeading() {
+        return leading;
+    }
+
+    public void setLeading(int leading) {
+        this.leading = leading;
+    }
+
+    public int getPaddingRight() {
+        return paddingRight;
+    }
+
+    public void setPaddingRight(int paddingRight) {
+        this.paddingRight = paddingRight;
+    }
+
+    public int getPaddingLeft() {
+        return paddingLeft;
+    }
+
+    public void setPaddingLeft(int paddingLeft) {
+        this.paddingLeft = paddingLeft;
+    }
+
+    public int getPaddingTop() {
+        return paddingTop;
+    }
+
+    public void setPaddingTop(int paddingTop) {
+        this.paddingTop = paddingTop;
+    }
+
+    public int getPaddingBottom() {
+        return paddingBottom;
+    }
+
+    public void setPaddingBottom(int paddingBottom) {
+        this.paddingBottom = paddingBottom;
+    }
+
+    public int getFixedHeight() {
+        return fixedHeight;
+    }
+
+    public void setFixedHeight(int fixedHeight) {
+        this.fixedHeight = fixedHeight;
+    }
 
     public boolean isSplitRows() {
         return SplitRows;

@@ -3881,6 +3881,8 @@ public class jsFunctionServer {
                 + "     } else {\n"
                 + "         newLinePosition = lines - 1;\n"
                 + "     }\n"
+                + "         console.log(\"newLinePosition --->\"+newLinePosition );"
+                
                 + "     var newRow = tableRef.insertRow(newLinePosition);\n"
                 + "     newRow.id = rifForm + \"-\" + answerNewID + \"-ROW\";\n"
                 + "     newRow.innerHTML = \"NEW LINE\";\n"
@@ -4521,7 +4523,7 @@ public class jsFunctionServer {
         dbCode += "function sendFormsMap() {\n"
                 + "    var token = document.getElementById(\"WStoken\").value;\n"
                 + "if (token==null || token.length<1){"
-                + "console.log(\"Annullo invio su WS perchè token non è compilato.\");"
+                + "console.log(\"sendFormsMap--->Annullo invio su WS perchè token non è compilato.\");"
                 + "openWS();"
                 + "return;"
                 + "};"
@@ -4560,7 +4562,7 @@ public class jsFunctionServer {
 
                 + "    var token = document.getElementById(\"WStoken\").value;\n"
                 + "if (token==null || token.length<1){"
-                + "console.log(\"Annullo invio su WS perchè token non è compilato.\");"
+                + "console.log(\"sendRequest-->Annullo invio su WS perchè token non è compilato.\");"
                 + "openWS();"
                 + "return;"
                 + "};"

@@ -56,44 +56,52 @@ public class smartHTTPservice {
         }
         if (rIP != null && rIP.length() > 7) {
             String urlString = rProtocol + rIP + port + rPage;
-            System.out.println("urlString:" + urlString);
-            URL obj;
-            try {
-                obj = new URL(urlString);
-                HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-                try {
-                    con.setRequestMethod("GET");//		con.setRequestProperty("User-Agent", USER_AGENT);
-                    int responseCode = con.getResponseCode();
-//                    System.out.println("GET Response Code :: " + responseCode);
-                    myResponse.ResponseCode = responseCode;
-                    if (responseCode == HttpURLConnection.HTTP_OK) { // success
-                        BufferedReader in = new BufferedReader(new InputStreamReader(
-                                con.getInputStream()));
-                        String inputLine;
-                        StringBuffer responseHTTP = new StringBuffer();
-                        while ((inputLine = in.readLine()) != null) {
-                            responseHTTP.append(inputLine);
-                        }
-                        in.close();
-//                        System.out.println(responseHTTP.toString());
-                        myResponse.responseString = responseHTTP.toString();
-                    } else {
-                        System.out.println("GET request not worked");
-                    }
 
-                } catch (ProtocolException ex) {
-                    Logger.getLogger(smartHTTPservice.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    Logger.getLogger(smartHTTPservice.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("urlString:" + urlString);
+            myResponse = get(urlString);
+
+        } else {
+            myHandler.getMyHandler().sendToBrowser("status", null, myHandler.getMyParams().getCKtokenID(), "Indirizzo IP della macchina non indicato.");
+        }
+        return myResponse;
+    }
+
+    public responseHTTP get(String urlString) {
+        responseHTTP myResponse = new responseHTTP();
+        URL obj;
+        try {
+            obj = new URL(urlString);
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            try {
+                con.setRequestMethod("GET");//		con.setRequestProperty("User-Agent", USER_AGENT);
+                int responseCode = con.getResponseCode();
+//                    System.out.println("GET Response Code :: " + responseCode);
+                myResponse.ResponseCode = responseCode;
+                if (responseCode == HttpURLConnection.HTTP_OK) { // success
+                    BufferedReader in = new BufferedReader(new InputStreamReader(
+                            con.getInputStream()));
+                    String inputLine;
+                    StringBuffer responseHTTP = new StringBuffer();
+                    while ((inputLine = in.readLine()) != null) {
+                        responseHTTP.append(inputLine);
+                    }
+                    in.close();
+//                        System.out.println(responseHTTP.toString());
+                    myResponse.responseString = responseHTTP.toString();
+                } else {
+                    System.out.println("GET request not worked");
                 }
 
-            } catch (MalformedURLException ex) {
+            } catch (ProtocolException ex) {
                 Logger.getLogger(smartHTTPservice.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
                 Logger.getLogger(smartHTTPservice.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } else {
-            myHandler.getMyHandler().sendToBrowser("status", null, myHandler.getMyParams().getCKtokenID(), "Indirizzo IP della macchina non indicato.");
+
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(smartHTTPservice.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(smartHTTPservice.class.getName()).log(Level.SEVERE, null, ex);
         }
         return myResponse;
     }

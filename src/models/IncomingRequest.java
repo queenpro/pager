@@ -18,8 +18,6 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package models;
 
 import REVOdbManager.EVOpagerParams;
@@ -49,6 +47,33 @@ public class IncomingRequest {
     String params;
     String keyValue;
     String keyType;
+    String PathInfo;
+    String RequestURI;
+    boolean apiServerRequest = false;
+
+    public boolean isApiServerRequest() {
+        return apiServerRequest;
+    }
+
+    public void setApiServerRequest(boolean apiServerRequest) {
+        this.apiServerRequest = apiServerRequest;
+    }
+
+    public String getRequestURI() {
+        return RequestURI;
+    }
+
+    public void setRequestURI(String RequestURI) {
+        this.RequestURI = RequestURI;
+    }
+
+    public String getPathInfo() {
+        return PathInfo;
+    }
+
+    public void setPathInfo(String PathInfo) {
+        this.PathInfo = PathInfo;
+    }
 
     public String getXForwardedFor() {
         return XForwardedFor;

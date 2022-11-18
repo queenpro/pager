@@ -71,14 +71,26 @@ public class PDFcell extends PdfPCell {
         if (phrase == null) {
             phrase = "";
         }
-        if (style == null) {
-            style = "plain";
-        }
+        
         FontSelector selectorQ = new FontSelector();
         Font fQ = FontFactory.getFont(FontFactory.HELVETICA, 18);
         fQ.setColor(textColor);
 
         fQ.setSize(size);
+         fQ.setStyle(Font.NORMAL);
+        if (style == null) {
+            fQ.setStyle(Font.NORMAL);
+        }else if (style.equalsIgnoreCase("bold")) {
+           fQ.setStyle(Font.BOLD);
+        } else if (style.equalsIgnoreCase("italic")) {
+           fQ.setStyle(Font.ITALIC);
+        }  else if (style.equalsIgnoreCase("UNDERLINE")) {
+           fQ.setStyle(Font.UNDERLINE);
+        }  else if (style.equalsIgnoreCase("BOLDITALIC")) {
+           fQ.setStyle(Font.BOLDITALIC);
+        } 
+        
+        
         fQ.setStyle(style);
         selectorQ.addFont(fQ);
         Phrase phQ = selectorQ.process(phrase);
@@ -105,6 +117,17 @@ public class PDFcell extends PdfPCell {
                  myRow.getBorderWidth(),
                  myRow.isNoWrap(),
                  myRow.getStyle());
+       
+       
+       if ( myRow.getFixedHeight()>0){
+           this.setFixedHeight(myRow.getFixedHeight());
+           System.out.println("IMPOSTO ALTEZZA FISSA:"+myRow.getFixedHeight());
+       }
+       
+        if ( myRow.getLeading()>0){
+           this.setLeading((float)myRow.getLeading(),(float)myRow.getLeading()); 
+       }
+       
         
     }
     public void fillCell(   Image myLogo,PDFreportRow myRow){
@@ -119,6 +142,9 @@ public class PDFcell extends PdfPCell {
                             this.setColspan(myRow.getCols());
                             this.setBorder(myRow.getBorder());
                             this.setHorizontalAlignment( myRow.getAlignment());
+                            if (myRow.getFixedHeight()>0){
+                                this.setFixedHeight(myRow.getFixedHeight());
+                            }
                             
                       
                             

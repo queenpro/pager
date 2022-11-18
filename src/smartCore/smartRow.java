@@ -347,7 +347,7 @@ public class smartRow {
                                     System.out.println("error rounding:  " + e.toString());
                                 }
                                 str = "€ " + number;
-                            } else if (myForm.objects.get(obj).Content.getType() != null &&( myForm.objects.get(obj).Content.getType().equalsIgnoreCase("MINtoHOURS")|| myForm.objects.get(obj).Content.getType().equalsIgnoreCase("MINStoHOURS"))) {
+                            } else if (myForm.objects.get(obj).Content.getType() != null && (myForm.objects.get(obj).Content.getType().equalsIgnoreCase("MINtoHOURS") || myForm.objects.get(obj).Content.getType().equalsIgnoreCase("MINStoHOURS"))) {
                                 try {
                                     int hours = (int) (no / 60); //since both are ints, you get an int
                                     int minutes = (int) (no % 60);
@@ -396,7 +396,7 @@ public class smartRow {
             htmlCode += encodeBubble();
 
             //</editor-fold> 
-        } else if (rowType.equalsIgnoreCase("calendarDate")) {
+        } else if (rowType.equalsIgnoreCase("calendarDate")) {// questo NON è quello che viene usato per SMARTCALENDAR FORM
 // <editor-fold defaultstate="collapsed" desc="calendarDate."> 
             if (myForm.getKEYfieldName() != null) {
                 if (myForm.getKEYfieldType() != null && myForm.getKEYfieldType().equalsIgnoreCase("INT")) {
@@ -417,7 +417,7 @@ public class smartRow {
                 }
             } else {
                 KEYvalue = "" + rowNumber;
-            }
+            } 
             htmlCode += encodeBubble();
 
             //</editor-fold>           
@@ -429,7 +429,6 @@ public class smartRow {
 
         return htmlCode;
     }
-
 
     public String encodeBubble() {
         String htmlCode = "";
@@ -696,7 +695,7 @@ public class smartRow {
             htmlCode += "</td>";
         }
 
-       // System.out.println("\n--PaintRow_elaboraRigaRS per riga n." + rowNumber);
+        // System.out.println("\n--PaintRow_elaboraRigaRS per riga n." + rowNumber);
         ArrayList<boundFields> rowValues = elaboraRigaRS(rs, actualRowRights);
         if (myForm.getHtmlPattern() != null && myForm.getHtmlPattern().length() > 0) {
             try {
@@ -2357,10 +2356,8 @@ public class smartRow {
 //                    System.out.println("--curObj:" + curObj.name + " DROPPABLE = " + myBox.isDroppable() + "  --->" + curObj.C.JsClass);
                 }
 
-                
-
                 htmlCode += "<div "
-                        + drp  
+                        + drp
                         + " title=\"" + ValoreDaScrivere + "\" style=\"width : " + curObj.C.getWidth() + ";\n"
                         + " display:inline-block;"
                         + " text-overflow: ellipsis;"
@@ -2418,7 +2415,7 @@ public class smartRow {
                         }
                         ValoreDaScrivere = "€ " + ValoreDaScrivere;
                     }
-                } else if (curObj.Content.getType() != null && (curObj.Content.getType().equalsIgnoreCase("MINtoHOURS")||curObj.Content.getType().equalsIgnoreCase("MINStoHOURS"))) {
+                } else if (curObj.Content.getType() != null && (curObj.Content.getType().equalsIgnoreCase("MINtoHOURS") || curObj.Content.getType().equalsIgnoreCase("MINStoHOURS"))) {
                     htmlCode += " contentNumber  ";
                     int no = 0;
                     try {
@@ -2433,18 +2430,15 @@ public class smartRow {
 
                 htmlCode += "\" ";
                 htmlCode += getStyleHtmlCode(curObj, KEYvalue);
-                
-                
+
 //                String fcs = "";
 //                if (myForm.getChildsOnFocus()!= null && myForm.getChildsOnFocus().equalsIgnoreCase("TRUE")) {
 //                    fcs = "onClick=\"javascript:smartRowSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\">";
 //                }
-                
-                if ((myForm.getChildsOnFocus()!= null && myForm.getChildsOnFocus().equalsIgnoreCase("TRUE")) 
+                if ((myForm.getChildsOnFocus() != null && myForm.getChildsOnFocus().equalsIgnoreCase("TRUE"))
                         || (myForm.getShowCounter() != null && myForm.getShowCounter().equalsIgnoreCase("FALSE"))) {
-                     htmlCode +=  "onClick=\"javascript:smartRowSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\" ";
-                    
-                    
+                    htmlCode += "onClick=\"javascript:smartRowSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\" ";
+
                 } else {
 //                    String jsonArgs = "{";
 //                    jsonArgs += "\"formID\":\"" + myForm.getID() + "\",";
@@ -4739,7 +4733,26 @@ public class smartRow {
                     }
                     ValoreDaScrivere = "€ " + ValoreDaScrivere;
                 }
-            } else if (curObj.Content.getType() != null && (curObj.Content.getType().equalsIgnoreCase("MINtoHOURS")||curObj.Content.getType().equalsIgnoreCase("MINStoHOURS"))) {
+                           } else if (curObj.Content.getType() != null && curObj.Content.getType().equalsIgnoreCase("PERCENT")) {
+                htmlCode += " contentNumber  ";
+                if (ValoreDaScrivere != null && ValoreDaScrivere.length() > 0) {
+                    // tronco a 3 cifre dopo il punto
+                    if (ValoreDaScrivere != null && ValoreDaScrivere.contains(".")) {
+                        ValoreDaScrivere = ValoreDaScrivere + "00";
+                        int posX = ValoreDaScrivere.lastIndexOf(".");
+                        posX = posX + 2;
+                        if (ValoreDaScrivere.length() > posX) {
+                            ValoreDaScrivere = ValoreDaScrivere.substring(0, posX + 1);
+                        }
+                    } else {
+                        ValoreDaScrivere = ValoreDaScrivere + ".00";
+                    }
+                    if (ValoreDaScrivere.startsWith("-")) {
+                        ValoreDaScrivere = "<font color='red'>" + ValoreDaScrivere + "</font>";
+                    }
+                    ValoreDaScrivere = "% " + ValoreDaScrivere;
+                }
+            } else if (curObj.Content.getType() != null && (curObj.Content.getType().equalsIgnoreCase("MINtoHOURS") || curObj.Content.getType().equalsIgnoreCase("MINStoHOURS"))) {
                 htmlCode += " contentNumber  ";
                 int no = 0;
                 try {
@@ -4927,6 +4940,63 @@ public class smartRow {
             htmlCode += RTCode;
             htmlCode += "<INPUT  class=\"cellContent\"  type=\"HIDDEN\" id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + curObj.name + "-" + KEYvalue + "\" value=\"" + ValoreDaScrivere + "\">";
         } else // </editor-fold>             
+        //---------------------------------------------------------- 
+        // <editor-fold defaultstate="collapsed" desc="COLOR">  
+        if (curObj.C.getType().equalsIgnoreCase("COLOR")) {
+            //==COLOR=========================================================
+            if (ValoreDaScrivere != null && ValoreDaScrivere.length() > 0) { 
+                ValoreDaScrivere = ValoreDaScrivere.replace("\"", "&quot;");
+                ValoreDaScrivere = ValoreDaScrivere.replace("<", "&lt;");
+                ValoreDaScrivere = ValoreDaScrivere.replace(">", "&gt;");
+                ValoreDaScrivere = ValoreDaScrivere.replace("{", "&lbrace;");
+                ValoreDaScrivere = ValoreDaScrivere.replace("}", "&rbrace;");
+                ValoreDaScrivere = ValoreDaScrivere.replace("'", "&apos;");
+            } 
+            String XcellType = "T";
+            // System.out.println("CASO TEXTBOX ValoreDaScrivere:" + ValoreDaScrivere + " tipo " + objType);
+
+            if (myForm.getType().equalsIgnoreCase("PANEL")) {
+                htmlCode += " " + curObj.getLabelHeader();
+            }
+
+            htmlCode += "<INPUT ";
+            htmlCode += "type=\"color\" ";
+            htmlCode += getStyleHtmlCode(curObj, KEYvalue);
+
+            htmlCode += "id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + curObj.name + "-" + KEYvalue + "\" "
+                    + "value='" + ValoreDaScrivere + "'  ";
+            if (curObj.getActionParams() == null) {
+                curObj.setActionParams("");
+            }
+            if (objModifiable == true) {
+                String jsonArgs = "{";
+                jsonArgs += "\"formID\":\"" + myForm.getID() + "\",";
+                jsonArgs += "\"copyTag\":\"" + myForm.getCopyTag() + "\",";
+                jsonArgs += "\"objName\":\"" + curObj.name + "\",";
+                jsonArgs += "\"KEYvalue\":\"" + KEYvalue + "\",";
+                jsonArgs += "\"operation\":\"textChanges\",";
+                jsonArgs += "\"cellType\":\"" + XcellType + "\",";
+                jsonArgs += "\"filterField\":\"\",";
+                jsonArgs += "\"routineOnChange\":\"" + curObj.getRoutineOnChange() + "\",";
+                jsonArgs += "\"actionParams\":\"" + encodeURIComponent(curObj.getActionParams()) + "\",";
+                jsonArgs += "\"exitRoutine\":\"\"}";
+
+                htmlCode += " onChange='javascript:smartCellChanged(" + jsonArgs + ")'  ";
+                if (myForm.getShowCounter() != null && myForm.getShowCounter().equalsIgnoreCase("FALSE")) {
+                    htmlCode += " onmouseup=\"javascript:objSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + curObj.name + "-" + KEYvalue + "')\"";
+                }
+                //  htmlCode += "onmouseup=\"javascript:objSelected('" +  myForm.getID()+ "-"+myForm.getCopyTag()  + "-" + curObj.name + "-" + KEYvalue + "')\" ";
+            } else {
+                htmlCode += " readonly ";
+            }
+            if (KEYvalue.equalsIgnoreCase("NEW") && curObj.AddingRow_enabled < 1) {
+                htmlCode += " readonly disabled ";
+            }
+
+            String fontSize = curObj.C.conditionalFontSize;
+            htmlCode += "/>";
+
+        } else // </editor-fold>             
         //----------------------------------------------------------   
         // <editor-fold defaultstate="collapsed" desc="TEXT">  
         {
@@ -4989,8 +5059,12 @@ public class smartRow {
             }
 
             htmlCode += "\" ";
-            htmlCode += "type=\"TEXT\" ";
 
+            if (curObj.C.getType().equalsIgnoreCase("PASSWORD")) {
+                htmlCode += "type=\"PASSWORD\" ";
+            } else {
+                htmlCode += "type=\"TEXT\" ";
+            }
             htmlCode += getStyleHtmlCode(curObj, KEYvalue);
 
             htmlCode += "id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + curObj.name + "-" + KEYvalue + "\" "
@@ -5022,13 +5096,7 @@ public class smartRow {
             if (KEYvalue.equalsIgnoreCase("NEW") && curObj.AddingRow_enabled < 1) {
                 htmlCode += " readonly disabled ";
             }
-            /* if (objType.equalsIgnoreCase("date")) {
-             htmlCode += (" class=\"datepickerclass\" ");
-             // out.println(" class=\"datepicker\" ");
-             }
-             if (objType.equalsIgnoreCase("dateTime")) {
-             htmlCode += (" class=\"datetimepickerclass\" ");
-             }*/
+
             String fontSize = curObj.C.conditionalFontSize;
             htmlCode += "/>";
         }

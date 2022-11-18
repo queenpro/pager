@@ -208,6 +208,8 @@ public class smartForm {
     String routineBeforeUpdate = "";
     String routineAfterUpdate = "";
 
+    String calendars = "";
+
     boolean buildSchemaDone = false;
     int totalWidth;
 
@@ -245,6 +247,14 @@ public class smartForm {
         this.formObjects = new ArrayList<smartObject>();
     }
 // <editor-fold defaultstate="collapsed" desc="GETTERS & SETTERS">
+
+    public String getCalendars() {
+        return calendars;
+    }
+
+    public void setCalendars(String calendars) {
+        this.calendars = calendars;
+    }
 
     public String getChildsOnFocus() {
         return childsOnFocus;
@@ -1204,7 +1214,7 @@ public class smartForm {
             FEconny.close();
 
         } catch (SQLException ex) {
-
+            ex.printStackTrace();
         }
     }
 
@@ -1290,33 +1300,43 @@ public class smartForm {
 
     }
 
-     public void getFormPanel() {
-         getFormPanel(this.ges_formPanel) ;
-     }
-    
+    public void getFormPanel() {
+        getFormPanel(this.ges_formPanel);
+    }
+
     public void getFormPanel(String XformPanel) {
+        JSONParser myParser = new JSONParser();
+
+        JSONObject jsonObject = new JSONObject();
+        JSONParser jsonParser = new JSONParser();
+        ArrayList<smartForm.lockRule> lockRules = new ArrayList<smartForm.lockRule>();
+        int tempRight = 0;
+
+        boolean limitUp = false;
+        boolean limitDown = false;
+        String infotype = "";
+        String TRIGGERSarray = "";
+
         /*
         Carica le settings inserite nel JSON nel campo formPanel
          */
         if (XformPanel != null && XformPanel.length() > 4) {
             String formPanel = "{\"formPanel\":" + XformPanel + "}";
-            System.out.println("formPanel:" + this.getGes_formPanel());
+            System.out.println("formPanel:" + formPanel);
 
-//            System.out.println("formPanel:" + formPanel);
-            JSONObject jsonObject = new JSONObject();
-            JSONParser jsonParser = new JSONParser();
-            ArrayList<smartForm.lockRule> lockRules = new ArrayList<smartForm.lockRule>();
-            int tempRight = 0;
-
-            boolean limitUp = false;
-            boolean limitDown = false;
-            String infotype = "";
             try {
                 jsonObject = (JSONObject) jsonParser.parse(formPanel);
-                String TRIGGERSarray = jsonObject.get("formPanel").toString();
+                TRIGGERSarray = jsonObject.get("formPanel").toString();
+            } catch (Exception e) {
+                e.printStackTrace();
+                TRIGGERSarray = XformPanel;
+            }
+            try {
+
                 if (TRIGGERSarray != null && TRIGGERSarray.length() > 0) {
                     JSONParser parser = new JSONParser();
                     JSONArray array = (JSONArray) parser.parse(TRIGGERSarray);
+//                    System.out.println("TRIGGERSarray:" + TRIGGERSarray);
                     this.addRowPosition = ("bottom");
                     this.refreshOnAdd = ("");
                     this.refreshOnUpdate = ("");
@@ -1329,9 +1349,8 @@ public class smartForm {
                     this.showCounter = ("");
                     this.childsOnFocus = "";
                     this.showKeyLink = "";
+                    this.calendars = "";
                     for (Object riga : array) {
-
-                        lockRule myRule = new lockRule();
                         jsonObject = (JSONObject) jsonParser.parse(riga.toString());
                         try {
                             infotype = (jsonObject.get("infoType").toString());
@@ -1446,12 +1465,19 @@ public class smartForm {
                                 this.routineAfterUpdate = (jsonObject.get("routineAfterUpdate").toString());
                             } catch (Exception e) {
                             }
+                        } else if (infotype.equalsIgnoreCase("calendar")) {
+                            try {
+                                this.calendars = (jsonObject.get("calendars").toString());
+                                System.out.println("calendars:" + this.calendars);
+                            } catch (Exception e) {
+                            }
                         } else if (infotype.equalsIgnoreCase("autolinks")) {
 
                         }
                     }//end FOR
                 }
             } catch (ParseException ex) {
+                ex.printStackTrace();
             }
         }
     }
@@ -2780,11 +2806,11 @@ public class smartForm {
     }
 
     public String fillFormCalendar() {
-        System.out.println("CALENDAR->query used: " + this.queryUsed);
-//        normalRowsCode = "<div id=\"calendar\" name=\"calendar\"  >*CALENDAR HERE</DIV>";
+        // questo carica un calendario vuoto, poi una routineAfterLoad lo compila
 
+//        normalRowsCode = "<div id=\"calendar\" name=\"calendar\"  >*CALENDAR HERE</DIV>";
 //        pageSelectorCode = getCodePageSelector(rowsCounter, totalPages);
-        
+//this.buildSchema();// serve per prendere il formButton
 
         rowsCode = "<div "
                 + " class=\"tabBody\""
@@ -2820,40 +2846,7 @@ public class smartForm {
         rowsCode += "</tbody> </TABLE>";
         rowsCode += "</TD></TR>";
         rowsCode += "</div>";
-        //System.out.println("Righe DATI:" + lines);
 
-        Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
-        ResultSet rs;
-        Statement s;
-        try {
-            s = conny.prepareStatement(this.queryUsed,
-                    ResultSet.TYPE_SCROLL_INSENSITIVE,
-                    ResultSet.CONCUR_READ_ONLY); //questo serve per poter scorrere i record e riocomeinciare da capo
-
-            rs = s.executeQuery(this.queryUsed);
-            righeScritte = 0;
-            while (rs.next()) {
-                righeScritte++;
-                smartRow myRow = new smartRow(this, rs, righeScritte);
-
-                smartObjRight rowRights = myRow.valutaRightsRiga(this.getDisableRules(), rs);/// analizzo il LOCKER del form per la riga
-                smartObjRight actualRowRights = joinRights(formRightsRules, rowRights);
-
-                myRow.setActualRowRights(actualRowRights);
-                myRow.setFormRightsRules(formRightsRules);
-                String rowCode = myRow.SMRTpaintRow("calendarDate");
-                normalRowsCode += rowCode;
-//                System.out.println("rowCode: " + rowCode);
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        try {
-            conny.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(smartForm.class.getName()).log(Level.SEVERE, null, ex);
-        }
         String htmlCode = rowsCode;
 //        htmlCode = "<TABLE style=\"table-layout: fixed; width: 100% ; border-collapse: collapse;   border: 1px solid black;display: flex; display: flex; flex-direction: row;\"><TR>";
 //        htmlCode += "<TD style=\"table-layout: fixed; width: 100% ; border-collapse: collapse;   border: 1px solid black;display: block; overflow-x: auto;\">" + normalRowsCode + "</TD>";
@@ -3085,17 +3078,6 @@ public class smartForm {
             // trigs = "[]";
         }
 
-////////        ResultSetMetaData rsmd;
-////////        try {
-////////            rsmd = rs.getMetaData();
-////////            for (int jj = 0; jj < rsmd.getColumnCount(); jj++) {
-////////                String name = rsmd.getColumnName(jj + 1);
-////////                // System.out.println("COLONNA " + jj + " ->" + name); 
-////////            }
-////////        } catch (SQLException ex) {
-////////            Logger.getLogger(ShowItForm.class
-////////                    .getName()).log(Level.SEVERE, null, ex);
-////////        }
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject;
         String TRIGGERSarray = null;
@@ -3434,7 +3416,7 @@ public class smartForm {
 
     public String paintFormConsole() {
         String htmlCode = "";
-//        System.out.println("this.formObjects.size(): " + this.formObjects.size());
+        System.out.println("this.formObjects.size(): " + this.formObjects.size());
         if (this.formObjects.size() > 0) {
             htmlCode += ("<tr><td>");
             htmlCode += ("<TABLE "
@@ -4218,6 +4200,9 @@ public class smartForm {
 //        System.out.println("prepareSQL-SQL FORM era:" + myquery);
         SQLphrase = browserArgsReplace(myquery);
 //        System.out.println("prepareSQL-SQL FORM diventa:" + SQLphrase);
+
+
+
         queryUsed = SQLphrase;
         return SQLphrase;
     }

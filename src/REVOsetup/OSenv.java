@@ -16,6 +16,12 @@
  */
 package REVOsetup;
 
+import REVOdbManager.EVOpagerDirectivesManager;
+import REVOdbManager.EVOpagerParams;
+import REVOdbManager.Settings;
+import java.io.File;
+import java.util.ArrayList;
+
 /**
  *
  * @author Franco Venezia @ www.ffs.it
@@ -55,6 +61,61 @@ public class OSenv {
 
     public String getOSslash() {
         return OSslash;
+    }
+
+    public String getBasePath(EVOpagerParams myParams, Settings mySettings) {
+        String completePath = "";
+        EVOpagerDirectivesManager myManager = new EVOpagerDirectivesManager(myParams, mySettings);
+        String percorsoBase = myManager.getDirective("uploadBasePath");
+
+        String nomeContesto = "";
+        if (myParams.getCKcontextID() != null && myParams.getCKcontextID().length() > 0) {
+            nomeContesto = myParams.getCKcontextID() + this.OSslash;
+        }
+        completePath = this.OSbasePath + percorsoBase + nomeContesto;
+        if (percorsoBase.startsWith("[]")) {
+            String usatoPerFile = percorsoBase + nomeContesto;
+            usatoPerFile = usatoPerFile.replace("[]", "");
+            completePath = usatoPerFile;
+        }
+        completePath = normalizePath(completePath);
+        System.out.println(">>>>ServeFile:" + completePath);
+        return completePath;
+    }
+
+    public String getCompletePathFilename(String fileToSearch, EVOpagerParams myParams, Settings mySettings) {
+        String filepath = fileToSearch;
+        String completePathFilename = filepath;
+        EVOpagerDirectivesManager myManager = new EVOpagerDirectivesManager(myParams, mySettings);
+        String percorsoBase = myManager.getDirective("uploadBasePath");
+
+        String nomeContesto = "";
+        if (myParams.getCKcontextID() != null && myParams.getCKcontextID().length() > 0) {
+            nomeContesto = myParams.getCKcontextID() + this.OSslash;
+        }
+        completePathFilename = this.OSbasePath + percorsoBase + nomeContesto + filepath;
+        if (percorsoBase.startsWith("[]")) {
+            String usatoPerFile = percorsoBase + nomeContesto + filepath;
+            usatoPerFile = usatoPerFile.replace("[]", "");
+            completePathFilename = usatoPerFile;
+        }
+
+        completePathFilename = normalizePath(completePathFilename);
+        System.out.println(">>>>ServeFile:" + completePathFilename);
+        return completePathFilename;
+    }
+
+    public ArrayList<String> listFilesForFolder(final File folder) {
+        ArrayList<String> myList = new ArrayList<>();
+        for (final File fileEntry : folder.listFiles()) {
+            if (fileEntry.isDirectory()) {
+                listFilesForFolder(fileEntry);
+            } else {
+                myList.add(fileEntry.getName());
+//            System.out.println(fileEntry.getName());
+            }
+        }
+        return myList;
     }
 
 }

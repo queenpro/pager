@@ -32,6 +32,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
+import org.json.simple.JSONObject;
 //import org.json.simple.JSONObject;
 //import org.json.simple.parser.JSONParser;
 //import org.json.simple.parser.ParseException;
@@ -51,6 +52,7 @@ public class WebsocketClientEndpoint {
     private OpenHandler openHandler;
     private CloseHandler closeHandler;
     private Settings mySettings;
+    private String tokenAssigned;
 
     public WebsocketClientEndpoint(URI endpointURI, Settings xmySettings) {
         this.mySettings = xmySettings;
@@ -159,4 +161,36 @@ public class WebsocketClientEndpoint {
         this.userSession = userSession;
     }
 
+    public String getTokenAssigned() {
+        return tokenAssigned;
+    }
+
+    public void setTokenAssigned(String tokenAssigned) {
+        this.tokenAssigned = tokenAssigned;
+    }
+
+    
+    
+    public void sendHB(){
+        
+                JSONObject sendobj = new JSONObject();
+                JSONObject params = new JSONObject();
+                params.put("clientID", mySettings.getCLIENT_ID());
+                params.put("clientModel", mySettings.getCLIENT_MODEL());
+                params.put("clientType", mySettings.getCLIENT_TYPE());
+                params.put("clientServerName", mySettings.getCLIENT_SERVERNAME());
+                params.put("clientProject",  mySettings.getCLIENT_PROJECTNAME());
+                params.put("clientContext", mySettings.getCLIENT_CONTEXT());
+                params.put("clientIP", mySettings.getCLIENT_IP());
+//                params.put("userID", mySettings.getCLIENT_USER_ID());
+//                params.put("userPassword", mySettings.getCLIENT_USER_PW());
+                sendobj.put("type", "serverHeartbeat");
+                sendobj.put("token", tokenAssigned );
+                sendobj.put("params", params);
+//                System.out.println("\n\n>>>>>>>>>>>>>>\nargsToSendTO->LH:" + sendobj.toString());
+                sendMessage(sendobj.toString());
+                //myWSclient.sendMessage("heartbeat");
+    }
+    
+    
 }

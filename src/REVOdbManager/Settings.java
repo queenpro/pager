@@ -117,7 +117,7 @@ public class Settings {
     private String localEVO_directives;
     private boolean lighthouseHookable;
     private boolean showPeople;
-    
+
     private String updateMode;
 
     private TomcatGaiaHost gaiaHost;
@@ -126,13 +126,22 @@ public class Settings {
     boolean logCRUD;
     boolean logLogin;
     boolean logLogon;
+    private String CLIENT_SERVERNAME;
+    private String CLIENT_PROJECTNAME;
+    private String CLIENT_CONTEXT;
+    private String CLIENT_IP;
+    private String CLIENT_ID;
+    private String CLIENT_TYPE;
+    private String CLIENT_MODEL;
+    private String CLIENT_USER_ID;
+    private String CLIENT_USER_PW;
 
     public void chargeHost() {
         gaiaHost = new TomcatGaiaHost(projectName);
         String newPW = null;
         String newUser = null;
-        
-        if (this.getGaiaHost()!=null && this.getGaiaHost().getPwType() != null
+
+        if (this.getGaiaHost() != null && this.getGaiaHost().getPwType() != null
                 && this.getGaiaHost().getDbUsername() != null
                 && this.getGaiaHost().getDbUsername().length() > 0) {
 
@@ -213,6 +222,80 @@ public class Settings {
 
         System.out.print(result);
 
+    }
+
+    public String getCLIENT_ID() {
+        return CLIENT_ID;
+    }
+
+    public void setCLIENT_ID(String CLIENT_ID) {
+        this.CLIENT_ID = CLIENT_ID;
+    }
+
+    public String getCLIENT_TYPE() {
+        return CLIENT_TYPE;
+    }
+
+    public void setCLIENT_TYPE(String CLIENT_TYPE) {
+        this.CLIENT_TYPE = CLIENT_TYPE;
+    }
+
+    public String getCLIENT_MODEL() {
+        return CLIENT_MODEL;
+    }
+
+    public void setCLIENT_MODEL(String CLIENT_MODEL) {
+        this.CLIENT_MODEL = CLIENT_MODEL;
+    }
+
+    public String getCLIENT_USER_ID() {
+        return CLIENT_USER_ID;
+    }
+
+    public void setCLIENT_USER_ID(String CLIENT_USER_ID) {
+        this.CLIENT_USER_ID = CLIENT_USER_ID;
+    }
+
+    public String getCLIENT_USER_PW() {
+        return CLIENT_USER_PW;
+    }
+
+    public void setCLIENT_USER_PW(String CLIENT_USER_PW) {
+        this.CLIENT_USER_PW = CLIENT_USER_PW;
+    }
+
+    
+
+    public String getCLIENT_IP() {
+        return CLIENT_IP;
+    }
+
+    public void setCLIENT_IP(String CLIENT_IP) {
+        this.CLIENT_IP = CLIENT_IP;
+    }
+
+    public String getCLIENT_SERVERNAME() {
+        return CLIENT_SERVERNAME;
+    }
+
+    public void setCLIENT_SERVERNAME(String CLIENT_SERVERNAME) {
+        this.CLIENT_SERVERNAME = CLIENT_SERVERNAME;
+    }
+
+    public String getCLIENT_PROJECTNAME() {
+        return CLIENT_PROJECTNAME;
+    }
+
+    public void setCLIENT_PROJECTNAME(String CLIENT_PROJECTNAME) {
+        this.CLIENT_PROJECTNAME = CLIENT_PROJECTNAME;
+    }
+
+    public String getCLIENT_CONTEXT() {
+        return CLIENT_CONTEXT;
+    }
+
+    public void setCLIENT_CONTEXT(String CLIENT_CONTEXT) {
+        this.CLIENT_CONTEXT = CLIENT_CONTEXT;
     }
 
     public boolean isShowPeople() {
@@ -887,29 +970,26 @@ public class Settings {
     public void setSoftwareTitle(String softwareTitle) {
         this.softwareTitle = softwareTitle;
     }
-    
-    
-    
-    public String getInstallationName(EVOpagerParams myParams){
-        String serverName="";
-        Connection QPconny = new EVOpagerDBconnection(myParams,this).ConnLocalQueenpro();
-                        PreparedStatement ps;
-                       String SQLphrase = "SELECT * FROM definitions WHERE ID='*SERVERNAME*'";
-                        try {
-                            ps = QPconny.prepareStatement(SQLphrase);
-                            ResultSet rs = ps.executeQuery();
-                            while (rs.next()) {
-                                serverName = rs.getString("definition");
-                            }
-                        } catch (SQLException ex) {
-                            Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        if (serverName == null || serverName.equalsIgnoreCase("NULL")) {
-                            serverName = "";
-                        }
-                        String installationName =  getProjectName() + "-" + serverName;
-        
-        
+
+    public String getInstallationName(EVOpagerParams myParams) {
+        String serverName = "";
+        Connection QPconny = new EVOpagerDBconnection(myParams, this).ConnLocalQueenpro();
+        PreparedStatement ps;
+        String SQLphrase = "SELECT * FROM definitions WHERE ID='*SERVERNAME*'";
+        try {
+            ps = QPconny.prepareStatement(SQLphrase);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                serverName = rs.getString("definition");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (serverName == null || serverName.equalsIgnoreCase("NULL")) {
+            serverName = "";
+        }
+        String installationName = getProjectName() + "-" + serverName;
+
         return installationName;
     }
 }

@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -60,6 +61,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -71,6 +73,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import smartCore.smartCalendar;
+import smartCore.smartForm;
 
 /**
  *
@@ -130,6 +134,52 @@ public class PDFdoc {
     PdfTemplate template;
     test av;
 
+    private gate calendarMyGate;
+    private smartForm calendarMyForm;
+    private portalClass calendarMyPortal;
+    private int calendarMonth;
+    private int calendarYear;
+
+    public int getCalendarMonth() {
+        return calendarMonth;
+    }
+
+    public void setCalendarMonth(int calendarMonth) {
+        this.calendarMonth = calendarMonth;
+    }
+
+    public int getCalendarYear() {
+        return calendarYear;
+    }
+
+    public void setCalendarYear(int calendarYear) {
+        this.calendarYear = calendarYear;
+    }
+
+    public gate getCalendarMyGate() {
+        return calendarMyGate;
+    }
+
+    public void setCalendarMyGate(gate calendarMyGate) {
+        this.calendarMyGate = calendarMyGate;
+    }
+
+    public smartForm getCalendarMyForm() {
+        return calendarMyForm;
+    }
+
+    public void setCalendarMyForm(smartForm calendarMyForm) {
+        this.calendarMyForm = calendarMyForm;
+    }
+
+    public portalClass getCalendarMyPortal() {
+        return calendarMyPortal;
+    }
+
+    public void setCalendarMyPortal(portalClass calendarMyPortal) {
+        this.calendarMyPortal = calendarMyPortal;
+    }
+
     public void setPDFpageSize(Rectangle PDFpageSize) {
         this.PDFpageSize = PDFpageSize;
     }
@@ -176,9 +226,9 @@ public class PDFdoc {
 
     public PDFdoc(OutputStream stream, EVOpagerParams xParams, Settings xSettings) {
         PDFpageSize = PageSize.A4;
-        PDFmarginLeft = 66;
-        PDFmarginRight = 66;
-        PDFmarginTop = 100;
+        PDFmarginLeft = 16;
+        PDFmarginRight = 16;
+        PDFmarginTop = 80;
         PDFmarginBottom = 36;
         PDFfilename = "doc_";
         this.stream = stream;
@@ -320,20 +370,20 @@ public class PDFdoc {
 // public Document(Rectangle pageSize, float marginLeft, float marginRight, float marginTop, float marginBottom) {
 
             document = new Document(PDFpageSize, PDFmarginLeft, PDFmarginRight, PDFmarginTop, PDFmarginBottom);
+
+            TableHeader event = new TableHeader();
             try {
                 writer = PdfWriter.getInstance(document, stream);
-                TableHeader event = new TableHeader();
-                document.addTitle("GAIA PDF");
+                document.addTitle("QP PDF");
                 av = new test();
                 writer.setPageEvent(av);
-
                 document.open();
                 cb = writer.getDirectContent();
                 document.addTitle(PDFfilename);
             } catch (DocumentException ex) {
                 Logger.getLogger(PDFdoc.class.getName()).log(Level.SEVERE, null, ex);
             }
-            richArgList = cloneArray(argList);
+            richArgList = cloneArray(argList);// aggiungo a argList la MasterQuery per poter compilare gli stessi campi del form di provenienza
         }
 
         int row = 0;
@@ -541,7 +591,11 @@ public class PDFdoc {
         //chiudo il documento 
         if (docType != null && docType.equalsIgnoreCase("mainDocument")) {
             System.out.println("=========================CHIUDO " + docName);
-            document.close();
+            try {
+                document.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         try {
             conny.close();
@@ -944,9 +998,29 @@ public class PDFdoc {
                                 System.out.println("phrase:" + phrase);
                             } catch (Exception e) {
                             }
-                        } catch (SQLException ex) { 
+                        } catch (SQLException ex) {
                             System.out.println("\n@@@\n\n ERRORE su minToHours ");
-                        } 
+                        }
+                        cellOne.fillCell(phrase, myRow);
+
+                    } else if (myRow.getFieldType().equalsIgnoreCase("euro")) {
+                        try {
+
+                            float Xamount = rs[stackUsed].getFloat(myRow.getFieldName());
+                            DecimalFormat df = new DecimalFormat("#.00");
+                            float number = Xamount;
+                            try {
+
+                                String strno = df.format(Xamount);
+                                strno = strno.replace(",", ".");
+                                number = Float.valueOf(strno);
+                            } catch (Exception e) {
+                                System.out.println("error rounding:  " + e.toString());
+                            }
+                            phrase = "€ " + number;
+                        } catch (SQLException ex) {
+                            System.out.println("\n@@@\n\n ERRORE su euro ");
+                        }
                         cellOne.fillCell(phrase, myRow);
                     } // field tipo TEXT
                     else { // per default è un text
@@ -955,7 +1029,7 @@ public class PDFdoc {
                             phrase = rs[stackUsed].getString(myRow.getFieldName());
                             System.out.println("Assegno contenuto alla cella(" + myRow.getFieldName() + ") :" + phrase);
 
-                            System.out.println("myRow.getFieldType() :" + myRow.getFieldType());
+                            System.out.println("myRow.getFieldType() :" + myRow.getFieldType() + "   FONT SIZE:" + myRow.getFontSize());
                             if (myRow.getLayout().equalsIgnoreCase("barcode")) {
                                 Image BCimage = getBarcode(phrase, myRow.getStyle());
                                 BCimage.setScaleToFitLineWhenOverflow(true);
@@ -1022,11 +1096,13 @@ public class PDFdoc {
                 } else {
                     // LABEL
                     phrase = myRow.getContent();// suppongo per default che sia una label  
-                    phrase = browserArgsReplace(phrase, null);
-//                    System.out.println("phrase ::" + phrase);
+                    System.out.println("label ->phrase :: " + phrase);
                     if (phrase == null || phrase.length() < 1) {
                         phrase = " ";
+                    } else {
+                        phrase = browserArgsReplace(phrase, null);
                     }
+
                     if (myRow.getLayout().equalsIgnoreCase("checkbox")) {
                         String Lphrase;
                         if (phrase.equalsIgnoreCase("")
@@ -1050,7 +1126,10 @@ public class PDFdoc {
 
                 }
 //stackUsed = TablesStack;
-                Tables[TablesStack].addCell(cellOne);
+                try {
+                    Tables[TablesStack].addCell(cellOne);
+                } catch (Exception e) {
+                }
             } else if (myRow.getElement().equalsIgnoreCase("lineSpace")
                     || myRow.getElement().equalsIgnoreCase("spaceLine")
                     || myRow.getElement().equalsIgnoreCase("space")) {
@@ -1102,11 +1181,19 @@ public class PDFdoc {
                 openCell[CellStack].setBorder(myRow.getBorder());
                 //openCell[CellStack].setBorderColor(BaseColor.RED);
                 openCell[CellStack].setPaddingLeft(0);
+
+                openCell[CellStack].setPaddingRight(0);
+                openCell[CellStack].setPaddingTop(0);
+                openCell[CellStack].setPaddingBottom(0);
                 //    System.out.println("\n!!!APRO CELLA opencell");
 
             } else if (myRow.getElement().equalsIgnoreCase("closeCell")) {
                 //  System.out.println("\n " + docName + " CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
-                Tables[TablesStack].addCell(openCell[CellStack]);
+                try {
+                    Tables[TablesStack].addCell(openCell[CellStack]);
+                } catch (Exception e) {
+                }
+
                 openCell[CellStack] = null;
                 CellStack--;
                 //   System.out.println("\n " + docName + " CHIUDO CELLA opencell");
@@ -1114,6 +1201,34 @@ public class PDFdoc {
                 if (myRow.getType().equalsIgnoreCase("Header")) {
                     currentHeaderDoc = myRow.getContent(); // assegno il nome del documento HEADER
                     System.out.println("\nASSEGNO HEADER DOC: " + currentHeaderDoc);
+                } else if (myRow.getType().equalsIgnoreCase("Calendar")) {
+                    System.out.println("=========================" + docName + "==CHIAMA DOC CALENDARIO=======================" + myRow.content);
+                    System.out.println("argList =" + argList.toString());
+//************************************************
+                    Calendar clnd = Calendar.getInstance();
+                    int year = clnd.get(Calendar.YEAR);
+                    int month = 1 + clnd.get(Calendar.MONTH);
+
+                    String anno = "###ANNO###";
+                    String mese = "###MESE###";
+
+                    anno = ArgsReplace(anno, argList);
+                    System.out.println("anno =" + anno);
+                    mese = ArgsReplace(mese, argList);
+                    System.out.println("mese =" + mese);
+                    try {
+                        year = Integer.parseInt(anno);
+                        month = Integer.parseInt(mese);
+                    } catch (Exception e) {
+                    }
+                    smartCalendar myCalendar = new smartCalendar(calendarMyPortal.myParams, calendarMyPortal.mySettings);
+//                    System.out.println("!!!myGate.getSendToCRUD() =" + calendarMyGate.getSendToCRUD());
+//                    System.out.println("!!!myGate.getTBS() =" + calendarMyGate.getTBS());
+                    myCalendar.step1drawFrames(calendarMyGate, year, month, "INSIDEUPDATE");
+                    myCalendar.step2addBoxes();
+                    myCalendar.step3chargeDuties();
+                    document.add(myCalendar.step5drawPDF());
+
                 } else {
                     System.out.println("=========================" + docName + "==CHIAMA DOC FIGLIO=======================");
                     PDFdoc innerDoc = new PDFdoc(stream, document, writer, richArgList, myParams, mySettings);
@@ -1127,10 +1242,10 @@ public class PDFdoc {
                         innetTable = null;
 
                     } else {
-                        System.out.println("\n " + docName + " inserisco un DOC in coda al DOC principale");
+//                        System.out.println("\n " + docName + " inserisco un DOC in coda al DOC principale");
 
                         innerDoc.fillDocument(myRow.getContent(), "document");
-                        System.out.println("...fatto");
+//                        System.out.println("...fatto");
 
                     }
                     innerDoc = null;
@@ -1252,6 +1367,9 @@ public class PDFdoc {
     }
 
     private ArrayList<PDFreportRow> scriptLoader(String XdocName, Connection conny) {
+
+        System.out.println("\n\n*******\nSONO IN SCRIPT LOADER");
+
         ArrayList<PDFreportRow> reportRows = new ArrayList<PDFreportRow>();
         docName = XdocName;
         String myScript;
@@ -1344,6 +1462,11 @@ public class PDFdoc {
                         myRow.setAlignment(Element.ALIGN_CENTER);
                     } else if (align.equalsIgnoreCase("RIGHT")) {
                         myRow.setAlignment(Element.ALIGN_RIGHT);
+                    } else if (align.equalsIgnoreCase("TOP")) {
+                        myRow.setAlignment(Element.ALIGN_TOP);
+                    } else if (align.equalsIgnoreCase("TOPCENTER")) {
+                        myRow.setAlignment(Element.ALIGN_TOP);
+
                     } else {
                         myRow.setAlignment(Element.ALIGN_LEFT);
                     }
@@ -1442,7 +1565,40 @@ public class PDFdoc {
                     } catch (Exception e) {
                         myRow.setBoxHeight(20);
                     }
+                    try {
+                        myRow.setFixedHeight(Integer.parseInt(jsonObject.get("fixedHeight").toString()));
+                        System.out.println("DA DATABASE IMPOSTO SU SCRIPT ALTEZZA FISSA:" + myRow.getFixedHeight());
+                    } catch (Exception e) {
+                        myRow.setFixedHeight(0);
+                    }
 
+                    try {
+                        myRow.setPaddingLeft(Integer.parseInt(jsonObject.get("paddingLeft").toString()));
+                    } catch (Exception e) {
+                        myRow.setPaddingLeft(0);
+                    }
+                    try {
+                        myRow.setPaddingRight(Integer.parseInt(jsonObject.get("paddingRight").toString()));
+                    } catch (Exception e) {
+                        myRow.setPaddingRight(0);
+                    }
+                    try {
+                        myRow.setPaddingTop(Integer.parseInt(jsonObject.get("paddingTop").toString()));
+                    } catch (Exception e) {
+                        myRow.setPaddingRight(0);
+                    }
+                    try {
+                        myRow.setPaddingBottom(Integer.parseInt(jsonObject.get("paddingBottom").toString()));
+                    } catch (Exception e) {
+                        myRow.setPaddingBottom(0);
+                    }
+                    try {
+                        myRow.setLeading(Integer.parseInt(jsonObject.get("leading").toString()));
+                        System.out.println("DA DATABASE IMPOSTO LEADING:" + myRow.getLeading());
+
+                    } catch (Exception e) {
+                        myRow.setLeading(-1);
+                    }
                     reportRows.add(myRow);
                 }
             } catch (ParseException ex) {
@@ -1486,7 +1642,10 @@ public class PDFdoc {
                 } catch (Exception e) {
                 }
             } else if (myRow.getType().equalsIgnoreCase("marginRight")) {
-
+                try {
+                    PDFmarginRight = Float.parseFloat(myRow.getContent());
+                } catch (Exception e) {
+                }
             } else if (myRow.getType().equalsIgnoreCase("marginTop")) {
                 try {
                     PDFmarginTop = Float.parseFloat(myRow.getContent());
@@ -1501,13 +1660,17 @@ public class PDFdoc {
             } else if (myRow.getType().equalsIgnoreCase("filename")) {
                 richArgList = cloneArray(argList);
                 String fn = browserArgsReplace(myRow.getContent(), null);
+                try {
+                    fn = java.net.URLDecoder.decode(fn, "UTF-8");
+                } catch (Exception e) {
+                }
                 PDFfilename = fn;
 
             }
         }
     }
 
-    public String browserArgsReplace(String query, String destination) {
+    public String ArgsReplace(String query, ArrayList<SelectListLine> argList) {
 
 //         for (int jj = 0; jj < this.richArgList.size(); jj++) {
 //              System.out.println("richArgList# " +  this.richArgList.get(jj).getLabel()+": " +  this.richArgList.get(jj).getValue());
@@ -1541,6 +1704,69 @@ public class PDFdoc {
         }
 
         try {
+            System.out.println("defVal: " + defVal);
+            if (defVal.contains("$$$CURUSERNAME$$$")) {
+                EVOuser myUser = new EVOuser(myParams, mySettings);
+                String nomeUtente = myUser.getExtendedName();
+                nomeUtente = nomeUtente.replaceAll("<BR>", " ");
+                System.out.println("nomeUtente :" + nomeUtente);
+                defVal = defVal.replace("$$$CURUSERNAME$$$", nomeUtente);
+
+            }
+        } catch (Exception e) {
+//                System.out.println("CRUD ORDER: ERROR standardReplace :" + e.toString());
+//                Logger.getLogger(CRUDorder.class.getName()).log(Level.SEVERE, null, e);
+
+        }
+
+        for (int jj = 0; jj < argList.size(); jj++) {
+            String xMarker = argList.get(jj).getLabel();
+            String xValue = argList.get(jj).getValue();
+            String toBeReplaced = "###" + xMarker + "###";
+            if (defVal.contains(toBeReplaced)) {
+                defVal = defVal.replace(toBeReplaced, xValue);
+            }
+        }
+
+        return defVal;
+    }
+
+    public String browserArgsReplace(String query, String destination) {
+
+//         for (int jj = 0; jj < this.richArgList.size(); jj++) {
+//              System.out.println("richArgList# " +  this.richArgList.get(jj).getLabel()+": " +  this.richArgList.get(jj).getValue());
+//         }
+//        for (int jj = 0; jj < this.varsList.size(); jj++) {
+//              System.out.println("varsList@ " +  this.varsList.get(jj).getName()+": " +  this.varsList.get(jj).getValueInt());
+//         }
+//        
+        if (query == null) {
+            return null;
+        }
+
+        String defVal = query;
+        try {
+            defVal = defVal.replace("$$$USER$$$", myParams.getCKuserID());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            Calendar cal = Calendar.getInstance();
+            cal.getTime();
+            SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy");
+            SimpleDateFormat formatDateTime = new SimpleDateFormat("dd-MM-yyyy  HH:mm ");
+            TimeZone timeZone = TimeZone.getTimeZone("Europe/Rome");
+            formatDate.setTimeZone(timeZone);
+            formatDateTime.setTimeZone(timeZone);
+            String giorno = formatDate.format(cal.getTime());
+            String giornoEora = formatDateTime.format(cal.getTime());
+            defVal = defVal.replace("$$$PRINTDATE$$$", giorno);
+            defVal = defVal.replace("$$$PRINTDATETIME$$$", giornoEora);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
 //            System.out.println("defVal: " + defVal);
             if (defVal.contains("$$$CURUSERNAME$$$")) {
                 EVOuser myUser = new EVOuser(myParams, mySettings);
@@ -1549,36 +1775,72 @@ public class PDFdoc {
                 defVal = defVal.replace("$$$CURUSERNAME$$$", nomeUtente);
             }
         } catch (Exception e) {
-            System.out.println("CRUD ORDER: ERROR standardReplace :" + e.toString());
+            System.out.println("browserArgsReplace: ERROR standardReplace :" + e.toString());
 //                Logger.getLogger(CRUDorder.class.getName()).log(Level.SEVERE, null, e);
 
         }
+        try {
+            if (this.richArgList != null && this.richArgList.size() > 0) {
 //        System.out.println("\n#\n");
-        for (int jj = 0; jj < this.richArgList.size(); jj++) {
-            String xMarker = this.richArgList.get(jj).getLabel();
-            String xValue = this.richArgList.get(jj).getValue();
-            if (destination != null && destination.equalsIgnoreCase("mysql")
-                    && !xMarker.equalsIgnoreCase("masterQuery") //In caso di masterQuery non devo toglierre gli apici
-                    ) {
-                xValue = encodeMYSQLstring(xValue);
-            }
-            String toBeReplaced = "###" + xMarker + "###";
+                for (int jj = 0; jj < this.richArgList.size(); jj++) {
+                    String xMarker = this.richArgList.get(jj).getLabel();
+                    String xValue = this.richArgList.get(jj).getValue();
+                    if (destination != null && destination.equalsIgnoreCase("mysql")
+                            && !xMarker.equalsIgnoreCase("masterQuery") //In caso di masterQuery non devo toglierre gli apici
+                            ) {
+
+                        xValue = encodeMYSQLstring(xValue);
+
+                    } else {
+                     try{
+                         //                            String temp = java.net.URLDecoder.decode(xValue, "UTF-8");
+                        String temp =    replacer(xValue) ;
+                        xValue = temp;
+                     }catch(Exception e){
+                         
+                     }
+                    }
+                    String toBeReplaced = "###" + xMarker + "###";
 //            System.out.println("toBeReplaced :" + toBeReplaced + "  ---> " + xValue);
-            if (defVal != null && defVal.contains(toBeReplaced)) {
-                defVal = defVal.replace(toBeReplaced, xValue);
+                    if (defVal != null && defVal.contains(toBeReplaced)) {
+                        defVal = defVal.replace(toBeReplaced, xValue);
+                    }
+                }
             }
+        } catch (Exception e) {
+            System.out.println("browserArgsReplace: richArgList ERROR   :" + e.toString());
+
         }
-        for (int jj = 0; jj < this.varsList.size(); jj++) {
-            String xMarker = this.varsList.get(jj).getName();
-            String xValue = "" + this.varsList.get(jj).getValueInt();
-            String toBeReplaced = "@@@" + xMarker + "@@@";
+        try {
+            if (this.varsList != null && this.varsList.size() > 0) {
+                for (int jj = 0; jj < this.varsList.size(); jj++) {
+                    String xMarker = this.varsList.get(jj).getName();
+                    String xValue = "" + this.varsList.get(jj).getValueInt();
+                    String toBeReplaced = "@@@" + xMarker + "@@@";
 //            System.out.println("toBeReplaced :" + toBeReplaced + "  ---> " + xValue);
 
-            if (defVal != null && defVal.contains(toBeReplaced)) {
-                defVal = defVal.replace(toBeReplaced, xValue);
+                    if (defVal != null && defVal.contains(toBeReplaced)) {
+                        defVal = defVal.replace(toBeReplaced, xValue);
+                    }
+                }
             }
+        } catch (Exception e) {
+            System.out.println("browserArgsReplace: varsList ERROR   :" + e.toString());
+
         }
         return defVal;
+    }
+
+    public static String replacer(String text) {
+        String data = text;
+        try {
+            data = data.replaceAll("%(?![0-9a-fA-F]{2})", "%25");
+            data = data.replaceAll("\\+", "%2B");
+            data = URLDecoder.decode(data, "utf-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return data;
     }
 
     public ArrayList<SelectListLine> getArgList() {
@@ -1925,6 +2187,7 @@ public class PDFdoc {
             code1281.setFont(null);
             code1281.setTextAlignment(Element.ALIGN_RIGHT);
             BCimage = code1281.createImageWithBarcode(writer.getDirectContent(), null, null);
+//            BCimage.scaleAbsoluteHeight(10);
         }
 
         return BCimage;

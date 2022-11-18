@@ -64,13 +64,18 @@ public class EVOpagerDBconnection {
 //        el.setPrintOnLog(true);
 //        el.log("EVOpagerDBconnection", "creando connessione...");
     }
+public EVOpagerDBconnection( Settings xSettings) { 
+        this.mySettings = xSettings; 
+    }
 
     public EVOpagerDBconnection() {
     }
 
     public Connection ConnLocalDataDB() {
         String SQLdriver = mySettings.getData_SQLdriver();
+        
         String DBname = getDbExtendedName(myParams.getCKprojectGroup(), mySettings.getProjectDB(), myParams.getCKcontextID());
+        
         String URL = mySettings.getData_defaultSQLserver();
         String alternativeURL = mySettings.getData_alternativeSQLserver();
         String USERNAME = mySettings.getData_DATABASE_USER();
@@ -217,6 +222,22 @@ public class EVOpagerDBconnection {
                 PASSWORD
         );
     }
+    
+    public Connection ConnLocalDMZ(String DBname, String USERNAME, String PASSWORD) {
+        String SQLdriver = mySettings.getFE_SQLdriver(); 
+        String URL = mySettings.getFE_defaultSQLserver();
+        String alternativeURL = mySettings.getFE_alternativeSQLserver();
+ 
+//         System.out.println("ConnLocalQueenpro: DATABASE_USER: " + USERNAME);
+        return makeConnection(
+                SQLdriver,
+                URL,
+                alternativeURL,
+                DBname,
+                USERNAME,
+                PASSWORD
+        );
+    }
 
     public Connection ConnLocalQueenpro() {
         String SQLdriver = mySettings.getFE_SQLdriver();
@@ -227,7 +248,7 @@ public class EVOpagerDBconnection {
         String USERNAME = mySettings.getFE_DATABASE_USER();
         String PASSWORD = mySettings.getFE_DATABASE_PW();
 
-//         System.out.println("ConnLocalQueenpro: DATABASE_USER: " + USERNAME);
+         System.out.println("ConnLocalQueenpro: DATABASE_USER: " + USERNAME);
         return makeConnection(
                 SQLdriver,
                 URL,

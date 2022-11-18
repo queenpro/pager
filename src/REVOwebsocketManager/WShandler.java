@@ -520,7 +520,7 @@ public class WShandler {
                 PreparedStatement ps;
                 String SQLphrase;
                 ResultSet rs = null;
-//                System.out.println("Client LightHouse  received Websocket message:" + message);
+                System.out.println("Client LightHouse  received Websocket handshake message:" + message);
                 String CLIENT_ID = "SESS-" + session.getId() + "-" + session.getRequestURI();
                 String CLIENT_TYPE = "BROWSER";
                 String CLIENT_MODEL = "defBrowser";
@@ -943,7 +943,6 @@ public class WShandler {
     public void parseOpen(Session session, String clientId) {
         this.GlobalSession = session;
         System.out.println("\n###############\nopenRoutine]session.getOpenSessions().size = " + session.getOpenSessions().size());
-
         /*
         Controllo se non ho già in memoria un client con lo stesso clientID e SessionID
          */

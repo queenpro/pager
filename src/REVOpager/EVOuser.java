@@ -1146,15 +1146,37 @@ public class EVOuser {
 
             //===acquisisco le informazioni di timestamp del login e lastTouch (updated)         
             //se qualcosa va storto esco subito con permesso=-1
+            ps = null;
+            rs = null;
             SQLphrase = "SELECT " + TABLEtokens + ".* , TIMESTAMPDIFF(SECOND, " + TABLEtokens + ".recorded, "
                     + "NOW()) as totalTime , TIMESTAMPDIFF(SECOND, " + TABLEtokens + ".updated, "
                     + "NOW()) as pauseTime FROM " + TABLEtokens + " "
                     + "WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
             // System.out.println("verifyUserTimeout ->SQLphrase:" + SQLphrase);
-            ps = null;
+
             ps = accountConny.prepareStatement(SQLphrase);
-            rs = null;
-            rs = ps.executeQuery();
+            try {
+                rs = ps.executeQuery();
+            } catch (Exception e) {
+                System.out.println("verifyUserTimeout ->ERROR :" + SQLphrase);
+                SQLphrase = "SELECT " + TABLEtokens.toLowerCase() + ".* , TIMESTAMPDIFF(SECOND, " + TABLEtokens.toLowerCase() + ".recorded, "
+                        + "NOW()) as totalTime , TIMESTAMPDIFF(SECOND, " + TABLEtokens.toLowerCase() + ".updated, "
+                        + "NOW()) as pauseTime FROM " + TABLEtokens.toLowerCase() + " "
+                        + "WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
+                // System.out.println("verifyUserTimeout ->SQLphrase:" + SQLphrase);
+
+                ps = accountConny.prepareStatement(SQLphrase);
+                try {
+                    rs = ps.executeQuery();
+                    System.out.println("verifyUserTimeout ->LOWERCASE OK ! :" + SQLphrase);
+                } catch (Exception ex) {
+                    System.out.println("verifyUserTimeout ->ERROR :" + SQLphrase);
+                    ex.printStackTrace();
+
+                }
+
+            }
+
             loggedStatus = 0;
             while (rs.next()) {
                 sessionFound = 1;
@@ -1225,14 +1247,25 @@ public class EVOuser {
                 try {
                     String SQLphrase;
                     PreparedStatement ps;
-                    SQLphrase = "UPDATE `archivio_operatoriTokens` SET `loggedStatus`= 0, `token`= 'OVER_" + myParams.getCKtokenID() + "'  "
+                    SQLphrase = "UPDATE `" + TABLEtokens + "` SET `loggedStatus`= 0, `token`= 'OVER_" + myParams.getCKtokenID() + "'  "
                             + "WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
 //                    System.out.println("\n*\nverifyUserTimeout-->SONO IN logout." + SQLphrase);
                     ps = accountConny.prepareStatement(SQLphrase);
                     int i = ps.executeUpdate();
                     accountConny.close();
                 } catch (SQLException ex) {
-                    System.out.println("Error:" + ex);
+                    try {
+                        String SQLphrase;
+                        PreparedStatement ps;
+                        SQLphrase = "UPDATE `" + TABLEtokens.toLowerCase() + "` SET `loggedStatus`= 0, `token`= 'OVER_" + myParams.getCKtokenID() + "'  "
+                                + "WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
+//                    System.out.println("\n*\nverifyUserTimeout-->SONO IN logout." + SQLphrase);
+                        ps = accountConny.prepareStatement(SQLphrase);
+                        int i = ps.executeUpdate();
+                        accountConny.close();
+                    } catch (SQLException ee) {
+                        System.out.println("Error:" + ee);
+                    }
                 }
                 myEvent.setEventCode("tokenExpired");
             } else {

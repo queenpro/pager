@@ -537,23 +537,43 @@ public class eventManager {
         myParams = request.getMyParams();
         mySettings = request.getMySettings();
         String token = myParams.getCKtokenID();
+        String TABLEtokens = mySettings.getAccount_TABLEtokens();
 
         if (token != null && token != "null") {
             Connection accountConny = new EVOpagerDBconnection(myParams, mySettings).ConnAccountDB();
             try {
                 String SQLphrase;
                 PreparedStatement ps;
-                SQLphrase = "UPDATE `archivio_operatoriTokens` SET `loggedStatus`= 0  WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
+                SQLphrase = "UPDATE `" + TABLEtokens + "` SET `loggedStatus`= 0  WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
 //                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "EVOLLogout ->SQLphrase:" + SQLphrase);
                 ps = accountConny.prepareStatement(SQLphrase);
-                int i = ps.executeUpdate();
+                try {
+                    int i = ps.executeUpdate();
+                } catch (Exception e) {
+                    SQLphrase = "UPDATE `" + TABLEtokens.toLowerCase() + "` SET `loggedStatus`= 0  WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
+//                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "EVOLLogout ->SQLphrase:" + SQLphrase);
+                    ps = accountConny.prepareStatement(SQLphrase);
+                    try {
+                        int i = ps.executeUpdate();
+                    } catch (Exception ee) {
+                    }
 
-                SQLphrase = "UPDATE `archivio_operatoriTokens` SET `token`= 'OVER_" + myParams.getCKtokenID() + "'  WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
+                }
+
+                SQLphrase = "UPDATE `" + TABLEtokens + "` SET `token`= 'OVER_" + myParams.getCKtokenID() + "'  WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
                 System.out.println("\n*\neventManager-->SONO IN logout." + SQLphrase);
-
-//                 el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "EVOLLogout ->SQLphrase:" + SQLphrase);
                 ps = accountConny.prepareStatement(SQLphrase);
-                i = ps.executeUpdate();
+                try {
+                    int i = ps.executeUpdate();
+                } catch (Exception e) {
+                    SQLphrase = "UPDATE `" + TABLEtokens.toLowerCase() + "` SET `token`= 'OVER_" + myParams.getCKtokenID() + "'  WHERE rifUser='" + myParams.getCKuserID() + "' AND token='" + myParams.getCKtokenID() + "'";
+                    System.out.println("\n*\neventManager-->SONO IN logout." + SQLphrase);
+                    ps = accountConny.prepareStatement(SQLphrase);
+                    try {
+                        int i = ps.executeUpdate();
+                    } catch (Exception ee) {
+                    }
+                }
                 accountConny.close();
             } catch (SQLException ex) {
                 el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Error:" + ex);
@@ -562,6 +582,7 @@ public class eventManager {
         } else {
             myEvent.setEventCode("tokenNotFound");
         }
+
         try {
             myEvent.save(myParams, mySettings);
         } catch (Exception e) {
@@ -976,12 +997,12 @@ public class eventManager {
                     mess = "Conferma di registrazione eseguita correttamente.";
 
                 } else {
-
-                    SQLphrase = "DELETE FROM " + tabOperatori + "   WHERE ID ='" + token + "'";
+                    // in caso di utente bloccato vado a -1. Per essere eliminato devo essere a meno di -1
+                    SQLphrase = "DELETE FROM " + tabOperatori + "   WHERE ID ='" + token + "' AND alive < -1 ";
                     ps = accountConny.prepareStatement(SQLphrase);
                     int i = ps.executeUpdate();
                     code = "confirmTimeout";
-                    mess = "Timeout di conferma: eseguire nuovamente la procedura di registrazione.";
+                    mess = "Timeout di conferma: eseguire nuovamente la procedura di registrazione o attendere l'abilitazione da parte di un amministratore.";
 
                 }
             }
@@ -1047,8 +1068,10 @@ public class eventManager {
                 extension = rs.getString("definition");
             }
             QPconny.close();
+
         } catch (SQLException ex) {
-            Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(eventManager.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
 
         ResultSet rs;
@@ -1307,8 +1330,10 @@ public class eventManager {
                     }
                     QPconny.close();
                     request.getMyParams().setCKcontextID(extension);
+
                 } catch (SQLException ex) {
-                    Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(eventManager.class
+                            .getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -1836,8 +1861,10 @@ public class eventManager {
                 }
                 QPconny.close();
                 request.getMyParams().setCKcontextID(extension);
+
             } catch (SQLException ex) {
-                Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(eventManager.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
         }
 
@@ -2656,8 +2683,10 @@ public class eventManager {
             ClassProjectUpdate dbMaker = new ClassProjectUpdate(myParams, mySettings);
             try {
                 feedback = dbMaker.autoUpdate();
+
             } catch (IOException ex) {
-                Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(eventManager.class
+                        .getName()).log(Level.SEVERE, null, ex);
                 el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", ex.toString());
 
             }
@@ -2715,8 +2744,10 @@ public class eventManager {
 
         try {
             feedback = dbMaker.autoUpdate();
+
         } catch (IOException ex) {
-            Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(eventManager.class
+                    .getName()).log(Level.SEVERE, null, ex);
             el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n-->feedback:" + feedback);
 
         }
@@ -3098,8 +3129,10 @@ public class eventManager {
         }
         try {
             conny.close();
+
         } catch (SQLException ex) {
-            Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(eventManager.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
         String HtmlCode = "";
         HtmlCode += "<TABLE>";
@@ -4111,7 +4144,7 @@ public class eventManager {
             myEvent.setToken(newToken);
             // compilo database dei login
             Connection accountConny = new EVOpagerDBconnection(myParams, mySettings).ConnAccountDB();
-            String SQLphrase = "INSERT INTO `archivio_operatoriTokens`("
+            String SQLphrase = "INSERT INTO `" + mySettings.getAccount_TABLEtokens() + "`("
                     + "`token`, `rifUser`,  `updated`, `jsessionID`, "
                     + "`remoteIP`, `loggedStatus`, `projectGroup`, `projectName`, `contextID`"
                     + ") VALUES ("
@@ -4122,19 +4155,48 @@ public class eventManager {
 
             try {
                 ps = accountConny.prepareStatement(SQLphrase);
-                ps.setString(1, myParams.getCKtokenID());
-                ps.setString(2, myParams.getCKuserID());
-                ps.setString(3, "newSession");
-                ps.setString(4, remoteIP);
-                ps.setInt(5, 1);
-                ps.setString(6, myParams.getCKprojectGroup());
-                ps.setString(7, mySettings.getProjectName());
-                ps.setString(8, myParams.getCKcontextID());
+                
+                    ps.setString(1, myParams.getCKtokenID());
+                    ps.setString(2, myParams.getCKuserID());
+                    ps.setString(3, "newSession");
+                    ps.setString(4, remoteIP);
+                    ps.setInt(5, 1);
+                    ps.setString(6, myParams.getCKprojectGroup());
+                    ps.setString(7, mySettings.getProjectName());
+                    ps.setString(8, myParams.getCKcontextID());
 //                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\nINSERIMENTO TOKEN.\n" + ps.toString());
-                int i = ps.executeUpdate();
-                esito = i;
+                    int i = ps.executeUpdate();
+                    esito = i;
+
+              
             } catch (SQLException ex) {
-                Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+                 System.out.println("\n\n\nTENTIAMO CON LOWERCASE " );
+                SQLphrase = "INSERT INTO `" + mySettings.getAccount_TABLEtokens().toLowerCase() + "`("
+                        + "`token`, `rifUser`,  `updated`, `jsessionID`, "
+                        + "`remoteIP`, `loggedStatus`, `projectGroup`, `projectName`, `contextID`"
+                        + ") VALUES ("
+                        + "?,?,now(),?,?,?,?,?,?)";
+
+                try {
+                    ps = accountConny.prepareStatement(SQLphrase);
+                   
+                        ps.setString(1, myParams.getCKtokenID());
+                        ps.setString(2, myParams.getCKuserID());
+                        ps.setString(3, "newSession");
+                        ps.setString(4, remoteIP);
+                        ps.setInt(5, 1);
+                        ps.setString(6, myParams.getCKprojectGroup());
+                        ps.setString(7, mySettings.getProjectName());
+                        ps.setString(8, myParams.getCKcontextID());
+//                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\nINSERIMENTO TOKEN.\n" + ps.toString());
+                        int i = ps.executeUpdate();
+                        esito = i;
+
+                  
+                } catch (SQLException e) {
+//                    Logger.getLogger(eventManager.class
+//                            .getName()).log(Level.SEVERE, null, e);
+                }
             }
 
 //            el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\n\n\n\tLOGIN EFFETUATO.\n\n\n\n\n");
@@ -4162,31 +4224,64 @@ public class eventManager {
              } catch (Exception e) {
             el.log(myParams.getCKprojectName()+myParams.getCKcontextID()+"eventManager","EVO catcher : errore nella fase di backup.\n");
              }*/
+            String tableTokens = mySettings.getAccount_TABLEtokens();
             Connection accountConny = new EVOpagerDBconnection(myParams, mySettings).ConnAccountDB();
-            String SQLphrase = "INSERT INTO `archivio_operatoriTokens`("
+
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+            String SQLphrase = "INSERT INTO `" + tableTokens + "`("
                     + "`token`, `rifUser`,  `updated`, `jsessionID`, "
                     + "`remoteIP`, `loggedStatus`, `projectGroup`, `projectName`, `contextID`"
                     + ") VALUES ("
                     + "?,?,now(),?,?,?,?,?,?)";
-
-            PreparedStatement ps = null;
-            ResultSet rs = null;
-
             try {
                 ps = accountConny.prepareStatement(SQLphrase);
-                ps.setString(1, "OVER_" + myParams.getCKtokenID());
-                ps.setString(2, username);
-                ps.setString(3, "BadCredentials");
-                ps.setString(4, remoteIP);
-                ps.setInt(5, -2);
-                ps.setString(6, myParams.getCKprojectGroup());
-                ps.setString(7, mySettings.getProjectName());
-                ps.setString(8, myParams.getCKcontextID());
+                try {
+
+                    ps.setString(1, "OVER_" + myParams.getCKtokenID());
+                    ps.setString(2, username);
+                    ps.setString(3, "BadCredentials");
+                    ps.setString(4, remoteIP);
+                    ps.setInt(5, -2);
+                    ps.setString(6, myParams.getCKprojectGroup());
+                    ps.setString(7, mySettings.getProjectName());
+                    ps.setString(8, myParams.getCKcontextID());
 //                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\nINSERIMENTO TOKEN.\n" + ps.toString());
-                int i = ps.executeUpdate();
+                    int i = ps.executeUpdate();
+
+                } catch (SQLException ex) {
+                    Logger.getLogger(eventManager.class
+                            .getName()).log(Level.SEVERE, null, ex);
+                }
             } catch (SQLException ex) {
-                Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+                SQLphrase = "INSERT INTO `" + tableTokens.toLowerCase() + "`("
+                        + "`token`, `rifUser`,  `updated`, `jsessionID`, "
+                        + "`remoteIP`, `loggedStatus`, `projectGroup`, `projectName`, `contextID`"
+                        + ") VALUES ("
+                        + "?,?,now(),?,?,?,?,?,?)";
+                try {
+                    ps = accountConny.prepareStatement(SQLphrase);
+                    try {
+
+                        ps.setString(1, "OVER_" + myParams.getCKtokenID());
+                        ps.setString(2, username);
+                        ps.setString(3, "BadCredentials");
+                        ps.setString(4, remoteIP);
+                        ps.setInt(5, -2);
+                        ps.setString(6, myParams.getCKprojectGroup());
+                        ps.setString(7, mySettings.getProjectName());
+                        ps.setString(8, myParams.getCKcontextID());
+//                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\nINSERIMENTO TOKEN.\n" + ps.toString());
+                        int i = ps.executeUpdate();
+
+                    } catch (SQLException ep) {
+                        Logger.getLogger(eventManager.class
+                                .getName()).log(Level.SEVERE, null, ex);
+                    }
+                } catch (SQLException ee) {
+                }
             }
+
         }
 
         myParams.setLoginResult(esito);
@@ -4343,10 +4438,12 @@ public class eventManager {
                         surname = rs.getString("surname");
                     } catch (Exception ex) {
                         surname = "N.D.";
+
                     }
                 }
             } catch (SQLException ex) {
-                Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(eventManager.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
 
             if (lines == 1) {
@@ -4368,20 +4465,35 @@ public class eventManager {
                 String newToken = "" + idOne;
                 myParams.setCKtokenID(newToken);
                 myParams.setCKuserID(ID);
-
+                String tableTokens = mySettings.getAccount_TABLEtokens();
                 // compilo database dei login
                 //  Connection accountConny = new EVOpagerDBconnection(myParams, mySettings).ConnAccountDB();
-                SQLphrase = "INSERT INTO `archivio_operatoriTokens`("
+
+                ps = null;
+                rs = null;
+                SQLphrase = "INSERT INTO `" + tableTokens + "`("
                         + "`token`, `rifUser`,  `updated`, `jsessionID`, "
                         + "`remoteIP`, `loggedStatus`, `projectGroup`, `projectName`, `contextID`, `quickAccessToken`"
                         + ") VALUES ("
                         + "?,?,now(),?,?,?,?,?,?,?)";
                 System.out.println("SQLphrase:" + SQLphrase);
-                ps = null;
-                rs = null;
-
                 try {
                     ps = accountConny.prepareStatement(SQLphrase);
+                } catch (SQLException ex) {
+                    SQLphrase = "INSERT INTO `" + tableTokens.toLowerCase() + "`("
+                            + "`token`, `rifUser`,  `updated`, `jsessionID`, "
+                            + "`remoteIP`, `loggedStatus`, `projectGroup`, `projectName`, `contextID`, `quickAccessToken`"
+                            + ") VALUES ("
+                            + "?,?,now(),?,?,?,?,?,?,?)";
+                    System.out.println("SQLphrase:" + SQLphrase);
+                    try {
+                        ps = accountConny.prepareStatement(SQLphrase);
+                    } catch (SQLException ee) {
+                        Logger.getLogger(eventManager.class
+                                .getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                try {
                     ps.setString(1, myParams.getCKtokenID());
                     ps.setString(2, myParams.getCKuserID());
                     ps.setString(3, "newSession");
@@ -4394,8 +4506,10 @@ public class eventManager {
                     el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\nINSERIMENTO TOKEN.\n" + ps.toString());
                     int i = ps.executeUpdate();
                     esito = i;
+
                 } catch (SQLException ex) {
-                    Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(eventManager.class
+                            .getName()).log(Level.SEVERE, null, ex);
                 }
 
                 el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\n\n\n\tLOGIN EFFETUATO.\n\n\n\n\n");
@@ -4467,8 +4581,10 @@ public class eventManager {
             }
             try {
                 accountConny.close();
+
             } catch (SQLException ex) {
-                Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(eventManager.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
         } else {// non attivo il quicklogin
             request.getMyGate().setType("pincodeOnWeb");
@@ -4504,8 +4620,10 @@ public class eventManager {
         try {
             InetAddress ip = InetAddress.getLocalHost();
             localIP = ip.getHostAddress();
+
         } catch (UnknownHostException ex) {
-            Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(eventManager.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
 
         System.out.println("SERVER LOCAL IP:" + localIP);
@@ -4547,6 +4665,7 @@ public class eventManager {
         }
 
         return localClient;
+
     }
 
     private class childLink {
@@ -4622,8 +4741,10 @@ public class eventManager {
                 extension = rs.getString("definition");
             }
             QPconny.close();
+
         } catch (SQLException ex) {
-            Logger.getLogger(eventManager.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(eventManager.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
         return extension;
     }
@@ -4661,6 +4782,7 @@ public class eventManager {
                 + ""
                 + "");
         return HtmlCode;
+
     }
 }
 

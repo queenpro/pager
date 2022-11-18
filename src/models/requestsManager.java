@@ -65,7 +65,7 @@ public class requestsManager {
 
     public IncomingRequest processRequest() {
 
-//        System.out.println("SONO IN PROCESS REQUEST:");
+        System.out.println("SONO IN PROCESS REQUEST:");
         String responseType = this.Irequest.getResponseType();
         String connectors = this.Irequest.getConnectors();
         String paramsJSON = this.Irequest.getParams();
@@ -78,7 +78,7 @@ public class requestsManager {
         } catch (Exception e) {
             System.out.println("requestsManager-->ERRORE IN CARICAMENTO PARAMETRI:" + e.toString());
         }
-        //  System.out.println("\t\tFATTO! ");
+          System.out.println("\t\tFATTO! ");
 /*
         Attenzione : a questo punto se sono in LOGIN e non ho un CNT (context) devo
         cercare nel DB queenpro il CNT di default.
@@ -1003,6 +1003,8 @@ public class requestsManager {
 
                     // IN PRATICA QUI TORNO A PPORTAL CON UNA ROUTINE DA ESEGIORE IN LOCALE
                     // compilando myGate con i dati sulla roiutine da eseguire
+                } else if (Irequest.getMyGate().getEvent().equalsIgnoreCase("APIserverRoutine")) { 
+                    Irequest.setOutputStreamType("APIserverRoutine");
                 } else if (Irequest.getMyGate().getEvent().equalsIgnoreCase("ROUTINEONLOAD")) {
                     // IN PRAICA QUI TORNO A PPORTAL CON UNA ROUTINE DA ESEGIORE IN LOCALE
                     // compilando myGate con i dati sulla roiutine da eseguire

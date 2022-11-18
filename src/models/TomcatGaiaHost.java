@@ -76,14 +76,20 @@ public class TomcatGaiaHost {
         String pth;
         pth = System.getProperty("user.dir");
         String separator = "\\";
+
+        if (pth.startsWith("/") || pth.endsWith("/")) {
+            separator = "/";
+        }
         if (pth.endsWith("/")) {
             separator = "";
-        } else {
-            separator = "\\";
         }
+        if (pth.endsWith("\\")) {
+            separator = "";
+        }
+
         path = pth + separator + "GaiaSettings.txt";
 
-//        System.out.println("\n>>>>>>>>> user.dir:" + pth + "     >>>>>>>>> ConfigPath:" + path);
+        System.out.println("\n>>>>>>>>> user.dir:" + pth + "     >>>>>>>>> ConfigPath:" + path);
         return path;
     }
 
@@ -99,16 +105,18 @@ public class TomcatGaiaHost {
                 System.out.println("\n>>>>>>>>>ERROR: CONFIG DATA NOT FOUND IN:" + path);
                 System.out.println("TRY TO MAKE IT:" + path);
                 data = null;
-
             }
 //            System.out.println("\n>>>>>>>>> DATA FROM DISK:" + data);
 
         } catch (FileNotFoundException ex) {
-            System.out.println("\ngetConfigData>>>>>>>>>FILE NOT FOUND");
+            System.out.println("\ngetConfigData>>>>>>>>>FILE NOT FOUND: " + path);
+
+            System.out.println("\t " + ex.toString());
         } catch (IOException ex) {
-            System.out.println("\ngetConfigData>>>>>>>>>FILE NOT REACHABLE");
+            System.out.println("\ngetConfigData>>>>>>>>>FILE NOT REACHABLE:" + path);
+            System.out.println("\t " + ex.toString());
         }
-        if (data == null || data.length()<=0) {
+        if (data == null || data.length() <= 0) {
 
             try {
                 File myObj = new File(path);
@@ -139,7 +147,7 @@ public class TomcatGaiaHost {
 
     public void getProjectInfos() {
 //        System.out.println("\n<<<<<>>>>>> data:" + data);
-        int flag=0;
+        int flag = 0;
         if (data != null && data.length() > 0) {
             try {
                 JSONParser jsonParser = new JSONParser();
@@ -157,26 +165,27 @@ public class TomcatGaiaHost {
                         dbSeed = jObject.get("dbSeed").toString();
                         pwType = jObject.get("pwType").toString();
                         QP_centralManagerURL = jObject.get("QP_centralManagerURL").toString();
-                        flag ++;
+                        flag++;
                         break;
                     }
                 }
-                
+
             } catch (ParseException ex) {
                 Logger.getLogger(TomcatGaiaHost.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
-            flag=0;
+            flag = 0;
         }
-        if (flag<=0){
-            
+        if (flag <= 0) {
+
             dbUsername = "Anakim";
             dbSeed = "Padme";
             pwType = "standard";
             QP_centralManagerURL = "http://queenpro.myqnapcloud.com:9080/qpmanager/centralManager";
         }
-        
+
     }
+
     public String getQP_centralManagerURL() {
         return QP_centralManagerURL;
     }

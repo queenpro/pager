@@ -764,7 +764,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                 ArrayList<boundFields> boundFieldList = new ArrayList<boundFields>();
 
                 // <editor-fold defaultstate="collapsed" desc="ANALIZZO filterSequence">   
-                System.out.println("\nADD================\n2.ANALIZZO filterSequence:" + this.getFilterSequence());
+                System.out.println("\nexecuteSmartCRUD->ADD================\n2.ANALIZZO filterSequence:" + this.getFilterSequence());
                 //analizzo la filterSequence per aggiungere i campi autocompilati
 
                 if (this.getFilterSequence() != null && this.getFilterSequence().length() > 0) {
@@ -973,14 +973,19 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
 
                     // se la key era un autoincrement devo cercare il suo valore massimo
                     // altrimenti la conosco già ( primaryKEY  e  primaryKEYtype)
-//                    System.out.println("pKEYtype:" + pKEYtype);
+                    System.out.println("pKEYtype:" + pKEYtype);
                     if (pKEYtype.equalsIgnoreCase("AUTOINCREMENT")) {
+                        
+                        System.out.println("se la key era un autoincrement devo cercare il suo valore massimo:"+this.getPrimaryFieldName() );
                         SQLphrase = "SELECT * FROM `" + dbTable + "` WHERE ";
 
                         fieldsList = "";
                         for (int jj = 0; jj < boundFieldList.size(); jj++) {
                             if (!boundFieldList.get(jj).getValue().contains("CURTIME")
-                                    && !boundFieldList.get(jj).getValue().contains("NOW")) {
+                                    && !boundFieldList.get(jj).getValue().contains("NOW")
+                                    && !boundFieldList.get(jj).getValue().contains("now")
+                                    
+                                    ) {
 
                                 if (fieldsList.length() > 0) {
                                     fieldsList += " AND ";
@@ -992,7 +997,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
 
                         SQLphrase = standardReplace(SQLphrase, null);
 
-//                        System.out.println("SQLphrase di ricerca nuovo ID:" + SQLphrase);
+                        System.out.println("SQLphrase di ricerca nuovo ID:" + SQLphrase);
                         rs = s.executeQuery(SQLphrase);
                         while (rs.next()) {
                             newID = rs.getInt(this.getPrimaryFieldName());
@@ -1976,9 +1981,9 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
 
         // ora inizio il parsing delle info da StC
 //           System.out.println("standardReplace Step 3 getSendToCRUD:" + params);
-        System.out.println("standardReplace--->applico sostituzioni con SendToCRUD:" + this.getSendToCRUD());
+//        System.out.println("standardReplace--->applico sostituzioni con SendToCRUD:" + this.getSendToCRUD());
         defVal = replaceMarkers(defVal, decodeURLstring(this.getSendToCRUD()));
-        System.out.println("standardReplace--->applico sostituzioni con ToBeSent:" + this.getToBeSent());
+//        System.out.println("standardReplace--->applico sostituzioni con ToBeSent:" + this.getToBeSent());
         defVal = replaceMarkers(defVal, decodeURLstring(this.getToBeSent()));
 
 //        System.out.println(" *REPLACE RESULT:" + defVal);

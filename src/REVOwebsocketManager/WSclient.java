@@ -40,26 +40,53 @@ public class WSclient {
     String tokenAssigned;
     EVOpagerParams clientParams;
     int tempFound;
-    boolean handshaked; 
+    boolean handshaked;
     int nofErrors;
-    
-    String token; 
+
+    String token;
     String clientModel;
     String clientType;
     String userID;
     String userPassword;
 
-   String URI;
-   String status;
-   String clientIP;
-    
+    String URI;
+    String status;
+    String clientIP;
+
+    String CLIENT_SERVERNAME;
+    String CLIENT_PROJECTNAME;
+    String CLIENT_CONTEXT;
 
     public WSclient(String XclientID, String sessionID, String tokenAssigned) {
         this.clientID = XclientID;
         this.sessionID = sessionID;
         this.clientParams = new EVOpagerParams();
         this.tokenAssigned = tokenAssigned;
-        handshaked=false;
+        handshaked = false;
+    }
+
+    public String getCLIENT_SERVERNAME() {
+        return CLIENT_SERVERNAME;
+    }
+
+    public void setCLIENT_SERVERNAME(String CLIENT_SERVERNAME) {
+        this.CLIENT_SERVERNAME = CLIENT_SERVERNAME;
+    }
+
+    public String getCLIENT_PROJECTNAME() {
+        return CLIENT_PROJECTNAME;
+    }
+
+    public void setCLIENT_PROJECTNAME(String CLIENT_PROJECTNAME) {
+        this.CLIENT_PROJECTNAME = CLIENT_PROJECTNAME;
+    }
+
+    public String getCLIENT_CONTEXT() {
+        return CLIENT_CONTEXT;
+    }
+
+    public void setCLIENT_CONTEXT(String CLIENT_CONTEXT) {
+        this.CLIENT_CONTEXT = CLIENT_CONTEXT;
     }
 
     public String getStatus() {
@@ -229,5 +256,5 @@ public class WSclient {
     public void setSessionID(String sessionID) {
         this.sessionID = sessionID;
     }
-     
+
 }
