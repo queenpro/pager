@@ -135,6 +135,12 @@ public class Settings {
     private String CLIENT_MODEL;
     private String CLIENT_USER_ID;
     private String CLIENT_USER_PW;
+    
+    
+    private boolean usesGeoMap;
+    private boolean usesAudioRec;
+    private boolean usesTree;
+    private boolean databrowser;
 
     public void chargeHost() {
         gaiaHost = new TomcatGaiaHost(projectName);
@@ -224,8 +230,40 @@ public class Settings {
 
     }
 
+    public boolean isUsesTree() {
+        return usesTree;
+    }
+
+    public void setUsesTree(boolean usesTree) {
+        this.usesTree = usesTree;
+    }
+
+    public boolean isUsesGeoMap() {
+        return usesGeoMap;
+    }
+
+    public void setUsesGeoMap(boolean usesGeoMap) {
+        this.usesGeoMap = usesGeoMap;
+    }
+
+    public boolean isUsesAudioRec() {
+        return usesAudioRec;
+    }
+
+    public void setUsesAudioRec(boolean usesAudioRec) {
+        this.usesAudioRec = usesAudioRec;
+    }
+
     public String getCLIENT_ID() {
         return CLIENT_ID;
+    }
+
+    public boolean isDatabrowser() {
+        return databrowser;
+    }
+
+    public void setDatabrowser(boolean databrowser) {
+        this.databrowser = databrowser;
     }
 
     public void setCLIENT_ID(String CLIENT_ID) {

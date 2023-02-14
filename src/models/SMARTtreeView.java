@@ -493,7 +493,7 @@ public class SMARTtreeView {
         myCRUD.setSendToCRUD(sendToCRUD);
         query = myCRUD.standardReplace(query, null);
 
-        System.out.println("\n>browserArgsReplace>>> " + query);
+        System.out.println("\n>browserArgsReplace->->-> " + query);
         return query;
 
     }

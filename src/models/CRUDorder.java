@@ -751,7 +751,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                         this.setPrimaryFieldName(pKEY);
 
                         pKEYtype = "VARCHAR";
-                        if (columns.get(jj).getDATA_TYPE()!=null && columns.get(jj).getDATA_TYPE().length()>2 && columns.get(jj).getDATA_TYPE().substring(0, 3).equalsIgnoreCase("INT")) {
+                        if (columns.get(jj).getDATA_TYPE() != null && columns.get(jj).getDATA_TYPE().length() > 2 && columns.get(jj).getDATA_TYPE().substring(0, 3).equalsIgnoreCase("INT")) {
                             pKEYtype = "INT";
                         }
                         if (columns.get(jj).getEXTRA().equalsIgnoreCase("auto_increment")) {
@@ -835,7 +835,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                                 int maxfound = 0;
                                 String SQLphrase2 = myForm.getQuery();
                                 try {
-                                     
+
                                     SQLphrase2 = replaceMarkers(myForm.getQuery(), decodeURLstring(myForm.getSendToCRUD()));
                                     System.out.println("executeSmartCRUD-->SQLphrase2:" + SQLphrase2);
                                     Statement s2 = conny.createStatement();
@@ -941,7 +941,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                                     && xValue.substring(0, 1).equals("'")
                                     && xValue.substring(lunghezza - 1, lunghezza).equals("'")) {
                                 yValue = xValue.substring(1, lunghezza - 1);
-                                yValue = "'" + yValue.replace("'", "\'") + "'";
+                                yValue = "'" + yValue.replace("'", "''") + "'";
                             }
                         }
                         valuesList += yValue;
@@ -975,22 +975,33 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                     // altrimenti la conosco già ( primaryKEY  e  primaryKEYtype)
                     System.out.println("pKEYtype:" + pKEYtype);
                     if (pKEYtype.equalsIgnoreCase("AUTOINCREMENT")) {
-                        
-                        System.out.println("se la key era un autoincrement devo cercare il suo valore massimo:"+this.getPrimaryFieldName() );
+
+                        System.out.println("se la key era un autoincrement devo cercare il suo valore massimo:" + this.getPrimaryFieldName());
                         SQLphrase = "SELECT * FROM `" + dbTable + "` WHERE ";
 
                         fieldsList = "";
                         for (int jj = 0; jj < boundFieldList.size(); jj++) {
                             if (!boundFieldList.get(jj).getValue().contains("CURTIME")
                                     && !boundFieldList.get(jj).getValue().contains("NOW")
-                                    && !boundFieldList.get(jj).getValue().contains("now")
-                                    
-                                    ) {
+                                    && !boundFieldList.get(jj).getValue().contains("now")) {
 
                                 if (fieldsList.length() > 0) {
                                     fieldsList += " AND ";
                                 }
-                                fieldsList += "`" + boundFieldList.get(jj).getMarker() + "`=" + boundFieldList.get(jj).getValue();
+                                //-------------
+                                String xValue = boundFieldList.get(jj).getValue();
+                                String yValue = xValue;
+                                if (xValue != null) {
+                                    int lunghezza = xValue.length();
+                                    if (xValue.length() > 2
+                                            && xValue.substring(0, 1).equals("'")
+                                            && xValue.substring(lunghezza - 1, lunghezza).equals("'")) {
+                                        yValue = xValue.substring(1, lunghezza - 1);
+                                        yValue = "'" + yValue.replace("'", "''") + "'";
+                                    }
+                                }
+                                //-------------------
+                                fieldsList += "`" + boundFieldList.get(jj).getMarker() + "`=" + yValue;
                             }
                         }
                         SQLphrase += fieldsList + " ORDER BY `" + pKEY + "` DESC ";
@@ -1043,7 +1054,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
             //UPD/////////////////////////////////////////////////////////////// 
             if (this.getOperation().equalsIgnoreCase("UPD")) {
                 SQLphrase = "UPDATE `" + dbTable + "` SET  `" + this.getCellName() + "` = ? " + whereClause;
-                System.out.println("SQLphrase:"+SQLphrase);
+                System.out.println("SQLphrase:" + SQLphrase);
                 PreparedStatement statement = conny.prepareStatement(SQLphrase);
 
                 // Problema, in caso di valore nullo cambia il modo di fare update
@@ -1053,13 +1064,13 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                 String fieldType = "";
                 schema_column myColumn;
                 for (schema_column column : columns) {
-                    System.out.println("Colonna " + column.getCOLUMN_NAME() + "  = " + column.getCOLUMN_TYPE()+"  ->>"+column.getDATA_TYPE().substring(0, 3));
+                    System.out.println("Colonna " + column.getCOLUMN_NAME() + "  = " + column.getCOLUMN_TYPE() + "  ->>" + column.getDATA_TYPE().substring(0, 3));
                     if (column.getCOLUMN_NAME().equalsIgnoreCase(this.getCellName())) {
                         myColumn = column;
 
-                        if (column.getDATA_TYPE()!=null && column.getDATA_TYPE().length()>2 && column.getDATA_TYPE().substring(0, 3).equalsIgnoreCase("INT")) {
+                        if (column.getDATA_TYPE() != null && column.getDATA_TYPE().length() > 2 && column.getDATA_TYPE().substring(0, 3).equalsIgnoreCase("INT")) {
                             fieldType = "INT";
-                        } else if (column.getDATA_TYPE()!=null && column.getDATA_TYPE().length()>4 &&  column.getDATA_TYPE().substring(0, 5).equalsIgnoreCase("FLOAT")) {
+                        } else if (column.getDATA_TYPE() != null && column.getDATA_TYPE().length() > 4 && column.getDATA_TYPE().substring(0, 5).equalsIgnoreCase("FLOAT")) {
                             fieldType = "FLT";
                         } else {
                             fieldType = "TXT";
@@ -1100,7 +1111,6 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
                         }
                 }
 
-         
                 System.out.println("FACCIO smartUPDATE:this.getCellType()= " + this.getCellType() + "  -  this.getNewValue()= " + this.getNewValue()
                         + " _");
 
@@ -1134,7 +1144,6 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
 ////////                    statement.setInt(1, newNumber);
 ////////
 ////////                }
-
                 myEvent.setInfo1(statement.toString());
                 System.out.println("executeCRUD-->SQLphrase:" + statement.toString());
                 errorMessage = "ERROR ON UPDATE";
@@ -2014,7 +2023,7 @@ direttamente dal DB gFE_ e non da quanto mi passa il browser:: posso controllare
         return decoded;
     }
 
-    private String replaceMarkers(String phrase, String params) {
+    public String replaceMarkers(String phrase, String params) {
 
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject;

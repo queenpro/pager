@@ -75,7 +75,7 @@ public class smartEntity {
     }
 
     public smartObjRight analyzeRightsRuleJson(String rights, ResultSet rs, Connection Conny, int levelBase) {
-
+//        System.out.println("\n---------------------------------------");
 // verifica i diritti per stringa genericaJSON
         int gotRight = 0;
         if (rights == null || rights.length() < 5) {
@@ -357,7 +357,7 @@ public class smartEntity {
                     if (confrontoNumerico == true) {
                         try {
                             valIntB = Integer.parseInt(myRule.getValueB());
-                            //  System.out.println("CONFRONTO-> rowfield:valIntA = " + valIntA + "  valIntB = " + valIntB + "  myRule.getRight() = " + myRule.getRight());
+//                            System.out.println("CONFRONTO-> rowfield:valIntA = " + valIntA + "  valIntB = " + valIntB + "  myRule.getRight() = " + myRule.getRight());
                         } catch (Exception ex) {
 
                         }
@@ -417,10 +417,17 @@ public class smartEntity {
                     } catch (Exception ex) {
                     }
                 }
+
+                if (valStringA == null) {
+                    valStringA = "";
+                }
+                if (valStringB == null) {
+                    valStringB = "";
+                }
                 // Adesso eseguo il test*************************************************************
-//                System.out.println("confrontoNumerico:" + confrontoNumerico);
-//                System.out.println("tipoConfronto:" + tipoConfronto);
+                System.out.println("confrontoNumerico:" + confrontoNumerico + "   ___  tipoConfronto:" + tipoConfronto);
                 if (confrontoNumerico == true) {
+                    System.out.println("valIntA:" + valIntA + "   ___  valIntB:" + valIntB);
                     if (tipoConfronto.equalsIgnoreCase("==")) {
 //                        System.out.println("valIntA =" + valIntA + ",  valIntB =" + valIntB);
                         if (valIntA == valIntB) {
@@ -449,7 +456,7 @@ public class smartEntity {
                                 //prevale myRule
                                 tempRight = myRule.getRight();
                                 RuleLevel = myRule.getLevel();
-//                                System.out.println("prevale myRule =" +tempRight);
+//                                System.out.println("prevale myRule =" + tempRight);
                             } else if (myRule.getLevel() == RuleLevel) {
                                 //prevale la più permissiva
                                 if (tempRight < myRule.getRight()) {
@@ -469,11 +476,13 @@ public class smartEntity {
                                 //prevale myRule
                                 tempRight = myRule.getRight();
                                 RuleLevel = myRule.getLevel();
+//                                System.out.println("prevale myRule tempRight=" + tempRight);
                             } else if (myRule.getLevel() == RuleLevel) {
                                 //prevale la più permissiva
                                 if (tempRight < myRule.getRight()) {
                                     tempRight = myRule.getRight();
                                     RuleLevel = myRule.getLevel();
+//                                    System.out.println("prevale myRule perchè piu permissiva =" + tempRight);
                                 }
                             } else {
                                 // prevale tempRight
@@ -516,6 +525,7 @@ public class smartEntity {
                     }
 
                 } else {
+                    System.out.println("valStringA:" + valStringA + "   ___  valStringB:" + valStringB);
                     if (tipoConfronto.equalsIgnoreCase("==")) {
                         if (valStringB.equals(valStringA)) {
                             //VERIFICATA
@@ -533,9 +543,26 @@ public class smartEntity {
                                 // prevale tempRight
                             }
                         }
+                    } else if (tipoConfronto.equalsIgnoreCase("!=")) {
+                        if (!valStringB.equals(valStringA)) {
+                            //VERIFICATA
+                            if (myRule.getLevel() > RuleLevel) {
+                                //prevale myRule
+                                tempRight = myRule.getRight();
+                                RuleLevel = myRule.getLevel();
+                            } else if (myRule.getLevel() == RuleLevel) {
+                                //prevale la più permissiva
+                                if (tempRight < myRule.getRight()) {
+                                    tempRight = myRule.getRight();
+                                    RuleLevel = myRule.getLevel();
+                                }
+                            } else {
+                                // prevale tempRight
+                            }
+                        }
                     }
                 }
-
+//                System.out.println("RuleLevel =" + RuleLevel + "  _   tempRight =" + tempRight);
             } //*********************************************************************************************             
             // </editor-fold>             
             //----------------------------------------------------------    
@@ -1035,15 +1062,15 @@ public class smartEntity {
         }
         smartObjRight rowRights = new smartObjRight(tempRight);
         rowRights.level = RuleLevel;
-//        System.out.println(rights + "\n analyzeRightsRuleJson ->genera:" + tempRight + " LEVEL: " + rowRights.level);
-//
-//        System.out.println("level*********" + rowRights.level);
-//        System.out.println("1.canView***************" + rowRights.canView);
-//        System.out.println("2.canModify*************" + rowRights.canModify);
-//        System.out.println("4.canDelete*************" + rowRights.canDelete);
-//        System.out.println("8.canCreate*************" + rowRights.canCreate);
-//        System.out.println("16.canPushButton*********" + rowRights.canPushButton);
-//        System.out.println("128.canEverything*********" + rowRights.canEverything);
+////        System.out.println(rights + "\n analyzeRightsRuleJson ->genera:" + tempRight + " LEVEL: " + rowRights.level);
+////
+////        System.out.println("level*********" + rowRights.level);
+////        System.out.println("1.canView***************" + rowRights.canView);
+////        System.out.println("2.canModify*************" + rowRights.canModify);
+////        System.out.println("4.canDelete*************" + rowRights.canDelete);
+////        System.out.println("8.canCreate*************" + rowRights.canCreate);
+////        System.out.println("16.canPushButton*********" + rowRights.canPushButton);
+////        System.out.println("128.canEverything*********" + rowRights.canEverything);
         return rowRights;
     }
 

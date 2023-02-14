@@ -251,6 +251,25 @@ public class EVOuser {
         return name;
     }
 
+    public String getNameShowed() {
+        String nameShowed = this.getName() + " " + this.getSurname();
+        if ((this.getName() == null || this.getName().equalsIgnoreCase("null") || this.getName().length() < 1)
+                && (this.getSurname() == null || this.getSurname().equalsIgnoreCase("null") || this.getSurname().length() < 1)) {
+            nameShowed = this.getUsername();
+
+        }
+        if ((this.getUsername() == null || this.getUsername().equalsIgnoreCase("null") || this.getUsername().length() < 1)) {
+            nameShowed = "";
+        }
+        if ((this.getSurname() == null || this.getSurname().equalsIgnoreCase("null") || this.getSurname().length() < 1)) {
+            nameShowed = "";
+        }
+        if ((this.getName() == null || this.getName().equalsIgnoreCase("null") || this.getName().length() < 1)) {
+            nameShowed = "";
+        }
+        return nameShowed;
+    }
+
     public void setName(String name) {
         this.name = name;
     }

@@ -483,6 +483,9 @@ public class UploadFileManager {
             if (inputStream != null) {
                 // fetches input stream of the upload file for the blob column
                 statement.setBlob(1, inputStream);
+//                      statement.setBinaryStream(1, inputStream, 100000000);
+ 
+
             }
             int row = statement.executeUpdate();
             if (row > 0) {

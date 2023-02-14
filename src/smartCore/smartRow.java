@@ -120,10 +120,12 @@ public class smartRow {
 
         String htmlCode = "";
 
-        if (rowType.equalsIgnoreCase("adding")) {
 // <editor-fold defaultstate="collapsed" desc="CASO ADDING ROW.">
-//                System.out.println("CASO ADDING ROW->formRightsRules.canCreate: " + formRightsRules.canCreate);
+        if (rowType.equalsIgnoreCase("adding")) {
+//            System.out.println("CASO ADDING ROW->formRightsRules.canCreate: " + formRightsRules.canCreate);
 //                System.out.println("CASO ADDING ROW->actualRowRights.canCreate: " + actualRowRights.canCreate);
+
+            boolean adderPresent = false;
             if (formRightsRules.canCreate > 0) {
 // caso Pattern
                 if (myForm.getHtmlPattern() != null && myForm.getHtmlPattern().length() > 0) {
@@ -137,9 +139,12 @@ public class smartRow {
                         }
                         if (myForm.objects.get(obj).AddingRow_enabled > 0) {
                             presentAddingFields++;
+                            adderPresent = true;
+
                         }
                     }
                     if (flag > 0 && presentAddingFields == 0) { // asterisco per nuova riga senza inserimento di un particolare field
+                        adderPresent = true;
                         htmlCode += "<a";
                         String jsonArgs = "{";
                         jsonArgs += "\"formID\":\"" + myForm.getID() + "\",";
@@ -183,6 +188,7 @@ public class smartRow {
                         }
                     }
                     if (flag > 0 && presentAddingFields == 0) { // asterisco per nuova riga senza inserimento di un particolare field
+                        adderPresent = true;
                         htmlCode += "<a";
                         String jsonArgs = "{";
                         jsonArgs += "\"formID\":\"" + myForm.getID() + "\",";
@@ -206,7 +212,10 @@ public class smartRow {
                         htmlCode += "<td  class=\"lineDeleter\"  > </td>";
                     }
 //                    System.out.println("COMPILO " + myForm.objects.size() + " CAMPI IN ADDING ROW");
+
                     for (int obj = 0; obj < myForm.objects.size(); obj++) {
+//                        System.out.println(" oggetto " + myForm.objects.get(obj).name + "   ADDING ROW ENABLED: " + myForm.objects.get(obj).getAddingRow_enabled());
+
                         if (!myForm.objects.get(obj).CG.getType().equalsIgnoreCase("FORMBUTTON")) {
                             myForm.objects.get(obj).setValueToWrite("");
 
@@ -214,6 +223,7 @@ public class smartRow {
                             if (myForm.objects.get(obj).getActuallyVisible() < 1) {
                                 htmlCode += " style=\"width:0px; display:none;\" ";
                             } else {
+
                                 if (myForm.objects.get(obj).C.getWidth() != null && myForm.objects.get(obj).C.getWidth() != "null" && myForm.objects.get(obj).C.getWidth() != "") {
                                     htmlCode += " style=\"width:" + myForm.objects.get(obj).C.getWidth() + ";\" ";
                                 }
@@ -224,21 +234,23 @@ public class smartRow {
                             htmlCode += "<div id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + myForm.objects.get(obj).name + "-" + "NEW" + "-PLACE\"  ";
 
                             htmlCode += ">";
-                            if (myForm.objects.get(obj).defaultValue == null) {
+                            if (myForm.objects.get(obj).defaultValue == null || myForm.objects.get(obj).defaultValue.length() < 1) {
 
                             } else {
-                                if (myForm.objects.get(obj).defaultValue.length() > 0) {
-                                    myForm.objects.get(obj).setAddingRow_enabled(0);
-                                }
+
+                                myForm.objects.get(obj).setAddingRow_enabled(0);
+
+//                                System.out.println("Non inserisco oggetto " + myForm.objects.get(obj).name + " in ADDING ROW perchè ha un valore di default.");
                             }
                             if (myForm.objects.get(obj).getAddingRow_enabled() > 0) {
                                 //------------------------------------------------- 
 ////////                            htmlCode += paintObject("NEW", myForm.objects.get(obj));
-
+//                                System.out.println("Inserisco oggetto " + myForm.objects.get(obj).name + " in ADDING ROW ");
+                                adderPresent = true;
                                 htmlCode += paintObject("NEW", myForm.objects.get(obj), formRightsRules);
                                 //------------------------------------------------- 
                             } else {
-
+//                                System.out.println("NON inserisco oggetto " + myForm.objects.get(obj).name + " in ADDING ROW ");
                             }
                             htmlCode += "</div></td>";
                             htmlCode += "</td>";
@@ -246,192 +258,154 @@ public class smartRow {
                     }
                     //    htmlCode += "</div> ";     
                     htmlCode += " </tr>";
+                    if (adderPresent == false) {
+                        htmlCode = "";
+                    }
                 }
             }
 
-            //</editor-fold> 
-        } else if (rowType.equalsIgnoreCase("total")) {
-// <editor-fold defaultstate="collapsed" desc="TOTALS ROW.">
+        } else //</editor-fold> 
+        // <editor-fold defaultstate="collapsed" desc="TOTALS ROW.">
+        if (rowType.equalsIgnoreCase("total")) {
 
             if (formRightsRules.canView > 0) {
                 String totLabel = "";
+                boolean hasSum = false;
                 for (int obj = 0; obj < myForm.objects.size(); obj++) {
                     if (myForm.objects.get(obj).Content.getHasSum() > 0) {
-                        totLabel = "TOT:";
+                        hasSum = true;
                         break;
                     }
                 }
-                htmlCode += "<tr class=\"tabTotalsRow\" >";
-                if (myForm.getShowCounter() != null && myForm.getShowCounter().equalsIgnoreCase("FALSE")) {
-                    htmlCode += "<td></td>";
-                } else {
-                    htmlCode += "<td  class=\"lineSelector\" >" + totLabel + "</td>";
 
-                }
-
-                if (formRightsRules.canDelete > 0) {
-                    htmlCode += "<td  class=\"lineDeleter\"  > </td>";
-                }
-
-                for (int obj = 0; obj < myForm.objects.size(); obj++) {
-
-                    if (!myForm.objects.get(obj).CG.getType().equalsIgnoreCase("FORMBUTTON")) {
-                        myForm.objects.get(obj).setValueToWrite("");
-
-                        htmlCode += "<td  class=\"lineField\" ";
-                        if (myForm.objects.get(obj).getActuallyVisible() == 0) {
-                            htmlCode += " style=\"width:0px;\" ";
+                if (hasSum == true) {
+                    totLabel = "TOT";
+                    htmlCode += "<tr class=\"tabTotalsRow\" >";
+                    if (myForm.getShowCounter() != null && myForm.getShowCounter().equalsIgnoreCase("FALSE")) {
+                        htmlCode += "<td></td>";
+                    } else {
+                        if (hasSum == true) {
+                            htmlCode += "<td  class=\"lineSelector\" >" + totLabel + "</td>";
                         } else {
-                            if (myForm.objects.get(obj).C.getWidth() != null && myForm.objects.get(obj).C.getWidth() != "null" && myForm.objects.get(obj).C.getWidth() != "") {
-                                htmlCode += " style=\"width:" + myForm.objects.get(obj).C.getWidth() + ";\" ";
+                            htmlCode += "<td></td>";
+                        }
+                    }
+
+                    if (formRightsRules.canDelete > 0) {
+                        htmlCode += "<td  class=\"lineDeleter\"  > </td>";
+                    }
+
+                    for (int obj = 0; obj < myForm.objects.size(); obj++) {
+
+                        if (!myForm.objects.get(obj).CG.getType().equalsIgnoreCase("FORMBUTTON")) {
+
+                            myForm.objects.get(obj).setValueToWrite("");
+                            htmlCode += "<td  class=\"lineField\" ";
+
+                            if (myForm.objects.get(obj).getActuallyVisible() == 0) {
+                                htmlCode += " style=\"width:0px; display:none;\" ";
+                            } else {
+                                if (myForm.objects.get(obj).C.getWidth() != null && myForm.objects.get(obj).C.getWidth() != "null"
+                                        && myForm.objects.get(obj).C.getWidth() != "") {
+                                    htmlCode += " style=\"width:" + myForm.objects.get(obj).C.getWidth() + ";";
+//                                if (myForm.objects.get(obj).Content.hasSum < 1) {
+//                                    htmlCode += " display:none; ";
+//                                }
+                                    htmlCode += "\" ";
+                                }
                             }
-                        }
-                        htmlCode += ">";
-                        htmlCode += "<div id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + myForm.objects.get(obj).name + "-" + "TOT" + "-PLACE\"  ";
-                        htmlCode += "class =\"totalContent ";
-                        if (myForm.objects.get(obj).Content.getActualSum() < 0) {
-                            htmlCode += " negativeNumber  ";
-                        } else {
-                            htmlCode += " positiveNumber  ";
-                        }
-                        htmlCode += "\" >";
+                            htmlCode += ">";
+                            htmlCode += "<div id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + myForm.objects.get(obj).name + "-" + "TOT" + "-PLACE\"  ";
+                            htmlCode += "class =\"totalContent ";
+                            if (myForm.objects.get(obj).Content.getActualSum() < 0) {
+                                htmlCode += " negativeNumber  ";
+                            } else {
+                                htmlCode += " positiveNumber  ";
+                            }
+                            htmlCode += "\" >";
 
 //                        System.out.println("TOTALS ROW ++oggetto " + myForm.objects.get(obj).getName() + " - HAS SUM =" + myForm.objects.get(obj).Content.getHasSum() + " -  SUM =" + myForm.objects.get(obj).Content.getActualSum());
-                        if (myForm.objects.get(obj).Content.getHasSum() > 0) {
-                            //------------------------------------------------- 
-                            float no = myForm.objects.get(obj).Content.getActualSum();
-                            Locale.setDefault(Locale.ITALY);
-                            String str = String.format("%,f", no);
-                            if (myForm.objects.get(obj).Content.getType() != null && myForm.objects.get(obj).Content.getType().equalsIgnoreCase("FLOAT")) {
+                            if (myForm.objects.get(obj).Content.getHasSum() > 0) {
+                                //------------------------------------------------- 
+                                float no = myForm.objects.get(obj).Content.getActualSum();
+                                Locale.setDefault(Locale.ITALY);
+                                String str = String.format("%,f", no);
+                                if (myForm.objects.get(obj).Content.getType() != null
+                                        && myForm.objects.get(obj).Content.getType().equalsIgnoreCase("FLOAT")) {
 
-                                str = "" + myForm.objects.get(obj).Content.getActualSum();
+                                    str = "" + myForm.objects.get(obj).Content.getActualSum();
 
-                                float number = 0;
-                                try {
+                                    float number = 0;
+                                    try {
 
-                                    String strno = str;
-                                    strno = strno.replace(",", ".");
-                                    number = Float.valueOf(strno);
-                                } catch (Exception e) {
-                                    System.out.println("error rounding:  " + e.toString());
-                                }
-                                str = "" + number;
+                                        String strno = str;
+                                        strno = strno.replace(",", ".");
+                                        number = Float.valueOf(strno);
+                                    } catch (Exception e) {
+                                        System.out.println("error rounding:  " + e.toString());
+                                    }
+                                    str = "" + number;
 
-////                                if (str != null && str.length() > 0) {
-////                                    // tronco a 3 cifre dopo il punto
-////                                    int posX = str.length() + 1;
-////                                    if (str.contains(".")) {
-////                                        posX = str.lastIndexOf(".");
-////                                        posX = posX + 2;
-////                                        if (str.length() > posX) {
-////                                            str = str.substring(0, posX + 1);
-////                                        }
-////                                    } else if (str.contains(",")) {
-////                                        posX = str.lastIndexOf(",");
-////                                        posX = posX + 2;
-////                                        if (str.length() > posX) {
-////                                            str = str.substring(0, posX + 1);
-////                                        }
-////                                    }
-////                                }
-                            } else if (myForm.objects.get(obj).Content.getType() != null && myForm.objects.get(obj).Content.getType().equalsIgnoreCase("EURO")) {
+                                } else if (myForm.objects.get(obj).Content.getType() != null
+                                        && myForm.objects.get(obj).Content.getType().equalsIgnoreCase("EURO")) {
 //                                System.out.println("DEVO ARROTONDARE NUMERO  " + no);
-                                DecimalFormat df = new DecimalFormat("#.00");
-                                float number = no;
-                                try {
+                                    DecimalFormat df = new DecimalFormat("#.00");
+                                    float number = no;
+                                    try {
 
-                                    String strno = df.format(no);
-                                    strno = strno.replace(",", ".");
-                                    number = Float.valueOf(strno);
-                                } catch (Exception e) {
-                                    System.out.println("error rounding:  " + e.toString());
+                                        String strno = df.format(no);
+                                        strno = strno.replace(",", ".");
+                                        number = Float.valueOf(strno);
+                                    } catch (Exception e) {
+                                        System.out.println("error rounding:  " + e.toString());
+                                    }
+                                    str = "€ " + number;
+                                } else if (myForm.objects.get(obj).Content.getType() != null
+                                        && myForm.objects.get(obj).Content.getType().equalsIgnoreCase("INT")) {
+                                    try {
+                                        str = (int) no + "";
+                                    } catch (Exception e) {
+                                        System.out.println("error rounding:  " + e.toString());
+                                    }
+                                } else if (myForm.objects.get(obj).Content.getType() != null
+                                        && (myForm.objects.get(obj).Content.getType().equalsIgnoreCase("MINtoHOURS") || myForm.objects.get(obj).Content.getType().equalsIgnoreCase("MINStoHOURS"))) {
+                                    try {
+                                        int hours = (int) (no / 60); //since both are ints, you get an int
+                                        int minutes = (int) (no % 60);
+                                        str = hours + "h " + minutes + "m";
+                                    } catch (Exception e) {
+                                    }
                                 }
-                                str = "€ " + number;
-                            } else if (myForm.objects.get(obj).Content.getType() != null && (myForm.objects.get(obj).Content.getType().equalsIgnoreCase("MINtoHOURS") || myForm.objects.get(obj).Content.getType().equalsIgnoreCase("MINStoHOURS"))) {
-                                try {
-                                    int hours = (int) (no / 60); //since both are ints, you get an int
-                                    int minutes = (int) (no % 60);
-                                    str = hours + "h " + minutes + "m";
-                                } catch (Exception e) {
-                                }
+
+                                htmlCode += str;
+                                //------------------------------------------------- 
+                            } else {
+                                htmlCode += "";
                             }
-
-                            htmlCode += str;
-                            //------------------------------------------------- 
-                        } else {
-                            htmlCode += "";
+                            htmlCode += "</div></td>";
+                            htmlCode += "</td>";
+//                            }
                         }
-                        htmlCode += "</div></td>";
-                        htmlCode += "</td>";
                     }
-                }
-                //  htmlCode += "</div> ";
-                htmlCode += " </tr>";
+                    //  htmlCode += "</div> ";
+                    htmlCode += " </tr>";
+                } else {
+                    htmlCode += " <tr></tr>";
 
+                }
             }
 
-            //</editor-fold> 
-        } else if (rowType.equalsIgnoreCase("bubble")) {
-// <editor-fold defaultstate="collapsed" desc="bubble ROW."> 
-            if (myForm.getKEYfieldName() != null) {
-                if (myForm.getKEYfieldType() != null && myForm.getKEYfieldType().equalsIgnoreCase("INT")) {
-                    int myKEYvalue;
-                    try {
-                        myKEYvalue = rs.getInt(myForm.getKEYfieldName());
-                        KEYvalue = "" + myKEYvalue;
-                    } catch (SQLException ex) {
-                        Logger.getLogger(smartRow.class
-                                .getName()).log(Level.SEVERE, null, ex);
-                    }
-                } else {
-                    KEYvalue = "" + rowNumber;
-                    try {
-                        KEYvalue = rs.getString(myForm.getKEYfieldName());
-                    } catch (SQLException ex) {
-                    }
-                }
-            } else {
-                KEYvalue = "" + rowNumber;
-            }
-            htmlCode += encodeBubble();
-
-            //</editor-fold> 
-        } else if (rowType.equalsIgnoreCase("calendarDate")) {// questo NON è quello che viene usato per SMARTCALENDAR FORM
-// <editor-fold defaultstate="collapsed" desc="calendarDate."> 
-            if (myForm.getKEYfieldName() != null) {
-                if (myForm.getKEYfieldType() != null && myForm.getKEYfieldType().equalsIgnoreCase("INT")) {
-                    int myKEYvalue;
-                    try {
-                        myKEYvalue = rs.getInt(myForm.getKEYfieldName());
-                        KEYvalue = "" + myKEYvalue;
-                    } catch (SQLException ex) {
-                        Logger.getLogger(smartRow.class
-                                .getName()).log(Level.SEVERE, null, ex);
-                    }
-                } else {
-                    KEYvalue = "" + rowNumber;
-                    try {
-                        KEYvalue = rs.getString(myForm.getKEYfieldName());
-                    } catch (SQLException ex) {
-                    }
-                }
-            } else {
-                KEYvalue = "" + rowNumber;
-            } 
-            htmlCode += encodeBubble();
-
-            //</editor-fold>           
-        } else {
-            // <editor-fold defaultstate="collapsed" desc="CASO NORMAL ROW."> 
+        } else //</editor-fold>
+        // <editor-fold defaultstate="collapsed" desc="CASO NORMAL ROW."> 
+        {
+            makeKeyValue();
             htmlCode += encodeNormalRow();
-//</editor-fold> 
         }
-
+//</editor-fold> 
         return htmlCode;
     }
 
-    public String encodeBubble() {
-        String htmlCode = "";
+    private void makeKeyValue() {
         if (myForm.getKEYfieldName() != null) {
             if (myForm.getKEYfieldType() != null && myForm.getKEYfieldType().equalsIgnoreCase("INT")) {
                 int myKEYvalue;
@@ -439,8 +413,7 @@ public class smartRow {
                     myKEYvalue = rs.getInt(myForm.getKEYfieldName());
                     KEYvalue = "" + myKEYvalue;
                 } catch (SQLException ex) {
-                    Logger.getLogger(smartRow.class
-                            .getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(smartRow.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
                 KEYvalue = "" + rowNumber;
@@ -452,6 +425,66 @@ public class smartRow {
         } else {
             KEYvalue = "" + rowNumber;
         }
+    }
+
+    public String encodeCarousel(String initiator) {
+        String htmlCode = "";
+        makeKeyValue();
+        //----------------------------------------------------------------------
+        htmlCode += "<" + initiator + " id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-"
+                + KEYvalue + "-ROW\" class=\"unselectedRow\" "
+                + ""
+                + ">";
+
+//                System.out.println("-------->paintRowSelector() ");
+////////        htmlCode += paintRowSelector(rowNumber, KEYvalue);
+        String postcardCode = "<TABLE><TR><td style=\""
+                + "display:block;\n"
+                + "    background: inherit;\n"
+                + "    border-collapse: collapse;\n"
+                + "    border-right: 2px solid #999;\n"
+                + "    border-bottom: 2px solid #999;\n"
+                + "    border-top: 1px solid #999;\n"
+                + "    border-left: 1px solid #999;\n"
+                + "    margin: 0% ;\n"
+                + "    padding: 0px 0px 0px 0px;\n"
+                + "    border-radius: 10px;\n"
+                + "    cursor: pointer;\""
+                + "onClick=\"javascript:smartRowSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\">"
+                + "<a id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL\" "
+                //                + "style=\" height: inherit; cursor: pointer; padding: 1em; \""
+                + ">"
+                //                + "<font size='1'><i><b>" + xLineNumber + "</b></i></font>"
+                + "<TABLE><TR> ";
+
+        String contentCode = "";
+        if (myForm.getHtmlPattern() != null && myForm.getHtmlPattern().length() > 0) {
+            try {
+                contentCode += encodeNormalPatternRow();
+            } catch (SQLException ex) {
+                Logger.getLogger(smartRow.class
+                        .getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            try {
+                contentCode += encodeNormalGridRow();
+            } catch (SQLException ex) {
+                Logger.getLogger(smartRow.class
+                        .getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        postcardCode += contentCode;
+        postcardCode += "</TR></TABLE></a></td></TR></TABLE>";
+        htmlCode += postcardCode;
+        htmlCode += "</" + initiator + ">";
+
+        return htmlCode;
+    }
+
+    public String encodeBubble() {
+        String htmlCode = "";
+        makeKeyValue();
+
         htmlCode += "<div "
                 + "draggable=\"true\"  ondragstart=\"drag(event)\"  "
                 + "id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-"
@@ -503,26 +536,7 @@ public class smartRow {
 
         JSONObject myBrand = new JSONObject();
         System.out.println("SONO IN encodeTreeRow");
-        if (myForm.getKEYfieldName() != null) {
-            if (myForm.getKEYfieldType() != null && myForm.getKEYfieldType().equalsIgnoreCase("INT")) {
-                int myKEYvalue;
-                try {
-                    myKEYvalue = rs.getInt(myForm.getKEYfieldName());
-                    KEYvalue = "" + myKEYvalue;
-                } catch (SQLException ex) {
-                    Logger.getLogger(smartRow.class
-                            .getName()).log(Level.SEVERE, null, ex);
-                }
-            } else {
-                KEYvalue = "" + rowNumber;
-                try {
-                    KEYvalue = rs.getString(myForm.getKEYfieldName());
-                } catch (SQLException ex) {
-                }
-            }
-        } else {
-            KEYvalue = "" + rowNumber; //                    System.out.println("paintRow:AUTO INDICIZZAZIONE ATTIVATA !!!"); 
-        }
+        makeKeyValue();
 
         myBrand.put("ID", myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-ROW");
         String value = "";
@@ -632,41 +646,11 @@ public class smartRow {
     public String encodeNormalRow() {
         String htmlCode = "";
 
-        if (myForm.getKEYfieldName() != null) {
-            if (myForm.getKEYfieldType() != null && myForm.getKEYfieldType().equalsIgnoreCase("INT")) {
-                int myKEYvalue;
-                try {
-                    myKEYvalue = rs.getInt(myForm.getKEYfieldName());
-                    KEYvalue = "" + myKEYvalue;
-
-                } catch (SQLException ex) {
-                    Logger.getLogger(smartRow.class
-                            .getName()).log(Level.SEVERE, null, ex);
-                }
-                //System.out.println("Prendo numerico: KEYfieldName :" + myForm.getKEYfieldName() + " KEYfieldType :" + myForm.getKEYfieldType());
-            } else {
-                KEYvalue = "" + rowNumber;
-                try {
-                    KEYvalue = rs.getString(myForm.getKEYfieldName());
-                    //System.out.println("Prendo stringa: KEYfieldName :" + myForm.getKEYfieldName() + " KEYfieldType :" + myForm.getKEYfieldType());
-                } catch (SQLException ex) {
-//                    Logger.getLogger(smartRow.class.getName()).log(Level.SEVERE, null, ex);
-
-                }
-            }
-        } else {
-            KEYvalue = "" + rowNumber;
-//                    System.out.println("-------------");
-//                    System.out.println(myForm.query);
-//                    System.out.println("paintRow:AUTO INDICIZZAZIONE ATTIVATA !!!");
-//                    System.out.println("-------------");
-        }
-        String ValueAssigned = getBGcolor(myForm.getRowBGcolor(), rs);
-        //stabilisco il colore di background
-
         //----------------------------------------------------------------------
         htmlCode += "<tr id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-"
-                + KEYvalue + "-ROW\" class=\"unselectedRow\" >";
+                + KEYvalue + "-ROW\" class=\"unselectedRow\" "
+                + ""
+                + ">";
 
 //                System.out.println("-------->paintRowSelector() ");
         htmlCode += paintRowSelector(rowNumber, KEYvalue);
@@ -742,7 +726,11 @@ public class smartRow {
                 } else {
                     if (myForm.objects.get(obj).C.getWidth() != null && myForm.objects.get(obj).C.getWidth() != "null" && myForm.objects.get(obj).C.getWidth() != "") {
                         String myWidth = myForm.objects.get(obj).C.getWidth();
-                        htmlCode += " style=\"width:" + myWidth + ";\" ";
+                        htmlCode += " style=\"width:" + myWidth + ";"
+                                //                                   + "border:1px solid black; border-collapse: collapse;\n"
+                                //                        + "    margin: 0px 0px 0px 0px;\n"
+                                //                        + "    padding: 0px 0px 0px 0px;"
+                                + "\" ";
                     }
                 }
 
@@ -751,7 +739,13 @@ public class smartRow {
 //---INSERISCO L'OGGETTO-------------------                    
                 htmlCode += "<div id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + myForm.objects.get(obj).name + "-" + KEYvalue + "-PLACE\"  ";
 
-                htmlCode += ">";
+                htmlCode += " "
+                        //                        + "style=\""
+                        //                        + "border:1px solid black; border-collapse: collapse;\n"
+                        //                        + "    margin: 0px 0px 0px 0px;\n"
+                        //                        + "    padding: 0px 0px 0px 0px;"
+                        //                        + "\" "
+                        + ">";
 
                 if (myForm.objects.get(obj).C.getType().equalsIgnoreCase("REALTIMESELECT")) {
 //                        System.out.println("RICREO SELECT LIST");
@@ -869,9 +863,9 @@ public class smartRow {
 //                        System.out.println("OGGETTO:"+myForm.objects.get(obj).name);
 
                     smartObjRight realObjRights = valutaRightsOggetto(myForm.objects.get(obj), rs);
-//                    System.out.println("realObjRights:"+realObjRights.toString());
+//                    System.out.println("realObjRights:"+realObjRights.totalRight);
                     smartObjRight actualObjectRights = joinRights(realObjRights, actualRowRights);
-//                    System.out.println("actualObjectRights:"+actualObjectRights.toString());
+//                    System.out.println("actualObjectRights:"+actualObjectRights.totalRight);
                     htmlCode += paintObject(KEYvalue, myForm.objects.get(obj), actualObjectRights);
 //------------------------------------------------- 
                 }
@@ -918,11 +912,11 @@ public class smartRow {
     public String populateAddingPattern(String pattern, smartObjRight actualRowRights, String KEYvalue) {
         ArrayList<SelectListLine> XXX = new ArrayList<SelectListLine>();
 
-        System.out.println("\n\n\n***********\nINIZIO popolazione della riga di inserimento. ");
-
+//        System.out.println("\n\n\n***********\nINIZIO popolazione della riga di inserimento.!. ");
         smartObjRight actualObjectRights = new smartObjRight(31);// il right è impostatu su max permessi
         for (int obj = 0; obj < myForm.objects.size(); obj++) {
-//            System.out.println("--populateAddingPattern--OGGETTO:" + myForm.objects.get(obj).name);
+//             System.out.println("--populateAddingPattern--OGGETTO:" + myForm.objects.get(obj).name);
+//             System.out.println("--populateAddingPattern--TYPE:" + myForm.objects.get(obj).C.getType());
 
             if (!myForm.objects.get(obj).CG.getType().equalsIgnoreCase("FORMBUTTON")) {
                 try {
@@ -945,6 +939,13 @@ public class smartRow {
                 String objectCode = "";
 
                 if (myForm.objects.get(obj).getAddingRow_enabled() > 0) {
+                    // 2022/12 se in adding c'è un textArea devo trasformarlo in text
+                    if (myForm.objects.get(obj).C.getType().equalsIgnoreCase("AREA") || myForm.objects.get(obj).C.getType().equalsIgnoreCase("TEXTAREA")) {
+                        System.out.println("\n\nTRASFORMO TEXTAREA IN TEXT PER ADDING ROW !!! \n\n ");
+                        myForm.objects.get(obj).C.setType("TEXT");
+                    }
+                    //----------------------------------------------------------------
+
                     try {
                         objectCode = paintObject(KEYvalue, myForm.objects.get(obj), actualObjectRights);
 //                        System.out.println("got code ");
@@ -994,7 +995,7 @@ public class smartRow {
 
     public String populatePattern(String pattern, ResultSet rs, smartObjRight actualRowRights, String KEYvalue) {
         // String pattern="";
-        ArrayList<SelectListLine> XXX = new ArrayList<SelectListLine>();
+        ArrayList<SelectListLine> XXX = new ArrayList<>();
         for (int obj = 0; obj < myForm.objects.size(); obj++) {
 
             if (!myForm.objects.get(obj).CG.getType().equalsIgnoreCase("FORMBUTTON")) {
@@ -1223,227 +1224,6 @@ public class smartRow {
         return text;
     }
 
-    public String paintMaskRow(ResultSet rs, int lineNumber, String rowType) {
-
-        String htmlCode = "";
-////////        ShowItObject.objRight rowRights = valutaRightsRiga(myForm.getDisableRules(), rs);/// analizzo il LOCKER del form per la riga
-//////////        System.out.println("paintMaskRow:\nRiga n. " + lineNumber);
-//////////        System.out.println("UNISCO DIRITTI FORM:\n" + formRightsRules.totalRight + " LEVEL :" + formRightsRules.level);
-//////////        System.out.println("CON DIRITTI RIGA (LOCKERS):" + myForm.getDisableRules() + ":\n" + rowRights.totalRight + " LEVEL :" + rowRights.level);
-////////        ShowItObject.objRight actualRowRights = joinRights(formRightsRules, rowRights);
-//////////        System.out.println("OTTENGO:\n" + actualRowRights.totalRight + " LEVEL :" + actualRowRights.level);
-////////
-////////        String pattern = myForm.getHtmlPattern();
-////////
-////////            if (rowType.equalsIgnoreCase("adding")) {
-////////                pattern = getPatternNewRow(pattern);
-////////// <editor-fold defaultstate="collapsed" desc="CASO ADDING ROW.">   
-////////
-////////                String KEYvalue = "NEW";
-////////                htmlCode += "<tr id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-NEW-ROW\" class=\"tabAddRow\" >";
-////////                htmlCode += paintRowSelector(lineNumber, KEYvalue);
-////////////////                String xLineNumber = "" + lineNumber;
-////////////////                if (lineNumber == 0) {
-////////////////                    xLineNumber = "NEW";
-////////////////                }
-////////////////                htmlCode += "<td class=\"lineSelector\""
-////////////////                        //+ " style=\"padding: 0;\""
-////////////////                        + "onClick=\"javascript:rowSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\">"
-////////////////                        + "<a id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL\" "
-////////////////                        + "style=\""
-////////////////                        + " height: inherit;"
-////////////////                        + " padding: 1em;"
-////////////////                        + "\"><font size='1'><i><b>" + xLineNumber + "</b></i></font> "
-////////////////                        + ""// -> HERE
-////////////////                        + "</a></td>";
-////////                // delete button-------------
-////////
-////////                if (formRightsRules.canDelete > 0) {
-////////                    htmlCode += "<td class=\"lineDeleter\"   >";
-////////                    htmlCode += "</td>";
-////////                }
-////////
-////////                htmlCode += " <td>";
-////////                htmlCode += "<TABLE style=\"width:" + myForm.getFormWidth() + ";\">";
-////////
-//////////=========================================
-////////                htmlCode += "<tr id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-ROW\" class=\"unselectedRow\" >";
-////////                htmlCode += " <td>";
-////////////////xxx
-////////////////                //---DIRITTI--- DETERMINO I DIRITTI PER OGGETTO IN QUESTA PRECISA RIGA   
-////////////////                objRight rowRights = myForm.formRightsRules;
-////////////////                if (myForm.getDisableRules() != null && myForm.getDisableRules().length() > 4) {
-////////////////                    System.out.println("Trovato locker di riga:" + myForm.getDisableRules());
-////////////////                    rowRights = analyzeRightsRuleJson(myForm.getDisableRules(), rs, null);
-////////////////                    System.out.println("rowRights.canModify:" + rowRights.canModify);
-////////////////                } else {
-////////////////                    rowRights = myForm.formRightsRules;
-////////////////                }
-////////////////
-////////////////                
-////////
-//////////in realtà questa è l'adding row, quindi non so se devo controllare alo stesso modo i diritti di riga (lockers)
-////////                htmlCode += populatePattern(pattern, rs, actualRowRights, KEYvalue);
-////////                htmlCode += "</td></tr></table>";
-////////                // </editor-fold>    
-//////////====END=ROW===================        
-////////                htmlCode += "</td></tr>";
-//////////</editor-fold>  
-////////            } else if (rowType.equalsIgnoreCase("total")) {
-////////// <editor-fold defaultstate="collapsed" desc="TOTALS ROW."> 
-////////                if (formRightsRules.canView > 0) {
-////////                    String totLabel = "";
-////////                    for (int obj = 0; obj < myForm.objects.size(); obj++) {
-////////                        if (myForm.objects.get(obj).Content.getHasSum() > 0) {
-////////                            totLabel = "TOT:";
-////////                            break;
-////////                        }
-////////                    }
-////////                    htmlCode += "<tr class=\"tabTotalsRow\" >";
-////////
-////////                    htmlCode += " </tr>";
-////////
-////////                }
-////////
-////////                //</editor-fold> 
-////////            } else {
-////////// <editor-fold defaultstate="collapsed" desc="CASO NORMAL ROW.">   
-////////                // System.out.println(" KEYfieldName :" + myForm.getKEYfieldName() + " KEYfieldType :" + myForm.getKEYfieldType());
-////////                //  System.out.println("CASO NORMAL ROW" + htmlCode);
-////////                String KEYvalue = "";
-////////                pattern = eliminaCaseIf(pattern, rs);
-////////                if (myForm.getKEYfieldName() != null) {
-////////                    if (myForm.getKEYfieldType() != null && myForm.getKEYfieldType().equalsIgnoreCase("INT")) {
-////////                        int myKEYvalue;
-////////                        myKEYvalue = rs.getInt(myForm.getKEYfieldName());
-////////                        KEYvalue = "" + myKEYvalue;
-////////                        //System.out.println("Prendo numerico: KEYfieldName :" + myForm.getKEYfieldName() + " KEYfieldType :" + myForm.getKEYfieldType());
-////////                    } else {
-////////
-////////                        KEYvalue = rs.getString(myForm.getKEYfieldName());
-////////                        //System.out.println("Prendo stringa: KEYfieldName :" + myForm.getKEYfieldName() + " KEYfieldType :" + myForm.getKEYfieldType());
-////////                    }
-////////                } else {
-////////                    KEYvalue = "" + lineNumber;
-//////////                    System.out.println("-------------");
-//////////                    System.out.println(myForm.query);
-//////////                    System.out.println("paintRow:AUTO INDICIZZAZIONE ATTIVATA !!!");
-//////////                    System.out.println("-------------");
-////////                }
-//////////=======ROW===================        
-////////                //stabilisco il colore di background
-////////                //       String ValueAssigned = getBGcolor(myForm.getRowBGcolor(), rs);
-////////////////                objRight rowRights = myForm.formRightsRules;
-////////////////                if (myForm.getDisableRules() != null && myForm.getDisableRules().length() > 4) {
-////////////////                    rowRights = analyzeRightsRuleJson(myForm.getDisableRules(), rs, null);
-////////////////                } else {
-////////////////                    rowRights = myForm.formRightsRules;
-////////////////                    rowRights.level = 10;
-////////////////                }
-////////
-////////                htmlCode += "<tr id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-ROW\" class=\"unselectedRow\" >";
-////////                htmlCode += paintRowSelector(lineNumber, KEYvalue);
-////////////////                // row selector-------------
-////////////////                String xLineNumber = "" + lineNumber;
-////////////////                if (lineNumber == 0) {
-////////////////                    xLineNumber = "NEW";
-////////////////                }
-////////////////
-////////////////                try {
-////////////////                    if (myForm.getVisualType() != null && myForm.getVisualType().equalsIgnoreCase("singleRow")) {
-////////////////                        xLineNumber = "UPD";
-////////////////                    }
-////////////////                } catch (Exception e) {
-////////////////
-////////////////                }
-////////////////                htmlCode += "<td class=\"lineSelector\""
-////////////////                        //+ " style=\"padding: 0;\""
-////////////////                        + "onClick=\"javascript:rowSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\">"
-////////////////                        + "<a id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL\" "
-////////////////                        + "style=\""
-////////////////                        //+ " display: block; \n"
-////////////////                        //+ "    min-height: 100%;\n"
-////////////////                        //+ "    height: auto !important;\n"
-////////////////                        + "    height: inherit;"
-////////////////                        + "padding: 1em;"
-////////////////                        + "\" "
-////////////////                        //+ "onClick=\"javascript:rowSelected('" +myForm.getID()+ "-"+myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\">"
-////////////////                        + "><font size='1'><i><b>" + xLineNumber + "</b></i></font> "
-////////////////                        + ""// -> HERE
-////////////////                        + "</a></td>";
-////////                // delete button-------------
-////////
-////////                if (formRightsRules.canDelete > 0) {
-////////                    htmlCode += "<td class=\"lineDeleter\"   >"
-////////                            + "<a id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-DEL\"   ";
-////////                    if (actualRowRights.canDelete > 0) {
-////////                        String jsonArgs = "{";
-////////                        jsonArgs += "\"formID\":\"" + myForm.getID() + "\",";
-////////                        jsonArgs += "\"copyTag\":\"" + myForm.getCopyTag() + "\",";
-////////                        jsonArgs += "\"objName\":\"\",";
-////////                        jsonArgs += "\"KEYvalue\":\"" + KEYvalue + "\",";
-////////                        jsonArgs += "\"operation\":\"DEL\",";
-////////                        jsonArgs += "\"cellType\":\"X\",";
-////////                        jsonArgs += "\"filterField\":\"\",";
-////////                        jsonArgs += "\"exitRoutine\":\"dummy()\"}";
-////////                        htmlCode += " onClick='javascript:smartCellChanged(" + jsonArgs + ")' >";
-////////                        htmlCode += " <img  height=\"15\" width=\"15\" align=\"middle\" src='./media/icons/IconDELETE.gif' alt='ELIMINA' ";
-////////
-////////                        htmlCode += " ></img>";
-////////                        htmlCode += "</a> ";
-////////                    }
-////////
-////////                    htmlCode += "</td>";
-////////                }
-////////
-////////                System.out.println("\n--PaintMaskRow_elaboraRigaRS per riga n." + lineNumber);
-////////                elaboraRigaRS(rs, actualRowRights);
-////////////////                //************************************************************************
-////////////////                for (int obj = 0; obj < myForm.objects.size(); obj++) {
-////////////////                    myForm.objects.get(obj).setValueToWrite(ricavoValoreDaScrivere(rs, obj));
-////////////////                    // in principio la modificabilità dell'oggetto nella riga è la stessa dell'oggetto in generale
-////////////////                    myForm.objects.get(obj).Content.setThisRowModifiable(actualRowRights.canModify);
-////////////////                }
-////////                htmlCode += " <td>";
-////////                htmlCode += "<TABLE style=\"width:" + myForm.getFormWidth() + ";\">";
-////////
-//////////=========================================
-//////////                String pattern = myForm.getHtmlPattern();
-//////////                System.out.println("\nPATTERN:\n" + pattern);
-////////                KEYvalue = "";
-////////                if (myForm.getKEYfieldName() != null) {
-////////                    if (myForm.getKEYfieldType() != null && myForm.getKEYfieldType().equalsIgnoreCase("INT")) {
-////////                        int myKEYvalue;
-////////                        myKEYvalue = rs.getInt(myForm.getKEYfieldName());
-////////                        KEYvalue = "" + myKEYvalue;
-////////                    } else {
-////////                        KEYvalue = rs.getString(myForm.getKEYfieldName());
-////////                    }
-////////                } else {
-////////                    System.out.println("\n\npaintMaskRow:NON RIESCO A RICAVARE IL KEY FIELD DELLA TABELLA!!!\n\n\n");
-////////                }
-////////
-////////                htmlCode += "<tr id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-ROW\" class=\"unselectedRow\" >";
-////////                htmlCode += " <td>";
-//////////                System.out.println("PARTO PER POPULATE PATTERN CON DIRITTI DI RIGA:" + rowRights.totalRight + " LEVEL:" + rowRights.level);
-////////
-////////                htmlCode += populatePattern(pattern, rs, actualRowRights, KEYvalue);
-////////                //=========================================
-////////
-////////                htmlCode += "</td></tr></table>";
-////////                // </editor-fold>    
-//////////====END=ROW===================        
-////////                htmlCode += "</td></tr>";
-//////////</editor-fold> 
-////////
-////////            }
-////////
-////////
-////////        // htmlCode = eliminaCaseIf(htmlCode, rs);
-////////        //System.out.println("\nnew Text=:" + text);
-        return htmlCode;
-    }
-
     public String getBGcolor(String rowBGrules, ResultSet rs) {
         String ValueAssigned = "";
         if (rowBGrules == null || rowBGrules.length() < 5) {
@@ -1553,6 +1333,7 @@ public class smartRow {
                     + "<a id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL\" "
                     + "style=\""
                     + " height: inherit;"
+                    + " cursor: pointer;"
                     + " padding: 1em;"
                     + "\"><font size='1'><i><b>" + xLineNumber + "</b></i></font> "
                     + "</a></td>";
@@ -1877,15 +1658,13 @@ public class smartRow {
                     if (rs != null) {
                         try {
                             blob = rs.getBlob(myForm.objects.get(obj).getName());
-
                             InputStream in = null;
                             if (blob != null) {
                                 try {
                                     in = blob.getBinaryStream();
                                     image = ImageIO.read(in);
                                 } catch (IOException ex) {
-                                    Logger.getLogger(ShowItForm.class
-                                            .getName()).log(Level.SEVERE, null, ex);
+                                    Logger.getLogger(ShowItForm.class.getName()).log(Level.SEVERE, null, ex);
                                 }
                             }
                         } catch (SQLException ex) {
@@ -1893,8 +1672,20 @@ public class smartRow {
                         }
 
                     }
+
+//                    System.out.println("ROWPICTURE (valore da scrivere) masterMarker--->" + myForm.masterMarker);
+                    String picLabel = myForm.objects.get(obj).labelHeader;
+                    try {
+                        String masterMarker = rs.getString(myForm.masterMarker);
+                        if (masterMarker != null && masterMarker.length() > 0) {
+                            picLabel = masterMarker;
+                        }
+//                        System.out.println("ROWPICTURE (valore da scrivere)--->" + rs.getString(myForm.masterMarker));
+                    } catch (Exception e) {
+                    }
+
                     if (image != null) {
-                        ValoreDaScrivere = getRowImageHtmlCode(image, myForm.objects.get(obj).labelHeader, myBox);
+                        ValoreDaScrivere = getRowImageHtmlCode(image, picLabel, myBox);
                     } else {
                         ValoreDaScrivere = "";
                     }
@@ -2227,9 +2018,11 @@ public class smartRow {
         } else {
             imageString = "";
         }
-        picCode += "<img src=\"data:image/gif;base64," + imageString + "\" alt=\"" + alternativeString + "\"";
-        picCode += "   width=\"" + usedPicWidth + "px\" heigth=\"" + usedPicHeight + "px\" ";
+
+        picCode += "<img src=\"data:image/gif;base64," + imageString + "\" title=\"" + alternativeString + "\"";
+        picCode += " draggable=\"false\"   width=\"" + usedPicWidth + "px\" heigth=\"" + usedPicHeight + "px\" ";
         picCode += " />";
+
 //        System.out.println("picCode:\n" + picCode);
         return picCode;
     }
@@ -2307,7 +2100,7 @@ public class smartRow {
                 objModifiable = false;
 
             } else {
-//                System.out.println("PRESENTE IN ADDING ROW");
+                System.out.println("PRESENTE IN ADDING ROW");
                 objVisibile = true;
                 objModifiable = true;
             }
@@ -2910,6 +2703,7 @@ public class smartRow {
 
                             }
                             if (image != null) {
+
                                 imageCode = getRowImageHtmlCode(image, curObj.Origin.valueField, myBox);
                             } else {
                                 imageCode = "";
@@ -3412,6 +3206,166 @@ public class smartRow {
             htmlCode += " </TABLE>";
         } else // </editor-fold>             
         //----------------------------------------------------------   
+        // <editor-fold defaultstate="collapsed" desc="StoredAudio">
+        if (objType.equalsIgnoreCase("StoredAudio")) {
+//==STORED DOCUMENT=========================================================
+            System.out.println("CASO StoredAudio campo da compilare:" + curObj.getName());
+            String xW = "15px";
+            String xH = "15px";
+            if (curObj.CG.getParams() != null) {
+                String dims = curObj.CG.getParams();
+                String[] coque = dims.split(";");
+                List<String> coques = Arrays.asList(coque);
+                if (coques.size() > 1) {
+                    xW = coques.get(0).toString();
+                    xH = coques.get(1).toString();
+                }
+            }
+            int inlinePicHeightLimit = 20;
+            int actualPicHeigth = inlinePicHeightLimit;
+            try {
+                actualPicHeigth = Integer.parseInt(xH.replace("px", ""));
+            } catch (Exception e) {
+
+            }
+
+            String jsonString = ValoreDaScrivere;
+            JSONParser jsonParser = new JSONParser();
+            JSONObject jsonObject;
+            String filepath = "";
+            String FileSysName = "";
+            String originalName = "";
+            String ext = "";
+//            System.out.println("StoredDocument. ValoreDaScrivere:" + ValoreDaScrivere);
+            try {
+                jsonObject = (JSONObject) jsonParser.parse(jsonString);
+                try {
+                    FileSysName = jsonObject.get("FileSysName").toString();
+                } catch (Exception e) {
+                }
+                try {
+                    originalName = jsonObject.get("originalName").toString();
+                } catch (Exception e) {
+                }
+                try {
+                    ext = jsonObject.get("ext").toString();
+                } catch (Exception e) {
+                }
+                ValoreDaScrivere = originalName + "." + ext;
+            } catch (ParseException ex) {
+                System.out.println("StoredAudio. error::" + ex.toString());
+
+            }
+
+            System.out.println("StoredAudio. FileSysName:" + FileSysName);
+            System.out.println("StoredAudio. originalName:" + originalName);
+            System.out.println("StoredAudio. ext:" + ext);
+            String fatherID = myForm.getID() + "-" + myForm.getCopyTag() + "-" + curObj.name + "-" + KEYvalue;
+            String image = "";
+
+            htmlCode += "<TABLE>";
+            if (ValoreDaScrivere != null && ValoreDaScrivere.length() > 0 && !ValoreDaScrivere.equalsIgnoreCase("NULL")) {
+
+                String icon = "media/fileIcon/generic.png";
+                if (ValoreDaScrivere.endsWith(".pdf") || ValoreDaScrivere.endsWith(".PDF")) {
+                    icon = "media/fileIcon/pdf.png";
+                }
+                if (ValoreDaScrivere.endsWith(".jpg") || ValoreDaScrivere.endsWith(".JPG")) {
+                    icon = "media/fileIcon/pic.png";
+                }
+                if (ValoreDaScrivere.endsWith(".doc") || ValoreDaScrivere.endsWith(".DOC")) {
+                    icon = "media/fileIcon/word.png";
+                }
+                if (ValoreDaScrivere.endsWith(".dwg") || ValoreDaScrivere.endsWith(".DWG")) {
+                    icon = "media/fileIcon/cad.png";
+                }
+                if (ValoreDaScrivere.endsWith(".xls") || ValoreDaScrivere.endsWith(".XLS")) {
+                    icon = "media/fileIcon/excel.png";
+                }
+                if (ValoreDaScrivere.endsWith(".zip") || ValoreDaScrivere.endsWith(".ZIP")) {
+                    icon = "media/fileIcon/zip.png";
+                }
+                if (ValoreDaScrivere.endsWith(".docx") || ValoreDaScrivere.endsWith(".DOCX")) {
+                    icon = "media/fileIcon/word.png";
+                }
+                if (ValoreDaScrivere.endsWith(".xlsx") || ValoreDaScrivere.endsWith(".XLSX")) {
+                    icon = "media/fileIcon/excel.png";
+                }
+                htmlCode += " <TR><TD>";
+                htmlCode += "<DIV"
+                        + " id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + curObj.name + "-" + KEYvalue + "-FILE\""
+                        + ">";
+
+                String bomb = "'" + fatherID + "','ServeAudio','" + myForm.getID() + "','" + myForm.getCopyTag() + "','" + curObj.name + "','" + KEYvalue + "'";
+
+                image = "<img  alt=\"DOWNLOAD...\"  title=\"DOWNLOAD...\"  "
+                        // + "title=\"DOWNLOAD...'" + ValoreDaScrivere + "'\" "
+                        + "src='" + icon + "'  width='" + xW + "' heigth='" + xH + "'"
+                        //+ "onclick=\"javascript:downloadFile('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + curObj.name + "-" + KEYvalue + "','OBJname')\""
+                        + "onclick=\"javascript:manageFile(" + bomb + ")\" \n"
+                        + " >";
+                //System.out.println("image:" + image);
+                htmlCode += image;
+                htmlCode += "</DIV>";
+                htmlCode += "</TD>";
+                if (actualPicHeigth > inlinePicHeightLimit) {
+                    htmlCode += "</TR>";
+                }
+            }
+            if (formRightsRules.canModify > 0) {
+                String iconsDiametro = "15px";
+                if (actualPicHeigth > inlinePicHeightLimit) {
+                    htmlCode += "<TR>";
+                }
+                htmlCode += "<TD>";
+////////                String bomb = "'" + fatherID + "','recordAudioForm','" + myForm.getID() + "','" + myForm.getCopyTag() + "','" + curObj.name + "','" + KEYvalue + "'";
+                htmlCode += "  <a style=\"display:block;\" ";
+////////                 htmlCode += "onclick=\"javascript:manageAudio(" + bomb + ")\">\n"; 
+                //-----------------------------------
+                String params = curObj.getActionParams();
+                if (params == null) {
+                    params = "{}";
+                }
+                String toAdd = ",\"action\":\"askAudioPanel\""// questa info la mando per eventuali esecuzioni del browser in base all'azione (es. clear childs su OpenSecForm)
+                        + ",\"rifForm\":\"" + myForm.getID() + "\""
+                        + ",\"copyTag\":\"" + myForm.getCopyTag() + "\""
+                        + ",\"rifObj\":\"" + curObj.name + "\""
+                        + ",\"keyValue\":\"" + KEYvalue + "\"}";
+                params = params.replace("}", toAdd);
+                htmlCode += " onclick='javascript:smartButtonClick( " + params + " )'";
+                htmlCode += ">";
+                //------------------------------
+                image = "<img  alt=\"Rec\" title=\"Rec\" src='./media/upload.png'  "
+                        + "width='" + iconsDiametro + "' heigth='" + iconsDiametro + "'"
+                        + "style=\"display:block;\" "
+                        + " >";
+                htmlCode += image;
+                htmlCode += "</a>\n";
+
+                htmlCode += "</td><td>";
+                if (ValoreDaScrivere != null && ValoreDaScrivere.length() > 0 && !ValoreDaScrivere.equalsIgnoreCase("NULL")) {
+
+                    htmlCode += "  <a style=\"display:block;\" "
+                            + "onclick=\"javascript:manageAudio('" + fatherID + "','DeleteAudio','" + myForm.getID() + "','" + myForm.getCopyTag() + "','" + curObj.name + "','" + KEYvalue + "')\">\n";
+                    image = "<img  alt=\"Delete\" title=\"Delete\" src='./media/del.png'  "
+                            + "width='" + iconsDiametro + "' heigth='" + iconsDiametro + "'"
+                            + "style=\"display:block;\" "
+                            + " >";
+                    htmlCode += image;
+                    htmlCode += "</a>\n";
+                }
+                htmlCode += "</TD><TD>";
+
+                htmlCode += "<DIV id=\"secPanel-" + fatherID + "\" class=\"secondPanelClass\" ></DIV>";
+
+                htmlCode += "</TD></TR> ";
+
+            } else {
+
+            }
+            htmlCode += " </TABLE>";
+        } else // </editor-fold>             
+        //----------------------------------------------------------               
         // <editor-fold defaultstate="collapsed" desc="SELECT">  
         if (objType.equalsIgnoreCase("SELECT")) {
 //==SELECT LIST=========================================================
@@ -3521,7 +3475,17 @@ public class smartRow {
                     }
 
                     htmlCode += " class='cellContent' ";
-                    htmlCode += getStyleHtmlCode(curObj, KEYvalue);
+
+                    // ho una selectList ma potebbe dover essere NON VISIBILE
+                    String styCode = "";
+                    System.out.println(curObj.name + " objVisibile: " + objVisibile);
+                    if (objVisibile == false) {
+                        styCode = "display:none;";
+                    } else {
+                        styCode = getStyleHtmlCode(curObj, KEYvalue);
+                    }
+
+                    htmlCode += styCode;
                     htmlCode += " >";
                 }
 
@@ -4069,7 +4033,7 @@ public class smartRow {
 
             String XcellType = "T";
             // System.out.println("CASO TEXTAREA ValoreDaScrivere:" + ValoreDaScrivere+ " tipo "+objType);
-            System.out.println("CASO TEXTAREA  " + curObj.getName() + " objModifiable:" + objModifiable);
+//            System.out.println("CASO TEXTAREA  " + curObj.getName() + " objModifiable:" + objModifiable);
             htmlCode += "<TEXTAREA  class=\"cellContent mydiv \"";
             htmlCode += " rows=\"" + myBox.getLines() + "\" ";
             htmlCode += " cols=\"" + myBox.getColumns() + "\" ";
@@ -4439,9 +4403,34 @@ public class smartRow {
         if (curObj.C.getType()
                 .equalsIgnoreCase("ROWPICTURE")) {
             //==ROWPICTURE=========================================================
+            boolean draggable = false;
+
+//            System.out.println("\nROWPICTURE>  " + curObj.actionParams);
+            if (curObj.actionParams != null) {
+                JSONParser jsonParser = new JSONParser();
+                JSONObject jsonObject;
+                try {
+                    jsonObject = (JSONObject) jsonParser.parse(curObj.actionParams);
+                    try {
+                        String drgbl = (String) jsonObject.get("draggable");
+                        if (drgbl != null && drgbl.equalsIgnoreCase("true")) {
+                            draggable = true;
+                        }
+                    } catch (Exception ex) {
+
+                    }
+                } catch (ParseException ex) {
+                    Logger.getLogger(smartRow.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+            }
+
+            //----------------
             htmlCode += "<DIV"
                     + " id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + curObj.name + "-" + KEYvalue + "-PIC\" ";
-            // + " draggable=\"true\" "
+            if (draggable == true) {
+                htmlCode += " draggable=\"true\"  ondragstart=\"drag(event)\"  ";
+            }
             if (myForm.getShowCounter() != null && myForm.getShowCounter().equalsIgnoreCase("FALSE")) {
                 htmlCode += " onmouseup=\"javascript:objSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + curObj.name + "-" + KEYvalue + "')\"";
             }
@@ -4733,7 +4722,7 @@ public class smartRow {
                     }
                     ValoreDaScrivere = "€ " + ValoreDaScrivere;
                 }
-                           } else if (curObj.Content.getType() != null && curObj.Content.getType().equalsIgnoreCase("PERCENT")) {
+            } else if (curObj.Content.getType() != null && curObj.Content.getType().equalsIgnoreCase("PERCENT")) {
                 htmlCode += " contentNumber  ";
                 if (ValoreDaScrivere != null && ValoreDaScrivere.length() > 0) {
                     // tronco a 3 cifre dopo il punto
@@ -4944,14 +4933,14 @@ public class smartRow {
         // <editor-fold defaultstate="collapsed" desc="COLOR">  
         if (curObj.C.getType().equalsIgnoreCase("COLOR")) {
             //==COLOR=========================================================
-            if (ValoreDaScrivere != null && ValoreDaScrivere.length() > 0) { 
+            if (ValoreDaScrivere != null && ValoreDaScrivere.length() > 0) {
                 ValoreDaScrivere = ValoreDaScrivere.replace("\"", "&quot;");
                 ValoreDaScrivere = ValoreDaScrivere.replace("<", "&lt;");
                 ValoreDaScrivere = ValoreDaScrivere.replace(">", "&gt;");
                 ValoreDaScrivere = ValoreDaScrivere.replace("{", "&lbrace;");
                 ValoreDaScrivere = ValoreDaScrivere.replace("}", "&rbrace;");
                 ValoreDaScrivere = ValoreDaScrivere.replace("'", "&apos;");
-            } 
+            }
             String XcellType = "T";
             // System.out.println("CASO TEXTBOX ValoreDaScrivere:" + ValoreDaScrivere + " tipo " + objType);
 
@@ -5106,10 +5095,8 @@ public class smartRow {
         return htmlCode;
     }
 
-    private String getStyleHtmlCode(smartObject obj, String KEYvalue) {
-
-        //---S T Y L E -------------------------------------  
-        String htmlCode = "style =\" ";
+    private String getRawStyleHtmlCode(smartObject obj, String KEYvalue) {
+        String htmlCode = " ";
         if (KEYvalue != null && KEYvalue.equalsIgnoreCase("NEW")
                 && (obj.AddingRow_enabled < 1)) {
             htmlCode += " background-color:grey; ";
@@ -5130,7 +5117,11 @@ public class smartRow {
                     tempStyle = " background-color:lightGrey; \" ";
                 } else {
                     //1. colore sfondo standard
-                    tempStyle = " background-color:white;  ";
+                    if (this.myForm.EditDefaultBgColor != null && this.myForm.EditDefaultBgColor.length() > 0) {
+                        tempStyle = " background-color:" + this.myForm.EditDefaultBgColor + ";  ";
+                    } else {
+                        tempStyle = " background-color:whitesmoke;  ";
+                    }
                     if (obj.C.getConditionalBackColor() != null && obj.C.getConditionalBackColor().length() > 0) {
                         tempStyle = " background-color:" + obj.C.getConditionalBackColor() + "; \" ";
                     }
@@ -5141,6 +5132,14 @@ public class smartRow {
             htmlCode += tempStyle;
 
         }
+        return htmlCode;
+    }
+
+    private String getStyleHtmlCode(smartObject obj, String KEYvalue) {
+
+        //---S T Y L E -------------------------------------  
+        String htmlCode = "style =\" ";
+        htmlCode += getRawStyleHtmlCode(obj, KEYvalue);
         //4. chiudo lo style
         htmlCode += "\" ";
         //--------------------------------------------------   

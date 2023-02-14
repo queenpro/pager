@@ -68,6 +68,7 @@ import models.CRUDorder;
 import models.IncomingRequest;
 import models.Linker;
 import models.SelectListLine;
+import models.TomcatGaiaHost;
 import models.logEvent;
 import models.objectLayout;
 import org.json.simple.JSONObject;
@@ -97,6 +98,44 @@ public class eventManager {
         el = new ErrorLogger(myParams, mySettings);
         el.setPrintOnScreen(false);
         el.setPrintOnLog(true);
+    }
+
+    public IncomingRequest DataBrowserFormShow(IncomingRequest request) {
+        String HtmlCode = "";
+        System.out.println("#####################Creo smartForm.");
+        String CNTX=this.findExtension();
+        myParams.setCKcontextID(CNTX);
+        myParams.setCKprojectName(mySettings.getProjectName());
+        String WindowTitle = "<title>" + request.getMySettings().getProjectName().toUpperCase() + " " + CNTX + "</title>";
+        String formHtmlCode = "";
+        String formID = "";
+        HtmlCode += "<!DOCTYPE html>";
+        HtmlCode += "<html>";
+        HtmlCode += "<head>";
+        HtmlCode += WindowTitle;
+        HtmlCode += " <meta charset=\"utf-8\">\n";
+        HtmlCode += " <meta http-equiv=\"Content-Security-Policy\"  content=\"connect-src * 'unsafe-inline';name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n";
+// cerco una direttiva chiamata gaia.css
+
+
+        HtmlCode += "<link rel=\"stylesheet\" href=\"stylesheet.css\" type=\"text/css\" charset=\"utf-8\" />\n";
+        HtmlCode += "<link rel=\"stylesheet\" href=\"gaia.css\" type=\"text/css\" charset=\"utf-8\" />\n";
+        HtmlCode += "<script type=\"text/javascript\" src=\"external/nicEdit/nicEdit.js\"></script>\n";
+//        HtmlCode += codeJavaScripts();
+        HtmlCode += codeVariables(formID, request.getMyParams());
+
+        HtmlCode += ("</head>");
+        HtmlCode += ("<body onload=\"startup()\" style=\"  width: 100%;  \">PUBLIC BODY");
+        HtmlCode += codeHiddenInputs(myParams.makeJSONparams());
+//        HtmlCode += codeWindowTopBar();
+//        HtmlCode += codeWindowBody(formHtmlCode);
+//        HtmlCode += codeWindowFooter();
+//        HtmlCode += codeEndingScripts();
+        HtmlCode += "</body>\n";
+        HtmlCode += "</html>\n";
+
+        request.setResponse(HtmlCode);
+        return request;
     }
 
     public IncomingRequest MasterFormShow(IncomingRequest request) {
@@ -136,26 +175,8 @@ public class eventManager {
 
         EVOuser myUser = new EVOuser(myParams, mySettings);
         myUser.loadDBinfos();
-//        System.out.println("USER USERNAME: " + myUser.getUsername());
-//        System.out.println("USER COGNOME: " + myUser.getSurname());
-//        if ((myUser.getUsername() == null || myUser.getUsername().length() < 1)
-//                && (myUser.getSurname() == null || myUser.getSurname().length() < 1)
-//                && (myUser.getName() == null || myUser.getName().length() < 1)) 
-        String nameShowed = myUser.getName() + " " + myUser.getSurname();
-        if ((myUser.getName() == null || myUser.getName().equalsIgnoreCase("null") || myUser.getName().length() < 1)
-                && (myUser.getSurname() == null || myUser.getSurname().equalsIgnoreCase("null") || myUser.getSurname().length() < 1)) {
-            nameShowed = myUser.getUsername();
 
-        }
-        if ((myUser.getUsername() == null || myUser.getUsername().equalsIgnoreCase("null") || myUser.getUsername().length() < 1)) {
-            nameShowed = "";
-        }
-        if ((myUser.getSurname() == null || myUser.getSurname().equalsIgnoreCase("null") || myUser.getSurname().length() < 1)) {
-            nameShowed = "";
-        }
-        if ((myUser.getName() == null || myUser.getName().equalsIgnoreCase("null") || myUser.getName().length() < 1)) {
-            nameShowed = "";
-        }
+        String nameShowed = myUser.getNameShowed();
         if (nameShowed == "") {
 //            System.out.println("CARICO ACCOUNT MANAGER");
             myForm.setAbstractTextCode("Prima di procedere nel portale occorre compilare <B>tutti i campi</B> del form !");
@@ -214,26 +235,17 @@ public class eventManager {
 
         } catch (org.json.simple.parser.ParseException pe) {
         }
-        WindowTitle = "<title>"
-                //                + "MAIN FRAME : " 
-                + request.getMySettings().getProjectName().toUpperCase()
-                + " " + CNTX
-                //                + " Released under AGPL License Copyright 2019. www.ffs.it"
-                + "</title>";
+        WindowTitle = "<title>" + request.getMySettings().getProjectName().toUpperCase() + " " + CNTX + "</title>";
 
         HtmlCode += "<!DOCTYPE html>";
         HtmlCode += "<html>";
         HtmlCode += "<head>";
         HtmlCode += WindowTitle;
-        HtmlCode += " <meta charset=\"utf-8\">\n"
-                + " <meta http-equiv=\"Content-Security-Policy\"  content=\"connect-src * 'unsafe-inline';name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n";
-        // </editor-fold>   
+        HtmlCode += " <meta charset=\"utf-8\">\n";
+        HtmlCode += " <meta http-equiv=\"Content-Security-Policy\"  content=\"connect-src * 'unsafe-inline';name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n";
+
 // cerco una direttiva chiamata gaia.css
         EVOpagerDirectivesManager myDirective = new EVOpagerDirectivesManager(request.getMyParams(), request.getMySettings());
-        // String dbCode = myDirective.getDirective("gaia.css");
-        // HtmlCode += (dbCode);
-// cerco una direttiva chiamata alle funzioni javascript   
-        jsFunctionServer JSfs = new jsFunctionServer(myParams, mySettings);
         dbCode = myDirective.getDirective("gaia.inclusions");
         if (dbCode != null && !dbCode.trim().equals("")) {
             HtmlCode += (dbCode);
@@ -241,76 +253,25 @@ public class eventManager {
         HtmlCode += "<link rel=\"stylesheet\" href=\"stylesheet.css\" type=\"text/css\" charset=\"utf-8\" />\n";
         HtmlCode += "<link rel=\"stylesheet\" href=\"gaia.css\" type=\"text/css\" charset=\"utf-8\" />\n";
         HtmlCode += "<script type=\"text/javascript\" src=\"external/nicEdit/nicEdit.js\"></script>\n";
-        HtmlCode += "<script>";
-//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Carico gli script JS dal DB.");
-        //dbCode = myDirective.getDirective("gaia.variables"); 
-        HtmlCode += (JSfs.getGaiaVariables());
-        //dbCode = myDirective.getDirective("gaia.function.openWS");
-        HtmlCode += (JSfs.getWebsocketJS());
-        //dbCode = myDirective.getDirective("gaia.function.manageSplash");
-        HtmlCode += (JSfs.getManageSplash());
-        //dbCode = myDirective.getDirective("gaia.function.manageUpDownload");
-        HtmlCode += (JSfs.getManageUpDownload());
-        //dbCode = myDirective.getDirective("gaia.function.manageTBS");
-        HtmlCode += (JSfs.getManageTBS());
-        //dbCode = myDirective.getDirective("gaia.function.manageUserActions");           
-        HtmlCode += (JSfs.getPagerUserActions());
-        //dbCode = myDirective.getDirective("gaia.function.manageAutoActions");           
-        HtmlCode += (JSfs.getPagerAutoActions());
-        //dbCode = myDirective.getDirective("gaia.function.serviceFunctions");            
-        HtmlCode += (JSfs.getServiceFunctions());
-        HtmlCode += (JSfs.getManageContextMenu());
-        HtmlCode += (JSfs.getManageDoubleClickable());
-        HtmlCode += (JSfs.getMapsJS());
-        HtmlCode += (JSfs.getManageAdvancedFilter());
-        HtmlCode += (JSfs.getSmartWebsocketRoutines());
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Caricati gli script JS dal DB.");
-        HtmlCode += ("var jqueryFunction;\n"
-                + "\n"
-                + "$().ready(function(){\n"
-                + "//jQuery function\n"
-                + "    jqueryFunction = function( _msg )\n"
-                + "    {\n"
-                + "                $('#date-pick').datepicker({\n"
-                + "                    showOn: \"button\",\n"
-                + "                    dateFormat: \"dd/mm/yy\",\n"
-                + "                    onSelect: function() { \n"
-                + "                    }\n"
-                + "                });\n"
-                //---
-                + "                $('#date-pick').datepicker({\n"
-                + "                    showOn: \"button\",\n"
-                + "                    dateFormat: \"dd/mm/yy\",\n"
-                + "                    onSelect: function() { \n"
-                + "                    }\n"
-                + "                });\n"
-                //--
-                + "    }\n"
-                + "})\n"
-                + "\n"
-                + "//javascript function\n"
-                + "function jsFunction()\n"
-                + "{\n"
-                + "    //Invoke jQuery Function\n"
-                + "    jqueryFunction(\"Call from js to jQuery\");\n"
-                + "}");
-        HtmlCode += "</script>";
-        HtmlCode += ("<script>");
-        HtmlCode += ("var activeForms = [{ level:0, father:'' , id:'" + formID + "', name:'mainForm', space:'', key:''}];");
-        HtmlCode += ("var myObj = " + request.getMyParams().makeJSONparams() + ";");
-        HtmlCode += ("var overallProjectName=\"" + request.getMySettings().getProjectName() + "\";\n");
-        HtmlCode += ("var contextID=\"" + request.getMyParams().getCKcontextID() + "\";\n");
-        HtmlCode += ("var CKtokenID=\"" + request.getMyParams().getCKtokenID() + "\";\n");
-        HtmlCode += ("var PORTALparams = " + request.getMyParams().makePORTALparams() + ";\n");
-        HtmlCode += ("var overallProjectContext = \"" + request.getMyParams().getCKcontextID() + "\";");
-        HtmlCode += ("var WSactive =1  ;");
-        HtmlCode += ("var rtfArea  ;");
-        HtmlCode += ("</script>");
+        HtmlCode += codeJavaScripts();
+        HtmlCode += codeVariables(formID, request.getMyParams());
+
         HtmlCode += ("</head>");
-
-        HtmlCode += (" ");
         HtmlCode += ("<body onload=\"startup()\" style=\"  width: 100%;  \">");
+        HtmlCode += codeHiddenInputs(myParams.makeJSONparams());
+        HtmlCode += codeWindowTopBar();
+        HtmlCode += codeWindowBody(formHtmlCode);
+        HtmlCode += codeWindowFooter();
+        HtmlCode += codeEndingScripts();
+        HtmlCode += "</body>\n";
+        HtmlCode += "</html>\n";
 
+        request.setResponse(HtmlCode);
+        return request;
+    }
+
+    private String codeHiddenInputs(String jsonParams) {
+        String HtmlCode = "";
         HtmlCode += ("<INPUT type='hidden' id='txtParams'  />");
         HtmlCode += ("<INPUT type='hidden' id='portalParams'  />");
         HtmlCode += ("<INPUT type='hidden' id='WSstatus' value=\"DISCONNECTED\"  />");
@@ -322,109 +283,12 @@ public class eventManager {
         HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-copyTag\" value=\"\">\n");
         HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-keyValue\" value=\"\">\n");
         HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-args\" value=\"\">\n");
-        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"master-params\" value=\"" + encodeURIComponent(myParams.makeJSONparams()) + "\">\n");
-//==================================================================================================
+        HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"master-params\" value=\"" + encodeURIComponent(jsonParams) + "\">\n");
+        return HtmlCode;
+    }
 
-        HtmlCode += ("<DIV  "
-                + "style=\"height: 75px; width:100%; "
-                + "padding: 2px; "
-                + "z-index: 99;"
-                + " position: fixed; top: 0; overflow: hidden;\n"
-                + "  background-color: white; vertical-align: text-top;\n"
-                + "  width: 100%;"
-                + "display:block;\">");
-        HtmlCode += ("<TABLE "
-                + "style=\"height: 75px; width:100%;"
-                //                + "padding: 0px;\n"
-                //                + " position: fixed; top: 0; \" "
-                + "background-color: white;vertical-align: text-top;\"><TR>");
-
-        //---SESSION SPACE con ACCOUNT MANAGER-----------
-        HtmlCode += ("<TD style=\"width:20%;align:right;overflow:hidden;white-space:nowrap;\">");
-        HtmlCode += ("<DIV id=\"SessionSpace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
-        HtmlCode += ("</TD>");
-        //---TITLE BAR SPACE -----------
-        HtmlCode += ("<TD style=\"width:40%;align:right;overflow:hidden;white-space:nowrap;vertical-align: top;\">");
-        HtmlCode += ("<DIV id=\"titleBarSpace\" style=\"height:50px;width:100%; vertical-align: text-top; display:block;\"> </DIV>");
-        HtmlCode += ("</TD>");
-
-        //---LIGHTHOUSE CONNECTION SPACE -----------
-        HtmlCode += ("<TD style=\"width:20%;align:left;overflow:hidden;white-space:nowrap;\">");
-        HtmlCode += ("<DIV id=\"LHWSspace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
-        HtmlCode += ("</TD>");
-        //---LOCAL SERVER CONNECTION SPACE -----------
-        HtmlCode += ("<TD style=\"width:20%;align:left;overflow:hidden;white-space:nowrap;\">");
-        HtmlCode += ("<DIV id=\"WSspace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
-        HtmlCode += ("</TD>");
-        HtmlCode += ("</TR>"
-                + "<TR  style=\"border-bottom: 1px solid red\"><TD></TD></TR>"
-                + "</TABLE>");
-
-        HtmlCode += ("</DIV>");
-//==================================================================================================
-        HtmlCode += ("<DIV  "
-                + "style=\"height: 100px; width:100%; "
-                //                + "padding: 16px;\n"
-                + "  margin-top: 80px;"
-                + "display:block;\""
-                + ">");
-        HtmlCode += (" <TABLE style=\"height: 100px; width:100%;"
-                //                + " position: fixed; top: 100; \" "
-                + "background-color: white;\"><TR>");
-        HtmlCode += ("<TD style=\"height: 100%; width:100%;\">");
-        //***********************************************    
-        HtmlCode += (" <div id=\"mainFormSpace\">");
-        HtmlCode += (formHtmlCode);
-        HtmlCode += (" </div>");
-        //***********************************************   
-
-        HtmlCode += ("</TD><TD>");
-
-        HtmlCode += (" <div id=\"mainRightSpace\">");//mainRightSpace
-        HtmlCode += ("<table><tr>");
-        HtmlCode += ("<tr><td><div id=\"contactsSpace\"> </div><td><tr>");
-        HtmlCode += ("</tr><tr>");
-        HtmlCode += ("<tr><td><div id=\"formsMapSpace\"> </div><td><tr>");
-        HtmlCode += ("</tr></table>");
-        HtmlCode += ("</div>");//mainRightSpace
-
-        HtmlCode += ("</TD></TR>");
-        HtmlCode += ("<TR><TD colspan=\"2\">");
-        HtmlCode += (" <div id=\"mainBottomSpace\" ></div>\n");
-        HtmlCode += ("</TD></TR> ");
-        HtmlCode += ("</TABLE>");
-        HtmlCode += ("</DIV>");
-//==================================================================================================
-        HtmlCode += "<div id=\"snackbar\"></div>";
-
-        HtmlCode += " <div id=\"splashPanel\" class=\"modalDialog\" >\n"
-                + "     <div><a href=\"#close\" title=\"Close\" class=\"close\">X</a>\n"
-                + "         <div id=\"selectors\"><p></p></div>"
-                + "     </div>\n"
-                + "     </div>\n";
-
-        HtmlCode += ""
-                + "<div class=\"lightbox\" id=\"dropPanel\">\n"
-                + "  <figure>\n"
-                + "    <a href=\"#\" class=\"close\"></a>\n"
-                + "    <figcaption id=\"dropPanelFigcaption\">"
-                + "         <div style=\"width:100%;height:100%;overflow: auto;\" id=\"dropSpace\"  ></div>"
-                + "  </figure>\n"
-                + "</div>"
-                + ""
-                + "";
-        HtmlCode += " <div id=\"suggesterPanel\" class=\"suggester\" >\n"
-                + "<a href=\"#\" class=\"dropPanelClose\"> "
-                + "	<div>\n"
-                + " <a href=\"#suggesterclose\" title=\"Close\" class=\"close\">X</a>\n"
-                + " <div id=\"selectors1\"  ><p></p></div>"
-                + "</div>\n"
-                + "</div>";
-
-        HtmlCode += " <div id = \"contextmenu\" "
-                + "class=\"contxtmenu\"  "
-                + "onmouseout=\"javascript:setTreeContextMenuPosition('hide','','');\"></div>";
-        HtmlCode += "<div id=\"info-box\" class=\"infobox\" style=\"display:none\"></div>\n";
+    private String codeEndingScripts() {
+        String HtmlCode = "";
         HtmlCode += "<script>"
                 + "$(document).ready(function() {   });\n"
                 //---------------
@@ -519,11 +383,207 @@ public class eventManager {
                 + "rtfArea.removeInstance(objX);\n"
                 + "});\n"
                 + "</script>\n";
-        HtmlCode += "</body>\n";
-        HtmlCode += "</html>\n";
+        return HtmlCode;
+    }
 
-        request.setResponse(HtmlCode);
-        return request;
+    private String codeWindowFooter() {
+        String HtmlCode = "";
+        HtmlCode += "<div id=\"snackbar\"></div>";
+
+        HtmlCode += " <div id=\"splashPanel\" class=\"modalDialog\" >\n"
+                + "     <div><a href=\"#close\" title=\"Close\" class=\"close\">X</a>\n"
+                + "         <div id=\"selectors\"><p></p></div>"
+                + "     </div>\n"
+                + "     </div>\n";
+
+        HtmlCode += ""
+                + "<div class=\"lightbox\" id=\"dropPanel\">\n"
+                + "  <figure>\n"
+                + "    <a href=\"#\" class=\"close\"></a>\n"
+                + "    <figcaption id=\"dropPanelFigcaption\">"
+                + "         <div style=\"width:100%;height:100%;overflow: auto;\" id=\"dropSpace\"  ></div>"
+                + "  </figure>\n"
+                + "</div>"
+                + ""
+                + "";
+        HtmlCode += " <div id=\"suggesterPanel\" class=\"suggester\" >\n"
+                + "<a href=\"#\" class=\"dropPanelClose\"> "
+                + "	<div>\n"
+                + " <a href=\"#suggesterclose\" title=\"Close\" class=\"close\">X</a>\n"
+                + " <div id=\"selectors1\"  ><p></p></div>"
+                + "</div>\n"
+                + "</div>";
+
+        HtmlCode += " <div id = \"contextmenu\" "
+                + "class=\"contxtmenu\"  "
+                + "onmouseout=\"javascript:setTreeContextMenuPosition('hide','','');\"></div>";
+        HtmlCode += "<div id=\"info-box\" class=\"infobox\" style=\"display:none\"></div>\n";
+        return HtmlCode;
+    }
+
+    private String codeWindowBody(String formHtmlCode) {
+        String HtmlCode = "";
+        HtmlCode += ("<DIV  "
+                + "style=\"height: 100px; width:100%; "
+                //                + "padding: 16px;\n"
+                + "  margin-top: 80px;"
+                + "display:block;\""
+                + ">");
+        HtmlCode += (" <TABLE style=\"height: 100px; width:100%;"
+                + "  border-collapse: collapse;\n"
+                + "    margin: 0px 0px 0px 0px;\n"
+                + "    padding: 0px 0px 0px 0px;"
+                + "background-color: white;\"><TR>");
+        HtmlCode += ("<TD style=\"height: 100%; width:100%;\">");
+        //***********************************************    
+        HtmlCode += (" <div id=\"mainFormSpace\">");
+        HtmlCode += (formHtmlCode);
+        HtmlCode += (" </div>");
+        //***********************************************   
+
+        HtmlCode += ("</TD><TD>");
+
+        HtmlCode += (" <div id=\"mainRightSpace\">");//mainRightSpace
+        HtmlCode += ("<table><tr>");
+        HtmlCode += ("<tr><td><div id=\"contactsSpace\"> </div><td><tr>");
+        HtmlCode += ("</tr><tr>");
+        HtmlCode += ("<tr><td><div id=\"formsMapSpace\"> </div><td><tr>");
+        HtmlCode += ("</tr></table>");
+        HtmlCode += ("</div>");//mainRightSpace
+
+        HtmlCode += ("</TD></TR>");
+        HtmlCode += ("<TR><TD colspan=\"2\">");
+        HtmlCode += (" <div id=\"mainBottomSpace\" ></div>\n");
+        HtmlCode += ("</TD></TR> ");
+        HtmlCode += ("</TABLE>");
+        HtmlCode += ("</DIV>");
+        return HtmlCode;
+    }
+
+    private String codeWindowTopBar() {
+        String HtmlCode = "";
+        HtmlCode += ("<DIV  "
+                + "style=\"height: 75px; width: 100%;display:block; padding: 2px;z-index: 99999;position: fixed; top: 0; overflow: hidden;"
+                + " background-color: white; vertical-align: text-top;\n"
+                + " \">");
+        HtmlCode += ("<TABLE "
+                + "style=\"height: 75px; width:100%;"
+                //                + "padding: 0px;\n"
+                //                + " position: fixed; top: 0; \" "
+                + "background-color: white;vertical-align: text-top;\"><TR>");
+
+        //---SESSION SPACE con ACCOUNT MANAGER-----------
+        HtmlCode += ("<TD style=\"width:20%;align:right;overflow:hidden;white-space:nowrap;\">");
+        HtmlCode += ("<DIV id=\"SessionSpace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
+        HtmlCode += ("</TD>");
+        //---TITLE BAR SPACE -----------
+        HtmlCode += ("<TD style=\"width:40%;align:right;overflow:hidden;white-space:nowrap;vertical-align: top;\">");
+        HtmlCode += ("<DIV id=\"titleBarSpace\" style=\"height:50px;width:100%; vertical-align: text-top; display:block;\"> </DIV>");
+        HtmlCode += ("</TD>");
+
+        //---LIGHTHOUSE CONNECTION SPACE -----------
+        HtmlCode += ("<TD style=\"width:20%;align:left;overflow:hidden;white-space:nowrap;\">");
+        HtmlCode += ("<DIV id=\"LHWSspace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
+        HtmlCode += ("</TD>");
+        //---LOCAL SERVER CONNECTION SPACE -----------
+        HtmlCode += ("<TD style=\"width:20%;align:left;overflow:hidden;white-space:nowrap;\">");
+        HtmlCode += ("<DIV id=\"WSspace\" style=\"height:50px;width:100%; display:block;\"> </DIV>");
+        HtmlCode += ("</TD>");
+        HtmlCode += ("</TR>"
+                + "<TR  style=\"border-bottom: 1px solid red\"><TD></TD></TR>"
+                + "</TABLE>");
+
+        HtmlCode += ("</DIV>");
+        return HtmlCode;
+    }
+
+    private String codeVariables(String formID, EVOpagerParams myParams) {
+        String HtmlCode = "";
+        HtmlCode += ("<script>");
+        HtmlCode += ("var map;  ");
+        HtmlCode += ("var activeForms = [{ level:0, father:'' , id:'" + formID + "', name:'mainForm', space:'', key:''}];");
+        HtmlCode += ("var myObj = " + myParams.makeJSONparams() + ";");
+        HtmlCode += ("var overallProjectName=\"" + myParams.getCKprojectName() + "\";\n");
+        HtmlCode += ("var contextID=\"" + myParams.getCKcontextID() + "\";\n");
+        HtmlCode += ("var CKtokenID=\"" + myParams.getCKtokenID() + "\";\n");
+        HtmlCode += ("var PORTALparams = " + myParams.makePORTALparams() + ";\n");
+        HtmlCode += ("var overallProjectContext = \"" + myParams.getCKcontextID() + "\";");
+        HtmlCode += ("var WSactive =1  ;");
+        HtmlCode += ("var rtfArea  ;");
+        HtmlCode += ("var pinMarkers = {};");
+        HtmlCode += ("var lastDraggedObj;");
+        HtmlCode += ("var audioToken;");
+
+        HtmlCode += ("</script>");
+        return HtmlCode;
+    }
+
+    private String codeJavaScripts() {
+        String HtmlCode = "";
+        jsFunctionServer JSfs = new jsFunctionServer(myParams, mySettings);
+        // SOLO SE USO AUDIO...
+        if (mySettings.isUsesAudioRec()) {
+            HtmlCode += "<script type=\"text/javascript\" src=\"audioRecord/js/recorder.js\"></script>\n";
+            HtmlCode += "<script type=\"text/javascript\" src=\"audioRecord/js/app.js\"></script>\n";
+        }
+        if (mySettings.isUsesGeoMap()) {
+            HtmlCode += (JSfs.getSmartGeomapHandler());
+        }
+
+        HtmlCode += "<script>";
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Carico gli script JS dal DB.");
+        //dbCode = myDirective.getDirective("gaia.variables"); 
+        HtmlCode += (JSfs.getGaiaVariables());
+        //dbCode = myDirective.getDirective("gaia.function.openWS");
+        HtmlCode += (JSfs.getWebsocketJS());
+        //dbCode = myDirective.getDirective("gaia.function.manageSplash");
+        HtmlCode += (JSfs.getManageSplash());
+        //dbCode = myDirective.getDirective("gaia.function.manageUpDownload");
+        HtmlCode += (JSfs.getManageUpDownload());
+        //dbCode = myDirective.getDirective("gaia.function.manageTBS");
+        HtmlCode += (JSfs.getManageTBS());
+        //dbCode = myDirective.getDirective("gaia.function.manageUserActions");           
+        HtmlCode += (JSfs.getPagerUserActions());
+        //dbCode = myDirective.getDirective("gaia.function.manageAutoActions");           
+        HtmlCode += (JSfs.getPagerAutoActions());
+        //dbCode = myDirective.getDirective("gaia.function.serviceFunctions");            
+        HtmlCode += (JSfs.getServiceFunctions());
+        HtmlCode += (JSfs.getManageContextMenu());
+        HtmlCode += (JSfs.getManageDoubleClickable());
+        HtmlCode += (JSfs.getMapsJS());
+        HtmlCode += (JSfs.getManageAdvancedFilter());
+        HtmlCode += (JSfs.getSmartWebsocketRoutines());
+        HtmlCode += ("var jqueryFunction;\n"
+                + "\n"
+                + "$().ready(function(){\n"
+                + "//jQuery function\n"
+                + "    jqueryFunction = function( _msg )\n"
+                + "    {\n"
+                + "                $('#date-pick').datepicker({\n"
+                + "                    showOn: \"button\",\n"
+                + "                    dateFormat: \"dd/mm/yy\",\n"
+                + "                    onSelect: function() { \n"
+                + "                    }\n"
+                + "                });\n"
+                //---
+                + "                $('#date-pick').datepicker({\n"
+                + "                    showOn: \"button\",\n"
+                + "                    dateFormat: \"dd/mm/yy\",\n"
+                + "                    onSelect: function() { \n"
+                + "                    }\n"
+                + "                });\n"
+                //--
+                + "    }\n"
+                + "})\n"
+                + "\n"
+                + "//javascript function\n"
+                + "function jsFunction()\n"
+                + "{\n"
+                + "    //Invoke jQuery Function\n"
+                + "    jqueryFunction(\"Call from js to jQuery\");\n"
+                + "}");
+        HtmlCode += "</script>";
+        return HtmlCode;
     }
 
     public IncomingRequest logout(IncomingRequest request) {
@@ -1311,6 +1371,9 @@ public class eventManager {
 // SOLO NEL LOGIN FORM, in caso di context nullo, posso cercare il context nel
 // database "queenpro.definiitons" e compilarlo automaticamente di conseguenza:
 //-------------------------------
+        TomcatGaiaHost gaiaHost = new TomcatGaiaHost(myParams.getCKprojectName());
+
+        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager->loginForm", "GAIASETTINGS IN : " + gaiaHost.getPath());
 
         String HtmlCode = "";
         String extension = "";
@@ -1700,7 +1763,7 @@ public class eventManager {
 //-------------------
             if (accessByPincode && getLocalClient(request) == true) {
                 HtmlCode += "<TR> <TD><a  class= \"myAreaButton\" id= \"pincodeLoginToggler\" style=\"width:500px;\" "
-                        + " onClick=\"javascript:togglePincodeLogin()\">PINCODE LOCAL LOGIN</a> </TD></TR>";
+                        + " onClick=\"javascript:togglePincodeLogin()\">LOGIN LOCALE CON PIN</a> </TD></TR>";
                 HtmlCode += "<TR><TD><DIV id=\"pincodeLoginSpace\" style=\"display:block;  \" >";
                 HtmlCode += "<form  method=\"post\" action=\"javascript:goLogin('pincode')\"><TABLE>";
 
@@ -1730,7 +1793,7 @@ public class eventManager {
                 } else {
                     HtmlCode += " style=\"width:500px;\" ";
                 }
-                HtmlCode += " onClick=\"javascript:toggleLogin()\">WEB ACCOUNT LOGIN</a> </TD></TR>";
+                HtmlCode += " onClick=\"javascript:toggleLogin()\">LOGIN CON MAIL E PASSWORD</a> </TD></TR>";
                 HtmlCode += "<TR><TD><DIV id=\"loginSpace\" ";
                 if (accessByPincode && getLocalClient(request) == true) {
                     HtmlCode += "style=\"display:none;  \" ";
@@ -1769,7 +1832,7 @@ public class eventManager {
 
         HtmlCode += "<TR> <TD>"
                 + "<a  class= \"myAreaButton\" id= \"ForgotPasswordToggler\"   style=\"width:250px;\" "
-                + "onClick=\"javascript:toggleForgotPassword()\">AREA FORGOT PASSWORD</a>"
+                + "onClick=\"javascript:toggleForgotPassword()\">PASSWORD DIMENTICATA ?</a>"
                 + " </TD></TR>";
         HtmlCode += "<TR><TD><DIV id=\"forgotPasswordSpace\" style=\"display:none;\">";
         HtmlCode += "<table> "
@@ -1788,7 +1851,7 @@ public class eventManager {
             // inserisco link per eseguire la registrazione
             HtmlCode += ("<TR>");
             HtmlCode += "<TD><a   id= \"NewAccountToggler\"  class= \"myAreaButton\" style=\"width:250px;\" "
-                    + " onClick=\"javascript:toggleNewAccount()\">AREA NEW ACCOUNT</a></TD>"
+                    + " onClick=\"javascript:toggleNewAccount()\">CREA UN ACCOUNT</a></TD>"
                     + "</TR>";
             HtmlCode += "<TR><TD><DIV id=\"newAccountSpace\" style=\"display:none; \" >";
             HtmlCode += "<TABLE><TR><TD style=\"width:250px;\">Sei un nuovo utente ?</TD><TD> "
@@ -4021,7 +4084,9 @@ public class eventManager {
                     }
 // parsando tutti gli operatori con username indicato (possino essere diversi)
 //                    el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Confronto password inserita dall'utente (" + pass + ") con password da database (" + pincode + ")");
-                    if (pincode.equalsIgnoreCase(pass)) {
+                    if (pincode != null && pincode.length() > 1
+                            && pincode.equalsIgnoreCase(pass)
+                            && (mySettings.getAccessType().equalsIgnoreCase("UNPC"))) {
                         st = true;
                         el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "-> PINCODE MATCHES ! ");
                         el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "mySettings.getAccessType()->  " + mySettings.getAccessType());
@@ -4077,6 +4142,7 @@ public class eventManager {
                     }
                     try {
                         pincode = rs.getString("pincode");
+                        //System.out.println("pincode:" + pincode );
                     } catch (Exception ex) {
                         pincode = "";
                     }
@@ -4130,10 +4196,10 @@ public class eventManager {
         //  userExtendedName = "" + name + " " + surname;
         boolean success = st;
         el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\n-----------\nPRE ESITO DEL LOGIN:\n-------");
-        if (success && utenteAttivo < 1 && !ID.equalsIgnoreCase("ADMIN")) {
+        if (success == true && utenteAttivo < 1 && !ID.equalsIgnoreCase("ADMIN")) {
             el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Login corretto. Utente non abilitato/attivo.");
             esito = -1;
-        } else if (success) {
+        } else if (success == true) {
             el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Accesso consentito!");
             esito = 1;
             UUID idOne = null;
@@ -4155,7 +4221,30 @@ public class eventManager {
 
             try {
                 ps = accountConny.prepareStatement(SQLphrase);
-                
+
+                ps.setString(1, myParams.getCKtokenID());
+                ps.setString(2, myParams.getCKuserID());
+                ps.setString(3, "newSession");
+                ps.setString(4, remoteIP);
+                ps.setInt(5, 1);
+                ps.setString(6, myParams.getCKprojectGroup());
+                ps.setString(7, mySettings.getProjectName());
+                ps.setString(8, myParams.getCKcontextID());
+//                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\nINSERIMENTO TOKEN.\n" + ps.toString());
+                int i = ps.executeUpdate();
+                esito = i;
+
+            } catch (SQLException ex) {
+                System.out.println("\n\n\nTENTIAMO CON LOWERCASE ");
+                SQLphrase = "INSERT INTO `" + mySettings.getAccount_TABLEtokens().toLowerCase() + "`("
+                        + "`token`, `rifUser`,  `updated`, `jsessionID`, "
+                        + "`remoteIP`, `loggedStatus`, `projectGroup`, `projectName`, `contextID`"
+                        + ") VALUES ("
+                        + "?,?,now(),?,?,?,?,?,?)";
+
+                try {
+                    ps = accountConny.prepareStatement(SQLphrase);
+
                     ps.setString(1, myParams.getCKtokenID());
                     ps.setString(2, myParams.getCKuserID());
                     ps.setString(3, "newSession");
@@ -4168,31 +4257,6 @@ public class eventManager {
                     int i = ps.executeUpdate();
                     esito = i;
 
-              
-            } catch (SQLException ex) {
-                 System.out.println("\n\n\nTENTIAMO CON LOWERCASE " );
-                SQLphrase = "INSERT INTO `" + mySettings.getAccount_TABLEtokens().toLowerCase() + "`("
-                        + "`token`, `rifUser`,  `updated`, `jsessionID`, "
-                        + "`remoteIP`, `loggedStatus`, `projectGroup`, `projectName`, `contextID`"
-                        + ") VALUES ("
-                        + "?,?,now(),?,?,?,?,?,?)";
-
-                try {
-                    ps = accountConny.prepareStatement(SQLphrase);
-                   
-                        ps.setString(1, myParams.getCKtokenID());
-                        ps.setString(2, myParams.getCKuserID());
-                        ps.setString(3, "newSession");
-                        ps.setString(4, remoteIP);
-                        ps.setInt(5, 1);
-                        ps.setString(6, myParams.getCKprojectGroup());
-                        ps.setString(7, mySettings.getProjectName());
-                        ps.setString(8, myParams.getCKcontextID());
-//                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\nINSERIMENTO TOKEN.\n" + ps.toString());
-                        int i = ps.executeUpdate();
-                        esito = i;
-
-                  
                 } catch (SQLException e) {
 //                    Logger.getLogger(eventManager.class
 //                            .getName()).log(Level.SEVERE, null, e);

@@ -248,7 +248,7 @@ public EVOpagerDBconnection( Settings xSettings) {
         String USERNAME = mySettings.getFE_DATABASE_USER();
         String PASSWORD = mySettings.getFE_DATABASE_PW();
 
-         System.out.println("ConnLocalQueenpro: DATABASE_USER: " + USERNAME);
+//         System.out.println("ConnLocalQueenpro: DATABASE_USER: " + USERNAME);
         return makeConnection(
                 SQLdriver,
                 URL,

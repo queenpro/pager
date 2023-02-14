@@ -226,6 +226,16 @@ public class gate {
         this.actions.add(action);
 
     }
+    public void insertAction_clickButton(EVOpagerParams myParams, Settings mySettings, String destTarget) {
+//AMMIN18de3-X-selYear-FILTER  
+
+        JSONObject action = new JSONObject();
+        action.put("action", "clickButton");
+        action.put("target", destTarget);// oggetto da cliccare
+        action.put("htmlCode", "");// codice html
+        this.actions.add(action);
+
+    }
 
     public void insertAction_focusOnRow(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XkeyValue) {
 
@@ -412,7 +422,57 @@ public class gate {
         this.actions.add(action);
 
     }
+public void insertAction_serveAudioPanel(EVOpagerParams myParams, Settings mySettings, String newToken, String Xconnector) {
+        // salvo sul database dei report il newToken accompagnato dal Xconnector
+        System.out.println("\n\n\n  salvo sul database archivio_timedTokens il newToken accompagnato dal Xconnector :" + Xconnector);
+        Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
+        PreparedStatement ps = null;
+        ResultSet rs;
+        String SQLphrase = "INSERT INTO archivio_timedTokens (info1, lifeInSeconds, info2, token "
+                + ") VALUES ("
+                + "'AUDIOREC',200,?,'" + newToken + "' "
+                + ")";
+        System.out.println("SQLphrase:" + SQLphrase);
+        try {
+            ps = conny.prepareStatement(SQLphrase);
+            ps.setString(1, Xconnector);
+            int i = ps.executeUpdate();
+            System.out.println("i:" + i);
+        } catch (SQLException ex) {
+            Logger.getLogger(gate.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            conny.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(gate.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        // cerco targetDiv
+        JSONParser jsonParser = new JSONParser();
+        JSONObject myJC = new JSONObject();
+        String targetDiv="secPanel-";
+        try {
+            myJC = (JSONObject) jsonParser.parse(Xconnector);
+            //secPanel-prodod1480-X-record-TOMA
+            targetDiv += myJC.get("formID").toString();
+            targetDiv += "-";
+            targetDiv += myJC.get("copyTag").toString();
+            targetDiv += "-";
+            targetDiv += myJC.get("objName").toString();
+            targetDiv += "-";
+            targetDiv += myJC.get("keyValue").toString(); 
+            
+        } catch (ParseException ex) {
 
+        }
+        
+         System.out.println("targetDiv:" + targetDiv);
+        JSONObject action = new JSONObject();
+        action.put("action", "audioPanel");
+        action.put("token", newToken);
+        action.put("targetDiv", targetDiv);
+        this.actions.add(action);
+
+    }
     public String formIDfromName(EVOpagerParams myParams, Settings mySettings, String formName) {
         String formID = formName;
 
@@ -505,6 +565,43 @@ public class gate {
         action.put("action", "repaintForm");
         action.put("target", destTarget);// spazio destDiv da refreshare
         action.put("htmlCode", XhtmlCode);// codice html
+        actions.add(action);
+
+    }
+
+      public void insertAction_repaintGeomapByName(EVOpagerParams myParams, Settings mySettings, String XformName, String XCopyTag, String XhtmlCode, JSONObject geomapInfos) {
+        System.out.println("\n\n\n OCCORRE REPAINTARE IL FORM (name) :" + XformName);
+
+        JSONObject connector = loadConnector();
+        String XformID = formIDfromName(myParams, mySettings, XformName);
+        System.out.println("\n\n\n OCCORRE REPAINTARE IL FORM :" + XformID);
+        connector.put("formID", XformID);
+        connector.put("copyTag", XCopyTag);
+        connector.put("curPage", this.getCurPage());
+        String destTarget = XformID + "-" + this.getCopyTag() + "-ROWSTABLE";
+        JSONObject action = new JSONObject();
+        action.put("action", "repaintMap");
+        action.put("target", destTarget);// spazio destDiv da refreshare
+        action.put("htmlCode", XhtmlCode);// codice html        
+        action.put("geomapInfos", geomapInfos);// codice html
+        actions.add(action);
+
+    }
+
+      public void insertAction_moveGeomapByName(EVOpagerParams myParams, Settings mySettings, String XformName, String XCopyTag, String XhtmlCode, JSONObject geomapInfos) {
+        System.out.println("\n\n\n OCCORRE REPAINTARE IL FORM (name) :" + XformName);
+
+        JSONObject connector = loadConnector();
+        String XformID = formIDfromName(myParams, mySettings, XformName);
+        System.out.println("\n\n\n OCCORRE REPAINTARE IL FORM :" + XformID);
+        connector.put("formID", XformID);
+        connector.put("copyTag", XCopyTag);
+        connector.put("curPage", this.getCurPage());
+        String destTarget = XformID + "-" + this.getCopyTag() + "-ROWSTABLE";
+        JSONObject action = new JSONObject();
+        action.put("action", "moveMap");
+        action.put("target", destTarget);// spazio destDiv da refreshare
+        action.put("geomapInfos", geomapInfos);// codice html
         actions.add(action);
 
     }

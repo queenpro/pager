@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  *
  * @author Franco Venezia @ www.ffs.it
  */
-public class smartHTTPservice {
+public class smartHTTPSservice {
 
     public responseHTTP get(String rProtocol, String rMethod, String rIP, int rPort, String rPage, WShandlerInstance myHandler) {
         responseHTTP myResponse = new responseHTTP();
@@ -94,15 +94,15 @@ public class smartHTTPservice {
                 }
 
             } catch (ProtocolException ex) {
-                Logger.getLogger(smartHTTPservice.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(smartHTTPSservice.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
-                Logger.getLogger(smartHTTPservice.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(smartHTTPSservice.class.getName()).log(Level.SEVERE, null, ex);
             }
 
         } catch (MalformedURLException ex) {
-            Logger.getLogger(smartHTTPservice.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(smartHTTPSservice.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(smartHTTPservice.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(smartHTTPSservice.class.getName()).log(Level.SEVERE, null, ex);
         }
         return myResponse;
     }

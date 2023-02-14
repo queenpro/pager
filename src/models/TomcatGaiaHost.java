@@ -41,7 +41,7 @@ import showIt.ShowItForm;
 public class TomcatGaiaHost {
 
     String projectName;
-    String path;
+  public  String path;
     String data;
     JSONArray serverParams;
     JSONObject params;
@@ -50,6 +50,10 @@ public class TomcatGaiaHost {
     String pwType;
     String defaultContext;
     String QP_centralManagerURL;
+
+    public String getPath() {
+        return path;
+    }
 
 //    public TomcatGaiaHost() {
 //    }
@@ -89,7 +93,7 @@ public class TomcatGaiaHost {
 
         path = pth + separator + "GaiaSettings.txt";
 
-        System.out.println("\n>>>>>>>>> user.dir:" + pth + "     >>>>>>>>> ConfigPath:" + path);
+//        System.out.println("\n>>>>>>>>> user.dir:" + pth + "     >>>>>>>>> ConfigPath:" + path);
         return path;
     }
 

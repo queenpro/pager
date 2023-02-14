@@ -65,7 +65,7 @@ public class requestsManager {
 
     public IncomingRequest processRequest() {
 
-        System.out.println("SONO IN PROCESS REQUEST:");
+//        System.out.println("SONO IN PROCESS REQUEST:");
         String responseType = this.Irequest.getResponseType();
         String connectors = this.Irequest.getConnectors();
         String paramsJSON = this.Irequest.getParams();
@@ -78,7 +78,7 @@ public class requestsManager {
         } catch (Exception e) {
             System.out.println("requestsManager-->ERRORE IN CARICAMENTO PARAMETRI:" + e.toString());
         }
-          System.out.println("\t\tFATTO! ");
+//          System.out.println("\t\tFATTO! ");
 /*
         Attenzione : a questo punto se sono in LOGIN e non ho un CNT (context) devo
         cercare nel DB queenpro il CNT di default.
@@ -136,9 +136,11 @@ public class requestsManager {
 
             Irequest.setSessionValid(sessionValid);
 
-            if (Irequest.getSessionValid() < 1) {
-
-                if ((Irequest.getMyGate().getDoor().equalsIgnoreCase("AccountManager") && !Irequest.getMyGate().getEvent().equalsIgnoreCase("ownerAccountManager"))
+            if (Irequest.getSessionValid() < 1) {if ( Irequest.mySettings.isDatabrowser()){
+                    System.out.println("SESSIONE DATA BROWSER:" + Irequest.getMyGate().getDoor());
+                   Irequest = myEvent.DataBrowserFormShow(Irequest); 
+                    return Irequest;
+                }else if ((Irequest.getMyGate().getDoor().equalsIgnoreCase("AccountManager") && !Irequest.getMyGate().getEvent().equalsIgnoreCase("ownerAccountManager"))
                         || (Irequest.getMyGate().getDoor().equalsIgnoreCase("renderPic") && Irequest.getMyGate().getKeyValue().equalsIgnoreCase("softwareLogo"))
                         || (Irequest.getMyGate().getDoor().equalsIgnoreCase("populateHeader"))
                         || (Irequest.getMyGate().getDoor().equalsIgnoreCase("update"))) {
@@ -506,6 +508,24 @@ public class requestsManager {
                         Irequest.getMyGate().setGes_routineOnLoad(formResponse.ges_routineOnLoad);
 
                         Irequest.setResponse(formResponse.HtmlCode);
+                      } else if (myForm.getType().equalsIgnoreCase("SMARTCAROUSEL")) {
+                       smartForm mySmartForm = loadSmartFORMfromGATE();
+                        mySmartForm.setLoadType("{\"type\":\"SMARTCAROUSEL\","
+                                + "\"visualType\":\"FULLFORM\","
+                                + "\"firstRow\":\"1\","
+                                + "\"NofRows\":\"50\","
+                                + "\"currentPage\":\"1\","
+                                + "\"visualFilter\":\"\"}");
+                        System.out.println("VADO IN clickedObject-->SMARTCAROUSEL, getVisualType:" + mySmartForm.getVisualType());
+                        mySmartForm.paintForm();//questo mette il codice html in mySmartForm.formResponse
+                        System.out.println("PaintForm eseguito");
+
+                        formResponse.setGes_routineOnLoad(mySmartForm.formResponse.getGes_routineOnLoad());
+                        formResponse.setHtmlCode(mySmartForm.formResponse.getHtmlCode());
+                        Irequest.getMyGate().setGes_routineOnLoad(formResponse.ges_routineOnLoad);
+                        Irequest.setResponse(formResponse.HtmlCode);
+                        System.out.println("Esco con Door=" + Irequest.getMyGate().getDoor());
+
                     } else {
                         formResponse = myForm.paintForm();
                         Irequest.getMyGate().setGes_routineOnLoad(formResponse.ges_routineOnLoad);

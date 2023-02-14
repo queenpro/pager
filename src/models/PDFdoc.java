@@ -292,7 +292,7 @@ public class PDFdoc {
     }
 
     public Object fillDocument(String XdocName, String destType) {
-        System.out.println(">>>>>>>>>SONO IN fillDocument destType:" + destType + "   -  XdocName:" + XdocName);
+//        System.out.println(">>>>>>>>>SONO IN fillDocument destType:" + destType + "   -  XdocName:" + XdocName);
         conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
         Object retObj = new Object();
         docName = XdocName;
@@ -300,8 +300,8 @@ public class PDFdoc {
         if (destType.equalsIgnoreCase("table")) {
             this.destType = destType;
             mainDestTable = new PdfPTable(1);
-            System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>DESTtype=" + destType);
-            System.out.println("fillDocument_ CHIAMATO FORM SECONDARIO; " + docName);
+//            System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>DESTtype=" + destType);
+//            System.out.println("fillDocument_ CHIAMATO FORM SECONDARIO; " + docName);
             goFillDocument(docName, conny);
             retObj = mainDestTable;
             //            System.out.println(">>>>>>>>>RITORNO CON OGGETTO mainDestTable CONTENENTE TABELLA PREPARATO DA goFillDocument.");
@@ -320,7 +320,7 @@ public class PDFdoc {
     }
 
     public void goFillDocument(String XdocName, Connection conny) {
-        System.out.println("\n>>>>>>>>>SONO IN goFillDocument destType:" + destType + "   -  XdocName:" + XdocName);
+//        System.out.println("\n>>>>>>>>>SONO IN goFillDocument destType:" + destType + "   -  XdocName:" + XdocName);
 
         ArrayList<PDFreportRow> reportRows = scriptLoader(XdocName, conny);
         paintDocument(reportRows, destType, conny);
@@ -412,7 +412,7 @@ public class PDFdoc {
 //                System.out.println(docName + ")LOOP da riga " + row + " a " + rigaFine);
 
                 String query = browserArgsReplace(myRow.getQuery(), "mysql");
-                System.out.println("\n\n-PDF->Query: " + query);
+//                System.out.println("\n\n-PDF->Query: " + query);
 //                System.out.println("TablesStack: " + TablesStack);
 
                 int DBrows = 0;
@@ -424,7 +424,7 @@ public class PDFdoc {
                     ArrayList<SelectListLine> fields = new ArrayList<SelectListLine>();
                     while (rs[TablesStack].next()) { // per ogni riga in tabella
                         DBrows++;
-                        System.out.println("\nRIGA DATABASE: " + DBrows);
+//                        System.out.println("\nRIGA DATABASE: " + DBrows);
                         if (DBrows == 1) {
                             ResultSetMetaData rsmd = rs[TablesStack].getMetaData();
                             int numColumns = rsmd.getColumnCount();
@@ -503,7 +503,7 @@ public class PDFdoc {
                             //-------------------------------
                             if (curRow > rigaInizio + 1 && loopRow.getElement().equalsIgnoreCase("openDataTable")) {
 
-                                System.out.println("\n\n-->open SUBDataTable in riga: " + curRow);
+//                                System.out.println("\n\n-->open SUBDataTable in riga: " + curRow);
                                 // sono entrato in una riga che apre una tabella dati
                                 // ceco la prima chiusura di tabella disponibile
                                 int SUBrigaInizio = curRow;
@@ -528,7 +528,7 @@ public class PDFdoc {
                                 Tables[TablesStack] = myTable;
                                 // parsing della chiusura
                                 curRow = SUBrigaFine - 1;
-                                System.out.println("FINE LOOP per tabella interna ; Riprendo da riga " + curRow);
+//                                System.out.println("FINE LOOP per tabella interna ; Riprendo da riga " + curRow);
 //                                System.out.println("\n***************************\n ");
 
                             } else if (loopRow.getElement().equalsIgnoreCase("if")) {
@@ -558,7 +558,7 @@ public class PDFdoc {
                         //  System.out.println(docName + " =================fine  parsing righe script Args [" + richArgList.size() + "/" + argList.size());
                         richArgList = cloneArray(argList);
                     }// fine loop del database
-                    System.out.println("FINE LOOP righe del database ");
+//                    System.out.println("FINE LOOP righe del database ");
 
                 } catch (SQLException ex) {
                     Logger.getLogger(PDFdoc.class.getName()).log(Level.SEVERE, null, ex);
@@ -590,7 +590,7 @@ public class PDFdoc {
         //-------------------------------------------
         //chiudo il documento 
         if (docType != null && docType.equalsIgnoreCase("mainDocument")) {
-            System.out.println("=========================CHIUDO " + docName);
+//            System.out.println("=========================CHIUDO " + docName);
             try {
                 document.close();
             } catch (Exception e) {
@@ -641,7 +641,7 @@ public class PDFdoc {
                 float THeight = table.getTotalHeight();
                 float pageHeight = PDFpageSize.getHeight();
                 float Ypos = pageHeight - THeight;
-                System.out.println("THeight:" + THeight + "   pageHeight:" + pageHeight + "   Ypos:" + Ypos);
+//                System.out.println("THeight:" + THeight + "   pageHeight:" + pageHeight + "   Ypos:" + Ypos);
                 //(int rowStart, int rowEnd, float xPos, float yPos, PdfContentByte canvas) 
                 //  Rectangle(842 ,595 );
                 ////table.writeSelectedRows(0, -1, 64, 833, writer.getDirectContent());
@@ -699,7 +699,7 @@ public class PDFdoc {
                 float THeight = table.getTotalHeight();
                 float pageHeight = PDFpageSize.getHeight();
                 float Ypos = pageHeight;
-                System.out.println("THeight:" + THeight + "   pageHeight:" + pageHeight + "   Ypos:" + Ypos);
+//                System.out.println("THeight:" + THeight + "   pageHeight:" + pageHeight + "   Ypos:" + Ypos);
                 table.writeSelectedRows(0, -1, PDFmarginLeft, Ypos, writer.getDirectContent());
 
             }
@@ -824,8 +824,8 @@ public class PDFdoc {
 //                    System.out.println("\n#\n");
                     // field tipo INT
 
-                    System.out.println("myRow.getFieldType() :" + myRow.getFieldType());
-                    System.out.println("myRow.getLayout() :" + myRow.getLayout());
+//                    System.out.println("myRow.getFieldType() :" + myRow.getFieldType());
+//                    System.out.println("myRow.getLayout() :" + myRow.getLayout());
                     if (myRow.getFieldType().equalsIgnoreCase("INT")) {
                         if (myRow.getLayout().equalsIgnoreCase("checkbox")) {
                             int value = 0;
@@ -913,7 +913,7 @@ public class PDFdoc {
                                     phrase = giorno + "/" + mese + "/" + anno;
                                 }
                             } else {
-                                System.out.println("data non presente o non corretta in " + myRow.getFieldName());
+//                                System.out.println("data non presente o non corretta in " + myRow.getFieldName());
                                 phrase = "#" + rs[stackUsed].getString(myRow.getFieldName());//data non presente o non corretta
                             }
                             cellOne.fillCell(phrase, myRow);
@@ -943,7 +943,7 @@ public class PDFdoc {
                         BufferedImage bi;
                         Image myLogo = null;
                         if (in == null) {
-                            System.out.println("L'immagine è vuota... occorre caricare un segnaposto");
+//                            System.out.println("L'immagine è vuota... occorre caricare un segnaposto");
 
                             myLogo = myDirective.getDirectiveMedia("imagePlaceholder");
 
@@ -960,7 +960,7 @@ public class PDFdoc {
                                             Logger.getLogger(PDFdoc.class.getName()).log(Level.SEVERE, null, ex);
                                         }
                                     } else {
-                                        System.out.println("L'immagine è vuota!... occorre caricare un segnaposto");
+//                                        System.out.println("L'immagine è vuota!... occorre caricare un segnaposto");
                                         myLogo = myDirective.getDirectiveMedia("imagePlaceholder");
                                     }
                                 }
@@ -982,20 +982,20 @@ public class PDFdoc {
 
                             cellOne.fillCell(myLogo, myRow);
                         } else {
-                            System.out.println("myLogo è vuoto..");
+//                            System.out.println("myLogo è vuoto..");
                             cellOne.fillCell(" ", myRow);
                         }
                     } else if (myRow.getFieldType().equalsIgnoreCase("minToHours")) {
                         try {
                             phrase = rs[stackUsed].getString(myRow.getFieldName());
                             try {
-                                System.out.println("phrase:" + phrase);
+//                                System.out.println("phrase:" + phrase);
                                 int no = Integer.parseInt(phrase);
-                                System.out.println("no:" + no);
+//                                System.out.println("no:" + no);
                                 int hours = (int) (no / 60); //since both are ints, you get an int
                                 int minutes = (int) (no % 60);
                                 phrase = hours + "h " + minutes + "m";
-                                System.out.println("phrase:" + phrase);
+//                                System.out.println("phrase:" + phrase);
                             } catch (Exception e) {
                             }
                         } catch (SQLException ex) {
@@ -1027,9 +1027,9 @@ public class PDFdoc {
                         try {
 //                            System.out.println("Cerco campo: " + myRow.getFieldName());
                             phrase = rs[stackUsed].getString(myRow.getFieldName());
-                            System.out.println("Assegno contenuto alla cella(" + myRow.getFieldName() + ") :" + phrase);
+//                            System.out.println("Assegno contenuto alla cella(" + myRow.getFieldName() + ") :" + phrase);
 
-                            System.out.println("myRow.getFieldType() :" + myRow.getFieldType() + "   FONT SIZE:" + myRow.getFontSize());
+//                            System.out.println("myRow.getFieldType() :" + myRow.getFieldType() + "   FONT SIZE:" + myRow.getFontSize());
                             if (myRow.getLayout().equalsIgnoreCase("barcode")) {
                                 Image BCimage = getBarcode(phrase, myRow.getStyle());
                                 BCimage.setScaleToFitLineWhenOverflow(true);
@@ -1096,7 +1096,7 @@ public class PDFdoc {
                 } else {
                     // LABEL
                     phrase = myRow.getContent();// suppongo per default che sia una label  
-                    System.out.println("label ->phrase :: " + phrase);
+//                    System.out.println("label ->phrase :: " + phrase);
                     if (phrase == null || phrase.length() < 1) {
                         phrase = " ";
                     } else {
@@ -1200,10 +1200,10 @@ public class PDFdoc {
             } else if (myRow.getElement().equalsIgnoreCase("PDFdoc")) {
                 if (myRow.getType().equalsIgnoreCase("Header")) {
                     currentHeaderDoc = myRow.getContent(); // assegno il nome del documento HEADER
-                    System.out.println("\nASSEGNO HEADER DOC: " + currentHeaderDoc);
+//                    System.out.println("\nASSEGNO HEADER DOC: " + currentHeaderDoc);
                 } else if (myRow.getType().equalsIgnoreCase("Calendar")) {
-                    System.out.println("=========================" + docName + "==CHIAMA DOC CALENDARIO=======================" + myRow.content);
-                    System.out.println("argList =" + argList.toString());
+//                    System.out.println("=========================" + docName + "==CHIAMA DOC CALENDARIO=======================" + myRow.content);
+//                    System.out.println("argList =" + argList.toString());
 //************************************************
                     Calendar clnd = Calendar.getInstance();
                     int year = clnd.get(Calendar.YEAR);
@@ -1213,9 +1213,9 @@ public class PDFdoc {
                     String mese = "###MESE###";
 
                     anno = ArgsReplace(anno, argList);
-                    System.out.println("anno =" + anno);
+//                    System.out.println("anno =" + anno);
                     mese = ArgsReplace(mese, argList);
-                    System.out.println("mese =" + mese);
+//                    System.out.println("mese =" + mese);
                     try {
                         year = Integer.parseInt(anno);
                         month = Integer.parseInt(mese);
@@ -1230,7 +1230,7 @@ public class PDFdoc {
                     document.add(myCalendar.step5drawPDF());
 
                 } else {
-                    System.out.println("=========================" + docName + "==CHIAMA DOC FIGLIO=======================");
+//                    System.out.println("=========================" + docName + "==CHIAMA DOC FIGLIO=======================");
                     PDFdoc innerDoc = new PDFdoc(stream, document, writer, richArgList, myParams, mySettings);
                     if (CellStack > 0) {
 
@@ -1368,7 +1368,7 @@ public class PDFdoc {
 
     private ArrayList<PDFreportRow> scriptLoader(String XdocName, Connection conny) {
 
-        System.out.println("\n\n*******\nSONO IN SCRIPT LOADER");
+//        System.out.println("\n\n*******\nSONO IN SCRIPT LOADER");
 
         ArrayList<PDFreportRow> reportRows = new ArrayList<PDFreportRow>();
         docName = XdocName;
@@ -1838,7 +1838,7 @@ public class PDFdoc {
             data = data.replaceAll("\\+", "%2B");
             data = URLDecoder.decode(data, "utf-8");
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         return data;
     }
