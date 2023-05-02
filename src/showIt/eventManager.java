@@ -103,7 +103,7 @@ public class eventManager {
     public IncomingRequest DataBrowserFormShow(IncomingRequest request) {
         String HtmlCode = "";
         System.out.println("#####################Creo smartForm.");
-        String CNTX=this.findExtension();
+        String CNTX = this.findExtension();
         myParams.setCKcontextID(CNTX);
         myParams.setCKprojectName(mySettings.getProjectName());
         String WindowTitle = "<title>" + request.getMySettings().getProjectName().toUpperCase() + " " + CNTX + "</title>";
@@ -116,7 +116,6 @@ public class eventManager {
         HtmlCode += " <meta charset=\"utf-8\">\n";
         HtmlCode += " <meta http-equiv=\"Content-Security-Policy\"  content=\"connect-src * 'unsafe-inline';name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n";
 // cerco una direttiva chiamata gaia.css
-
 
         HtmlCode += "<link rel=\"stylesheet\" href=\"stylesheet.css\" type=\"text/css\" charset=\"utf-8\" />\n";
         HtmlCode += "<link rel=\"stylesheet\" href=\"gaia.css\" type=\"text/css\" charset=\"utf-8\" />\n";
@@ -1355,35 +1354,39 @@ public class eventManager {
     }
 
     public IncomingRequest loginForm(IncomingRequest request) {
-        el = new ErrorLogger(myParams, mySettings);
-        el.setPrintOnScreen(false);
-        el.setPrintOnLog(false);
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n----\n");
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "COSTRUZIONE LOGIN FORM " + request.getMyGate().getType());
+        System.out.println("Sono in login Form");
+//        el = new ErrorLogger(myParams, mySettings);    
         myParams = request.getMyParams();
         mySettings = request.getMySettings();
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "GROUP FROM COMMAND LINE: " + request.getMyParams().getCKprojectGroup());
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "PROJECT FROM COMMAND LINE: " + mySettings.getProjectName());
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "CONTEXT FROM COMMAND LINE: " + myParams.getCKcontextID());
-
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "----\n");
+//        el.setPrintOnScreen(false);
+//        el.setPrintOnLog(false);
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n----\n");
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "COSTRUZIONE LOGIN FORM " + request.getMyGate().getType());
+//
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "GROUP FROM COMMAND LINE: " + request.getMyParams().getCKprojectGroup());
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "PROJECT FROM COMMAND LINE: " + mySettings.getProjectName());
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "CONTEXT FROM COMMAND LINE: " + myParams.getCKcontextID());
+//
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "----\n");
 //-------------------------------
 // SOLO NEL LOGIN FORM, in caso di context nullo, posso cercare il context nel
 // database "queenpro.definiitons" e compilarlo automaticamente di conseguenza:
 //-------------------------------
-        TomcatGaiaHost gaiaHost = new TomcatGaiaHost(myParams.getCKprojectName());
+//        TomcatGaiaHost gaiaHost = new TomcatGaiaHost(myParams.getCKprojectName());
 
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager->loginForm", "GAIASETTINGS IN : " + gaiaHost.getPath());
-
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager->loginForm", "GAIASETTINGS IN : " + gaiaHost.getPath());
         String HtmlCode = "";
         String extension = "";
-
-        if (request.getMyParams().getCKcontextID() == null || request.getMyParams().getCKcontextID().length() < 1) {
-            el = new ErrorLogger(request.getMyParams(), request.getMySettings());
-
-            Connection QPconny = new EVOpagerDBconnection(request.getMyParams(), request.getMySettings()).ConnLocalQueenpro();
+        String extensionQuery = "";
+        String extensionErrorMessage = "";
+        if (myParams == null || myParams.getCKcontextID() == null || myParams.getCKcontextID().length() < 2) {
+            System.out.println("Cerco extension");
+//            el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Cerco extension ");
+            Connection QPconny = new EVOpagerDBconnection(request.getMySettings()).ConnLocalQueenpro();
             if (QPconny != null) {
-                String SQLphrase = "SELECT * FROM definitions WHERE ID='" + request.getMySettings().getProjectName() + "'";
+                String SQLphrase = "SELECT * FROM definitions WHERE ID = '" + request.getMySettings().getProjectName() + "'";
+                System.out.println("SQL per extension" + SQLphrase);
+                extensionQuery = SQLphrase;
                 PreparedStatement ps;
                 try {
                     ps = QPconny.prepareStatement(SQLphrase);
@@ -1397,13 +1400,25 @@ public class eventManager {
                 } catch (SQLException ex) {
                     Logger.getLogger(eventManager.class
                             .getName()).log(Level.SEVERE, null, ex);
+                    extensionErrorMessage = "FILE DI CONFIGURAZIONE NON TROVATO !";
+                    System.out.println("FILE DI CONFIGURAZIONE NON TROVATO !");
                 }
+            } else {
+//                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Errore nel collegamento al database queenpro ");
+                System.out.println("Errore nel collegamento al database queenpro ");
             }
+        } else {
+            extension = myParams.getCKcontextID();
+            System.out.println("Viene fornita una extension da index.jsp : " + extension);
+//            el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Viene fornita una extension da index.jsp : " + extension);
         }
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "tornato da ricerca extension : " + extension);
+        if (extension.length() < 1) {
+            extensionErrorMessage += " ESTENSIONE VUOTA !";
+        }
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "tornato da ricerca extension : " + extension);
         EVOpagerDirectivesManager myManager = new EVOpagerDirectivesManager(request.getMyParams(), mySettings);
         String ExpireDate = myManager.getEvoDirective("ExpireDate");
-        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "tornato da ricerca ExpireDate : " + ExpireDate);
+//        el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "tornato da ricerca ExpireDate : " + ExpireDate);
 
         if (ExpireDate == null) {
             ExpireDate = "2014-01-01";
@@ -1654,6 +1669,11 @@ public class eventManager {
                 + "<link rel=\"stylesheet\" href=\"stylesheet.css\" type=\"text/css\" charset=\"utf-8\" />");
         HtmlCode += ("<INPUT type='hidden' id='portalParams'  />");
         HtmlCode += ("<TABLE  class=\"mydiv\" width= \"100%\"><TR><TD>");
+        //extensionErrorMessage //extensionQuery
+        HtmlCode += ("<div id=\"QPerr\"> ");
+        HtmlCode += (extensionErrorMessage);
+        HtmlCode += ("<INPUT type=\"hidden\" id=\"extensionQuery\" value=\"" + extensionQuery + "\"  />");
+        HtmlCode += (" </DIV>");
         HtmlCode += ("<div id=\"EVObridge\" >");
         HtmlCode += ("</div>");
         HtmlCode += ("</TD></TR></TABLE>");
@@ -4084,6 +4104,9 @@ public class eventManager {
                     }
 // parsando tutti gli operatori con username indicato (possino essere diversi)
 //                    el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "Confronto password inserita dall'utente (" + pass + ") con password da database (" + pincode + ")");
+                    System.out.println("PINCODE RICHIESTO: " + pincode);
+                    System.out.println("PINCODE INSERITO: " + pass);
+                    System.out.println("AccessType: " + mySettings.getAccessType());
                     if (pincode != null && pincode.length() > 1
                             && pincode.equalsIgnoreCase(pass)
                             && (mySettings.getAccessType().equalsIgnoreCase("UNPC"))) {
@@ -4118,7 +4141,7 @@ public class eventManager {
                         + "FROM  " + tabOperatori + " WHERE `alive`>=-9 "
                         + "AND email ='" + username + "' "
                         + " ";
-                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\nCerco accesso-> " + SQLphrase + " ");
+//                el.log(myParams.getCKprojectName() + myParams.getCKcontextID() + "eventManager", "\n\nCerco accesso-> " + SQLphrase + " ");
                 PreparedStatement ps = null;
                 ResultSet rs = null;
 

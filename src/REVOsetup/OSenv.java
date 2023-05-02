@@ -79,11 +79,11 @@ public class OSenv {
             completePath = usatoPerFile;
         }
         completePath = normalizePath(completePath);
-        System.out.println(">>>>ServeFile:" + completePath);
+        System.out.println(">>>>BasePath:" + completePath);
         return completePath;
     }
 
-    public String getCompletePathFilename(String fileToSearch, EVOpagerParams myParams, Settings mySettings) {
+    public String getCompletePathFilename(String fileToSearch, String folderPath, EVOpagerParams myParams, Settings mySettings) {
         String filepath = fileToSearch;
         String completePathFilename = filepath;
         EVOpagerDirectivesManager myManager = new EVOpagerDirectivesManager(myParams, mySettings);
@@ -93,15 +93,15 @@ public class OSenv {
         if (myParams.getCKcontextID() != null && myParams.getCKcontextID().length() > 0) {
             nomeContesto = myParams.getCKcontextID() + this.OSslash;
         }
-        completePathFilename = this.OSbasePath + percorsoBase + nomeContesto + filepath;
+        completePathFilename = this.OSbasePath + percorsoBase + nomeContesto + folderPath + filepath;
         if (percorsoBase.startsWith("[]")) {
-            String usatoPerFile = percorsoBase + nomeContesto + filepath;
+            String usatoPerFile = percorsoBase + nomeContesto + folderPath + filepath;
             usatoPerFile = usatoPerFile.replace("[]", "");
             completePathFilename = usatoPerFile;
         }
 
         completePathFilename = normalizePath(completePathFilename);
-        System.out.println(">>>>ServeFile:" + completePathFilename);
+//        System.out.println(">>>>CompletePathFilename:" + completePathFilename);
         return completePathFilename;
     }
 

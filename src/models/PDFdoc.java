@@ -1022,7 +1022,26 @@ public class PDFdoc {
                             System.out.println("\n@@@\n\n ERRORE su euro ");
                         }
                         cellOne.fillCell(phrase, myRow);
-                    } // field tipo TEXT
+                    } else if (myRow.getFieldType().equalsIgnoreCase("PERCENT")) {
+                        try {
+
+                            float Xamount = rs[stackUsed].getFloat(myRow.getFieldName());
+                            DecimalFormat df = new DecimalFormat("#.00");
+                            float number = Xamount;
+                            try {
+
+                                String strno = df.format(Xamount);
+                                strno = strno.replace(",", ".");
+                                number = Float.valueOf(strno);
+                            } catch (Exception e) {
+                                System.out.println("error rounding:  " + e.toString());
+                            }
+                            phrase = "" + number+"%";
+                        } catch (SQLException ex) {
+                            System.out.println("\n@@@\n\n ERRORE su PERCENT ");
+                        }
+                        cellOne.fillCell(phrase, myRow);
+                    } // field tipo TEXT 
                     else { // per default è un text
                         try {
 //                            System.out.println("Cerco campo: " + myRow.getFieldName());
@@ -1369,7 +1388,6 @@ public class PDFdoc {
     private ArrayList<PDFreportRow> scriptLoader(String XdocName, Connection conny) {
 
 //        System.out.println("\n\n*******\nSONO IN SCRIPT LOADER");
-
         ArrayList<PDFreportRow> reportRows = new ArrayList<PDFreportRow>();
         docName = XdocName;
         String myScript;
@@ -1792,13 +1810,13 @@ public class PDFdoc {
                         xValue = encodeMYSQLstring(xValue);
 
                     } else {
-                     try{
-                         //                            String temp = java.net.URLDecoder.decode(xValue, "UTF-8");
-                        String temp =    replacer(xValue) ;
-                        xValue = temp;
-                     }catch(Exception e){
-                         
-                     }
+                        try {
+                            //                            String temp = java.net.URLDecoder.decode(xValue, "UTF-8");
+                            String temp = replacer(xValue);
+                            xValue = temp;
+                        } catch (Exception e) {
+
+                        }
                     }
                     String toBeReplaced = "###" + xMarker + "###";
 //            System.out.println("toBeReplaced :" + toBeReplaced + "  ---> " + xValue);

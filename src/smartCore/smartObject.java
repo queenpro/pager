@@ -69,6 +69,9 @@ public class smartObject {
 
     public smartObjRight objRights;
     public smartForm myForm;
+    public int listIndex;
+    public int listChecked;
+    public int DBfieldType;
 
     public class container {
 
@@ -404,6 +407,32 @@ public class smartObject {
         this.CG = new contentGenerator();
         this.Content = new content();
         this.Origin = new origin();
+    }
+
+    public int getListChecked() {
+        return listChecked;
+    }
+
+    public void setListChecked(int listChecked) {
+        this.listChecked = listChecked;
+    }
+
+    public int getDBfieldType() {
+        return DBfieldType;
+    }
+
+    public void setDBfieldType(int DBfieldType) {
+        this.DBfieldType = DBfieldType;
+    }
+
+  
+
+    public int getListIndex() {
+        return listIndex;
+    }
+
+    public void setListIndex(int listIndex) {
+        this.listIndex = listIndex;
     }
 
     public int getActualRights() {

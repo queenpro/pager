@@ -360,6 +360,20 @@ public class smartRow {
                                         System.out.println("error rounding:  " + e.toString());
                                     }
                                     str = "€ " + number;
+                                    } else if (myForm.objects.get(obj).Content.getType() != null
+                                        && myForm.objects.get(obj).Content.getType().equalsIgnoreCase("PERCENT")) {
+//                                System.out.println("DEVO ARROTONDARE NUMERO  " + no);
+                                    DecimalFormat df = new DecimalFormat("#.00");
+                                    float number = no;
+                                    try {
+
+                                        String strno = df.format(no);
+                                        strno = strno.replace(",", ".");
+                                        number = Float.valueOf(strno);
+                                    } catch (Exception e) {
+                                        System.out.println("error rounding:  " + e.toString());
+                                    }
+                                    str = ""+ number+"%" ;
                                 } else if (myForm.objects.get(obj).Content.getType() != null
                                         && myForm.objects.get(obj).Content.getType().equalsIgnoreCase("INT")) {
                                     try {
@@ -680,7 +694,7 @@ public class smartRow {
         }
 
         // System.out.println("\n--PaintRow_elaboraRigaRS per riga n." + rowNumber);
-        ArrayList<boundFields> rowValues = elaboraRigaRS(rs, actualRowRights);
+//        ArrayList<boundFields> rowValues = elaboraRigaRS(rs, actualRowRights);
         if (myForm.getHtmlPattern() != null && myForm.getHtmlPattern().length() > 0) {
             try {
                 htmlCode += encodeNormalPatternRow();
@@ -724,7 +738,9 @@ public class smartRow {
                 if (myForm.objects.get(obj).getActuallyVisible() < 1) { // se è visibile a livello FORM
                     htmlCode += " style=\"width:0px; display:none;\" ";
                 } else {
-                    if (myForm.objects.get(obj).C.getWidth() != null && myForm.objects.get(obj).C.getWidth() != "null" && myForm.objects.get(obj).C.getWidth() != "") {
+                    if (myForm.objects.get(obj).C.getWidth() != null 
+                            && !myForm.objects.get(obj).C.getWidth().equalsIgnoreCase("null") 
+                            && myForm.objects.get(obj).C.getWidth().length()>0) {
                         String myWidth = myForm.objects.get(obj).C.getWidth();
                         htmlCode += " style=\"width:" + myWidth + ";"
                                 //                                   + "border:1px solid black; border-collapse: collapse;\n"
@@ -1332,7 +1348,8 @@ public class smartRow {
                     + "onClick=\"javascript:smartRowSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\">"
                     + "<a id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL\" "
                     + "style=\""
-                    + " height: inherit;"
+//                    + " height: inherit;"
+                    + " height: 100%;"
                     + " cursor: pointer;"
                     + " padding: 1em;"
                     + "\"><font size='1'><i><b>" + xLineNumber + "</b></i></font> "
@@ -1569,8 +1586,15 @@ public class smartRow {
         return rowValues;
     }
 
+    private class valToWrite {
+        String ValoreDaScrivere;
+        String type;
+
+    }
+
     public String ricavoValoreDaScrivere(ResultSet rs, int obj) {
         String ValoreDaScrivere = "";
+        String infoType = "String";
 
         // ValoreDaScrivere = myForm.objects.get(obj).getLabelHeader();
         try {
@@ -1631,8 +1655,10 @@ public class smartRow {
                             if (rs != null) {
                                 if (formQueryKeyFieldType != null
                                         && formQueryKeyFieldType.equalsIgnoreCase("INT")) {
+                                    infoType = "Int";
                                     ValoreDaScrivere = "" + rs.getInt(formQueryKeyField);
                                 } else {
+                                    infoType = "String";
                                     ValoreDaScrivere = rs.getString(formQueryKeyField);
                                 }
                             }
@@ -1657,6 +1683,7 @@ public class smartRow {
                     BufferedImage image = null;
                     if (rs != null) {
                         try {
+                            infoType = "Blob";
                             blob = rs.getBlob(myForm.objects.get(obj).getName());
                             InputStream in = null;
                             if (blob != null) {
@@ -1676,6 +1703,7 @@ public class smartRow {
 //                    System.out.println("ROWPICTURE (valore da scrivere) masterMarker--->" + myForm.masterMarker);
                     String picLabel = myForm.objects.get(obj).labelHeader;
                     try {
+                        infoType = "String";
                         String masterMarker = rs.getString(myForm.masterMarker);
                         if (masterMarker != null && masterMarker.length() > 0) {
                             picLabel = masterMarker;
@@ -1695,6 +1723,7 @@ public class smartRow {
                             && myForm.objects.get(obj).Content.getType().equalsIgnoreCase("INT")) {
                         int number = 0;
                         try {
+                            infoType = "Int";
                             number = rs.getInt(myForm.objects.get(obj).name);
                         } catch (Exception ee) {
                         }
@@ -1702,6 +1731,7 @@ public class smartRow {
                     } else {
                         String text = "";
                         try {
+                            infoType = "String";
                             text = rs.getString(myForm.objects.get(obj).name);
                         } catch (Exception ex) {
                             text = "";
@@ -2208,7 +2238,27 @@ public class smartRow {
                         }
                         ValoreDaScrivere = "€ " + ValoreDaScrivere;
                     }
-                } else if (curObj.Content.getType() != null && (curObj.Content.getType().equalsIgnoreCase("MINtoHOURS") || curObj.Content.getType().equalsIgnoreCase("MINStoHOURS"))) {
+                    } else if (curObj.Content.getType() != null && curObj.Content.getType().equalsIgnoreCase("PERCENT")) {
+                    htmlCode += " contentNumber  ";
+                    if (ValoreDaScrivere != null && ValoreDaScrivere.length() > 0) {
+                        // tronco a 3 cifre dopo il punto
+                        if (ValoreDaScrivere != null && ValoreDaScrivere.contains(".")) {
+                            ValoreDaScrivere = ValoreDaScrivere + "00";
+                            int posX = ValoreDaScrivere.lastIndexOf(".");
+                            posX = posX + 2;
+                            if (ValoreDaScrivere.length() > posX) {
+                                ValoreDaScrivere = ValoreDaScrivere.substring(0, posX + 1);
+                            }
+                        } else {
+                            ValoreDaScrivere = ValoreDaScrivere + ".00";
+                        }
+                        if (ValoreDaScrivere.startsWith("-")) {
+                            ValoreDaScrivere = "<font color='red'>" + ValoreDaScrivere + "</font>";
+                        }
+                        ValoreDaScrivere = "" + ValoreDaScrivere+"%";
+                    }
+                } else if (curObj.Content.getType() != null && (curObj.Content.getType().equalsIgnoreCase("MINtoHOURS")
+                        || curObj.Content.getType().equalsIgnoreCase("MINStoHOURS"))) {
                     htmlCode += " contentNumber  ";
                     int no = 0;
                     try {
@@ -3837,16 +3887,51 @@ public class smartRow {
         if (objType.equalsIgnoreCase("DATEFILTER")) {
 //==DATEFILTER=========================================================
             String filterName = myForm.getID() + "-" + myForm.getCopyTag() + "-" + curObj.name + "-FILTER";
+            System.out.println("OGGETTO DATEFILTER " + curObj.CG.getParams());
 
             Calendar cal = Calendar.getInstance();
+            SimpleDateFormat formatYear = new SimpleDateFormat("yyyy");
+            String thisYear = formatYear.format(cal.getTime());
+            int questanno = Integer.parseInt(thisYear);
+            // per prima cosa carico la data odierna
+            // poi controllo se c'è una indicazione
+
+            if (curObj.CG != null && curObj.CG.getParams() != null && curObj.CG.getParams().length() > 0) {
+                try {
+                    JSONParser jsonParser = new JSONParser();
+                    JSONObject jsonObject;
+                    try {
+                        jsonObject = (JSONObject) jsonParser.parse(curObj.CG.getParams());
+                        try {
+                            String defaultDate = (String) jsonObject.get("defaultDate");
+                            if (defaultDate != null) {
+                                if (defaultDate.contains("YYYY")) {
+                                    defaultDate = defaultDate.replace("YYYY", thisYear);
+                                }
+
+                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ITALIAN);
+                                cal.setTime(sdf.parse(defaultDate));
+                            }
+                        } catch (Exception ex) {
+
+                        }
+                    } catch (ParseException ex) {
+                        Logger.getLogger(smartRow.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } catch (Exception e) {
+                }
+            }
+
             SimpleDateFormat format0 = new SimpleDateFormat("EEEE dd/MM/yyyy");
             SimpleDateFormat formatDB = new SimpleDateFormat("yyyy-MM-dd");
             String DBdate = formatDB.format(cal.getTime());
-            String curDate = format0.format(cal.getTime());
+            String curDate = "";
+            System.out.println("filter date: " + DBdate);
             htmlCode += "<INPUT id='" + filterName + "' type=\"hidden\" value= \"" + DBdate + "\"  >";
 
-            htmlCode += "<TABLE><TR><TD>OGGI è " + curDate + "</td></tr>"
-                    + "<TR><TD>Data selezionata:</td></tr><TR><TD>";
+            htmlCode += "<TABLE><TR><TD>" + curObj.labelHeader + "</td></tr>"
+                    //                    + "<TR><TD>Data selezionata:</td></tr>"
+                    + "<TR><TD>";
             format0 = new SimpleDateFormat("dd/MM/yyyy");
             curDate = format0.format(cal.getTime());
 
@@ -4722,6 +4807,7 @@ public class smartRow {
                     }
                     ValoreDaScrivere = "€ " + ValoreDaScrivere;
                 }
+                
             } else if (curObj.Content.getType() != null && curObj.Content.getType().equalsIgnoreCase("PERCENT")) {
                 htmlCode += " contentNumber  ";
                 if (ValoreDaScrivere != null && ValoreDaScrivere.length() > 0) {
@@ -4739,7 +4825,7 @@ public class smartRow {
                     if (ValoreDaScrivere.startsWith("-")) {
                         ValoreDaScrivere = "<font color='red'>" + ValoreDaScrivere + "</font>";
                     }
-                    ValoreDaScrivere = "% " + ValoreDaScrivere;
+                    ValoreDaScrivere = "%" + ValoreDaScrivere;
                 }
             } else if (curObj.Content.getType() != null && (curObj.Content.getType().equalsIgnoreCase("MINtoHOURS") || curObj.Content.getType().equalsIgnoreCase("MINStoHOURS"))) {
                 htmlCode += " contentNumber  ";

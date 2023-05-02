@@ -135,8 +135,7 @@ public class Settings {
     private String CLIENT_MODEL;
     private String CLIENT_USER_ID;
     private String CLIENT_USER_PW;
-    
-    
+
     private boolean usesGeoMap;
     private boolean usesAudioRec;
     private boolean usesTree;
@@ -156,13 +155,16 @@ public class Settings {
                 newUser = this.getGaiaHost().getDbUsername();
 
             }
-            if (this.getGaiaHost().getQP_centralManagerURL() != null && this.getGaiaHost().getQP_centralManagerURL().length() > 0) {
-                QP_centralManagerURL = this.getGaiaHost().getQP_centralManagerURL() + "centralManager";
-            }
-        } else {
-            newUser = "NAS-SOFTWARE";
-            newPW = "buckaroo!22014";
-        }
+//            if (this.getGaiaHost().getQP_centralManagerURL() != null && this.getGaiaHost().getQP_centralManagerURL().length() > 0) {
+//                if (!this.getGaiaHost().getQP_centralManagerURL().endsWith("centralManager")) {
+//                    QP_centralManagerURL = this.getGaiaHost().getQP_centralManagerURL() + "centralManager";
+//                }
+//            }
+        } 
+//        else {
+//            newUser = "NAS-SOFTWARE";
+//            newPW = "buckaroo!22014";
+//        }
 
         this.setData_DATABASE_USER(newUser);
         this.setData_DATABASE_PW(newPW);
@@ -301,8 +303,6 @@ public class Settings {
     public void setCLIENT_USER_PW(String CLIENT_USER_PW) {
         this.CLIENT_USER_PW = CLIENT_USER_PW;
     }
-
-    
 
     public String getCLIENT_IP() {
         return CLIENT_IP;

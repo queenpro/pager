@@ -3682,7 +3682,23 @@ tutte le funzioni di seguito sono richieste da una risposta in arrivo dal server
                 + "                 console.log(\"Apro servlet: \"+reportToLoad +\" - GP: \"+ gp);\n"
                 + "                 var w = window.open(reportToLoad + \"?target=requestsManager&gp=\" + encodeURIComponent(gp), '_blank');\n"
                 + "                 w.document.title = 'documento in preparazione...';\n"
+                + " }"
+                 //----------------------------------------------------------------------------------------
+                + "            else  if(myarg.action=='downloadDoc'){"
+                + "                 var token = myarg.token;"
+                + "                 console.log(\"downloadDoc: token = \"+token );\n"
+                + "                 var params='\"params\":'+ document.getElementById(\"portalParams\").value;\n"
+                + "                 var utils='\"responseType\":\"text\"';\n"
+                + "                 var connectors='\"connectors\":[{\"door\":\"printPDF\",\"event\":\"downloadDoc\",\"formToLoad\":\"' + token +'\"}]';\n"
+                + "                 var reportToLoad = \"reportHandler\";\n"
+                + "                 var gp='{'+utils+','+params+','+connectors+'}';\n"
+                + "                 console.log(\"Apro servlet: \"+reportToLoad +\" - GP: \"+ gp);\n"
+                + "                 var w = window.open(reportToLoad + \"?target=requestsManager&gp=\" + encodeURIComponent(gp), '_blank');\n"
+                + "                 w.document.title = 'documento in preparazione...';\n"
                 + "             } \n"
+                
+                
+                
                 + "             } catch (err) {\n"
                 + "                 console.log(\"Errore in elaborazione del need : \"+err );\n"
                 + "             }\n"
@@ -6512,6 +6528,14 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "}else if (action && action == \"PrintReport\"){"//l'action del button genera un EVENT di chiamata sullla Door 'CLickedObject'
                 + "     var event= \"PrintReport\";"
                 //                + "     console.log(\"CLICCATO PrintReport reportToLoad: \"+myArg.reportToLoad+\" - paramsToSend:\"+myArg.paramsToSend);" + "\n"
+                + "     connector = getPaginationArguments(connector,formID, copyTag,rifObj,null);\n"
+                //                + "     console.log(\"connector: \"+JSON.stringify(connector));" + "\n"
+                + "     connector.objName=rifObj; \n"
+                + "     connector.reportToLoad=myArg.reportToLoad; \n"
+                + "     connector.paramsToSend=myArg.paramsToSend; \n"
+                  + "}else if (action && action == \"DownloadDoc\"){"//l'action del button genera un EVENT di chiamata sullla Door 'CLickedObject'
+                + "     var event= \"DownloadDoc\";"
+                //                + "     console.log(\"CLICCATO DownloadDoc reportToLoad: \"+myArg.reportToLoad+\" - paramsToSend:\"+myArg.paramsToSend);" + "\n"
                 + "     connector = getPaginationArguments(connector,formID, copyTag,rifObj,null);\n"
                 //                + "     console.log(\"connector: \"+JSON.stringify(connector));" + "\n"
                 + "     connector.objName=rifObj; \n"

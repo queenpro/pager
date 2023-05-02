@@ -2725,7 +2725,11 @@ public class smartForm {
                         }
                         this.objects.get(jj).Content.setActualSum(partial + thisValue);
                     } else if (this.objects.get(jj).Content.getType() != null
-                            && (this.objects.get(jj).Content.getType().equalsIgnoreCase("FLOAT") || this.objects.get(jj).Content.getType().equalsIgnoreCase("EURO") || this.objects.get(jj).Content.getType().equalsIgnoreCase("MINtoHOURS") || this.objects.get(jj).Content.getType().equalsIgnoreCase("MINstoHOURS"))
+                            && (this.objects.get(jj).Content.getType().equalsIgnoreCase("FLOAT") 
+                            || this.objects.get(jj).Content.getType().equalsIgnoreCase("EURO")  
+                            || this.objects.get(jj).Content.getType().equalsIgnoreCase("PERCENT") 
+                            || this.objects.get(jj).Content.getType().equalsIgnoreCase("MINtoHOURS") 
+                            || this.objects.get(jj).Content.getType().equalsIgnoreCase("MINstoHOURS"))
                             && this.objects.get(jj).Content.getHasSum() > 0) {
                         float partial = this.objects.get(jj).Content.getActualSum();
                         float thisValue = 0;
@@ -4011,6 +4015,7 @@ public class smartForm {
                     } else if (this.objects.get(jj).Content.getType() != null
                             && (this.objects.get(jj).Content.getType().equalsIgnoreCase("FLOAT")
                             || this.objects.get(jj).Content.getType().equalsIgnoreCase("EURO")
+                            || this.objects.get(jj).Content.getType().equalsIgnoreCase("PERCENT")
                             || this.objects.get(jj).Content.getType().equalsIgnoreCase("MINtoHOURS")
                             || this.objects.get(jj).Content.getType().equalsIgnoreCase("MINStoHOURS"))
                             && this.objects.get(jj).Content.getHasSum() > 0) {

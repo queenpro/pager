@@ -422,6 +422,36 @@ public class gate {
         this.actions.add(action);
 
     }
+        public void insertAction_downloadDoc(EVOpagerParams myParams, Settings mySettings, String newToken, String Xconnector) {
+        // salvo sul database dei report il newToken accompagnato dal Xconnector
+        System.out.println("\n\n\n  salvo sul database dei report il newToken accompagnato dal Xconnector :" + Xconnector);
+        Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
+        PreparedStatement ps = null;
+        ResultSet rs;
+        String SQLphrase = "INSERT INTO archivio_timedTokens (info1, lifeInSeconds, info2, token "
+                + ") VALUES ("
+                + "'DOWNLOAD_DOC',200,?,'" + newToken + "' "
+                + ")";
+        System.out.println("SQLphrase:" + SQLphrase);
+        try {
+            ps = conny.prepareStatement(SQLphrase);
+            ps.setString(1, Xconnector);
+            int i = ps.executeUpdate();
+            System.out.println("i:" + i);
+        } catch (SQLException ex) {
+            Logger.getLogger(gate.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            conny.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(gate.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        JSONObject action = new JSONObject();
+        action.put("action", "downloadDoc");
+        action.put("token", newToken);
+        this.actions.add(action);
+
+    }
 public void insertAction_serveAudioPanel(EVOpagerParams myParams, Settings mySettings, String newToken, String Xconnector) {
         // salvo sul database dei report il newToken accompagnato dal Xconnector
         System.out.println("\n\n\n  salvo sul database archivio_timedTokens il newToken accompagnato dal Xconnector :" + Xconnector);

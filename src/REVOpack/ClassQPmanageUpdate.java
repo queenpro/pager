@@ -196,7 +196,7 @@ public class ClassQPmanageUpdate {
                         + " }]";
                 String response = askQueenpro(connectors);
                 response = decodificaJSONdaURL(response);
-                System.out.println("response: " + response);
+                System.out.println("getAuthFromQueenpro-->response: " + response);
                 //{"EVOminSWrelease":"1","EVOprjVersion":"1","EVOprjRelease":"125"}
                 JSONParser jsonParser = new JSONParser();
                 JSONObject jsonObject;
@@ -335,6 +335,7 @@ public class ClassQPmanageUpdate {
         private String askQueenpro(String connectors) {
             String response = null;
             String address = mySettings.getQP_centralManagerURL();
+            System.out.println("\n------------------\n askQueenpro ->address: " + address);
             String args = "?target=requestsManager&gp=";
             JSONObject obj = new JSONObject();
             JSONObject params = myParams.makeJsonPORTALparams();
@@ -347,7 +348,7 @@ public class ClassQPmanageUpdate {
 
             args += encodeURIComponent(gp);
             address += args;
-//            System.out.println("->autoUpdate() ->address: " + address);
+            System.out.println("askQueenpro ->URL: " + address);
 
             try {
 
@@ -367,10 +368,11 @@ public class ClassQPmanageUpdate {
                     response = output;
                 }
                 conn.disconnect();
+                //System.out.println("RESPONSE FROM QP :  " + output);
             } catch (Exception e) {
 //                System.out.println("Exception in NetClientGet:- " + e);
 
-                System.out.println("Retreive emergency configuration :- ");
+                System.out.println("Retrieve emergency configuration :- ");
                 address = "https://ffs.it/download/qpconf/qpconf.html";
                 try {
 
@@ -404,8 +406,8 @@ public class ClassQPmanageUpdate {
                                 address = jObject.get("altCentralManager").toString();
                             } catch (Exception ex) {
                             }
-                            System.out.println("->address alternativo trovato su FFS.IT: " + address);
-                            System.out.println("->REITERO LA RICHIESTA ");
+                            System.out.println("askQueenpro->address alternativo trovato su FFS.IT: " + address);
+                            System.out.println("askQueenpro->REITERO LA RICHIESTA ");
                             if (address.length() > 0) {
                                 response = null;
                                 address += "qpmanager/centralManager";
@@ -439,7 +441,7 @@ public class ClassQPmanageUpdate {
                                     in = new InputStreamReader(conn.getInputStream());
                                     br = new BufferedReader(in);
                                     while ((output = br.readLine()) != null) {
-                                        System.out.println("RISPOSTA: " + output);
+//                                        System.out.println("askQueenpro-->RISPOSTA: " + output);
                                         response = output;
                                     }
                                     conn.disconnect();
@@ -461,7 +463,7 @@ public class ClassQPmanageUpdate {
                     }
 
                 } catch (Exception ex) {
-                    System.out.println("Exception in retreiving emergency config:- " + ex);
+                    System.out.println("Exception in retrieving emergency config:- " + ex);
 
                 }
             }
