@@ -120,6 +120,8 @@ public class eventManager {
         HtmlCode += "<link rel=\"stylesheet\" href=\"stylesheet.css\" type=\"text/css\" charset=\"utf-8\" />\n";
         HtmlCode += "<link rel=\"stylesheet\" href=\"gaia.css\" type=\"text/css\" charset=\"utf-8\" />\n";
         HtmlCode += "<script type=\"text/javascript\" src=\"external/nicEdit/nicEdit.js\"></script>\n";
+       HtmlCode += "<script type=\"text/javascript\" src=\"external/jquery/jquery/jquery.js\" type=\"text/javascript\"></script> \n"; 
+       
 //        HtmlCode += codeJavaScripts();
         HtmlCode += codeVariables(formID, request.getMyParams());
 
@@ -270,12 +272,16 @@ public class eventManager {
     }
 
     private String codeHiddenInputs(String jsonParams) {
+        UUID idOne = null;
+        idOne = UUID.randomUUID();
+        String newUid = "UID-" + idOne;
         String HtmlCode = "";
         HtmlCode += ("<INPUT type='hidden' id='txtParams'  />");
         HtmlCode += ("<INPUT type='hidden' id='portalParams'  />");
         HtmlCode += ("<INPUT type='hidden' id='WSstatus' value=\"DISCONNECTED\"  />");
         HtmlCode += ("<INPUT type='hidden' id='WStoken'  />");
         HtmlCode += ("<INPUT type='hidden' id='WSsessionID'  />");
+        HtmlCode += ("<INPUT type='hidden' id='WSuid' value='"+newUid+"' />");
         HtmlCode += ("<INPUT type='hidden' id='WSclientId'  />");
         HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-type\" value=\"\">\n");
         HtmlCode += ("<INPUT type=\"HIDDEN\" id=\"splash-rifForm\" value=\"\">\n");
@@ -289,7 +295,7 @@ public class eventManager {
     private String codeEndingScripts() {
         String HtmlCode = "";
         HtmlCode += "<script>"
-                + "$(document).ready(function() {   });\n"
+                //+ "$(document).ready(function() {   });\n"
                 //---------------
                 + "$('body').on('focus',\".datetimepickerclass\", function() {\n"
                 + "    $(this).datetimepicker({\n"

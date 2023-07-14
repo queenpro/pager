@@ -116,6 +116,14 @@ public class smartRow {
 
     }
 
+    public String SMRTpaintObject(String fieldName) {
+        String htmlCode = "";
+        makeKeyValue();
+        htmlCode += encodeNormalObject(fieldName);
+
+        return htmlCode;
+    }
+
     public String SMRTpaintRow(String rowType) {
 
         String htmlCode = "";
@@ -360,7 +368,7 @@ public class smartRow {
                                         System.out.println("error rounding:  " + e.toString());
                                     }
                                     str = "€ " + number;
-                                    } else if (myForm.objects.get(obj).Content.getType() != null
+                                } else if (myForm.objects.get(obj).Content.getType() != null
                                         && myForm.objects.get(obj).Content.getType().equalsIgnoreCase("PERCENT")) {
 //                                System.out.println("DEVO ARROTONDARE NUMERO  " + no);
                                     DecimalFormat df = new DecimalFormat("#.00");
@@ -373,7 +381,7 @@ public class smartRow {
                                     } catch (Exception e) {
                                         System.out.println("error rounding:  " + e.toString());
                                     }
-                                    str = ""+ number+"%" ;
+                                    str = "" + number + "%";
                                 } else if (myForm.objects.get(obj).Content.getType() != null
                                         && myForm.objects.get(obj).Content.getType().equalsIgnoreCase("INT")) {
                                     try {
@@ -450,8 +458,6 @@ public class smartRow {
                 + ""
                 + ">";
 
-//                System.out.println("-------->paintRowSelector() ");
-////////        htmlCode += paintRowSelector(rowNumber, KEYvalue);
         String postcardCode = "<TABLE><TR><td style=\""
                 + "display:block;\n"
                 + "    background: inherit;\n"
@@ -657,6 +663,266 @@ public class smartRow {
         return htmlCode;
     }
 
+    public String encodeNormalObject(String fieldName) {
+        String htmlCode = "";
+        if (myForm.getHtmlPattern() != null && myForm.getHtmlPattern().length() > 0) {
+            try {
+                htmlCode += encodeNormalPatternObject(fieldName);
+            } catch (SQLException ex) {
+            }
+        } else {
+            try {
+                htmlCode += encodeNormalGridObject(fieldName);
+            } catch (SQLException ex) {
+            }
+        }
+
+        return htmlCode;
+
+    }
+
+    public String encodeNormalPatternObject(String fieldName) throws SQLException {
+
+        String htmlCode = "<TD>";
+        String pattern = myForm.getHtmlPattern();
+        pattern = eliminaCaseIf(pattern, rs);
+        htmlCode += populatePatternObject(pattern, rs, actualRowRights, KEYvalue, fieldName);
+        htmlCode += "</TD>";
+
+        return htmlCode;
+
+    }
+
+    public String populatePatternObject(String pattern, ResultSet rs, smartObjRight actualRowRights, String KEYvalue, String fieldName) {
+        // String pattern="";
+        ArrayList<SelectListLine> XXX = new ArrayList<>();
+        for (int obj = 0; obj < myForm.objects.size(); obj++) {
+            if (myForm.objects.get(obj).name.equalsIgnoreCase(fieldName)) {
+                if (!myForm.objects.get(obj).CG.getType().equalsIgnoreCase("FORMBUTTON")) {
+//****************************
+                    if (myForm.objects.get(obj).C.getType().equalsIgnoreCase("REALTIMESELECT")) {
+//                        System.out.println("RICREO SELECT LIST");
+                        String oQuery = myForm.objects.get(obj).Origin.getQuery();
+//                System.out.println(" myForm.sendToCRUD:" + myForm.sendToCRUD);
+
+                        //essendo un realtime select il replace va fatto qui sulla row e non con il replace del form
+                        oQuery = browserRowArgsReplace(oQuery);
+//                System.out.println("REALTIMESELECT, DOPO:" + oQuery);
+                        String oLabelField = myForm.objects.get(obj).Origin.getLabelField();
+                        String oValueField = myForm.objects.get(obj).Origin.getValueField();
+                        String oValueFieldType = myForm.objects.get(obj).Origin.getValueFieldType();
+                        SelectList myList = new SelectList(myForm.myParams, myForm.mySettings, oQuery, oLabelField, oValueField, oValueFieldType);
+                        myList.getList();
+                        myForm.objects.get(obj).Origin.setSelectList(myList);
+
+                    }
+
+//                System.out.println("--populatePattern--OGGETTO:" + myForm.objects.get(obj).name);
+                    String triggeredStyle = feedTriggeredStyle(myForm.objects.get(obj), rs);
+                    if (triggeredStyle != null && triggeredStyle.length() > 2) {
+                        myForm.objects.get(obj).setTriggeredStyle(triggeredStyle);
+                    } else {
+                        myForm.objects.get(obj).setTriggeredStyle("");
+                    }
+                    //------------------------------------ 
+                    myForm.objects.get(obj).setValueToWrite(ricavoValoreDaScrivere(rs, obj));
+//                System.out.println("--\t\tValueToWrite:" + myForm.objects.get(obj).ValueToWrite);
+
+                    smartObjRight realObjRights = valutaRightsOggetto(myForm.objects.get(obj), rs);
+//                System.out.println("1.trealObjRights: " + realObjRights.totalRight + " LEVEL: " + realObjRights.level);
+//                System.out.println("2.actualRowRights: " + actualRowRights.totalRight + " LEVEL: " + actualRowRights.level);
+                    smartObjRight actualObjectRights = joinRights(realObjRights, actualRowRights);
+//                System.out.println("3.actualObjectRights: " + actualObjectRights.totalRight + " LEVEL: " + actualObjectRights.level);
+
+                    String objectCode = "";
+                    try {
+                        objectCode = paintObject(KEYvalue, myForm.objects.get(obj), actualObjectRights);
+                    } catch (Exception e) {
+                        System.out.println("--\t\tError painting object." + e.toString());
+                    }
+                    SelectListLine mybound = new SelectListLine();
+                    mybound.setMarker("(-(" + myForm.objects.get(obj).getName() + ")-)");
+                    mybound.setLabel("(!(" + myForm.objects.get(obj).getName() + ")!)");
+                    mybound.setValue(objectCode);
+                    String labl = myForm.objects.get(obj).getLabelHeader();
+                    if (labl == null || labl.length() < 1) {
+                        labl = myForm.objects.get(obj).getName();
+                    }
+
+                    mybound.setSpareValue(labl);
+                    XXX.add(mybound);
+                    if (pattern != null && myForm.objects.get(obj).getName() != null) {
+                        pattern = pattern.replace("@@@" + myForm.objects.get(obj).getName() + "@@@", mybound.getMarker());
+                        pattern = pattern.replace("@!@" + myForm.objects.get(obj).getName() + "@!@", mybound.getLabel());
+                    }
+//            System.out.println("pattern:\n" + pattern);
+                }
+            }
+        }
+        // QUESTO PER EVITARE SOSTITUZIONI RICORSIVE
+        // DENTRO AL TESTO  GIA' SOSTITUITO
+        for (int jj = 0; jj < XXX.size(); jj++) {
+            pattern = pattern.replace(XXX.get(jj).getMarker(), XXX.get(jj).getValue());
+            pattern = pattern.replace(XXX.get(jj).getLabel(), XXX.get(jj).getSpareValue());
+        }
+
+        pattern = pattern.replace("!!!KEY!!!", KEYvalue);
+//        System.out.println("FINAL pattern:\n" + pattern);
+        return pattern;
+    }
+
+    public String encodeNormalGridObject(String fieldName) throws SQLException {
+//          System.out.println("encodeNormalGridRow." );
+        String htmlCode = "";
+
+        for (int obj = 0; obj < myForm.objects.size(); obj++) {
+
+            if (myForm.objects.get(obj).name.equalsIgnoreCase(fieldName)) {
+                if (!myForm.objects.get(obj).CG.getType().equalsIgnoreCase("FORMBUTTON")) {
+                    String triggeredStyle = feedTriggeredStyle(myForm.objects.get(obj), rs);
+                    if (triggeredStyle != null && triggeredStyle.length() > 2) {
+                        //  System.out.println("Imposto lo stile da trigger come default: " + triggeredStyle);
+                        myForm.objects.get(obj).setTriggeredStyle(triggeredStyle);
+                    } else {
+                        myForm.objects.get(obj).setTriggeredStyle("");
+                    }
+
+//---INSERISCO L'OGGETTO-------------------                    
+                    htmlCode += "<div id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + myForm.objects.get(obj).name + "-" + KEYvalue + "-PLACE\"  ";
+
+                    htmlCode += " "
+                            + ">";
+
+                    if (myForm.objects.get(obj).C.getType().equalsIgnoreCase("REALTIMESELECT")) {
+//                        System.out.println("RICREO SELECT LIST");
+                        String oQuery = myForm.objects.get(obj).Origin.getQuery();
+//                System.out.println(" myForm.sendToCRUD:" + myForm.sendToCRUD);
+
+                        //essendo un realtime select il replace va fatto qui sulla row e non con il replace del form
+                        oQuery = browserRowArgsReplace(oQuery);
+//                System.out.println("REALTIMESELECT, DOPO:" + oQuery);
+                        String oLabelField = myForm.objects.get(obj).Origin.getLabelField();
+                        String oValueField = myForm.objects.get(obj).Origin.getValueField();
+                        String oValueFieldType = myForm.objects.get(obj).Origin.getValueFieldType();
+                        SelectList myList = new SelectList(myForm.myParams, myForm.mySettings, oQuery, oLabelField, oValueField, oValueFieldType);
+                        myList.getList();
+                        myForm.objects.get(obj).Origin.setSelectList(myList);
+                        smartObjRight realObjRights = valutaRightsOggetto(myForm.objects.get(obj), rs);
+                        smartObjRight actualObjectRights = joinRights(realObjRights, actualRowRights);
+////////                        htmlCode += paintObject(KEYvalue, myForm.objects.get(obj), actualObjectRights);
+                        htmlCode += paintObject(KEYvalue, myForm.objects.get(obj), actualObjectRights);
+                    } else if (myForm.objects.get(obj).C.getType().equalsIgnoreCase("CUSTOMBOX")) {
+
+                        String progressCode = "";
+                        progressCode += "<TABLE>";
+                        // cerco il valore nella funzione iidicata
+                        // System.out.println("\n\nCUSTOMBOX: funzione =" + myForm.objects.get(obj).CG.Value);
+                        // es {"label":{"type":"field","field":"abbonamento"},"value":{"type":"field","field":"percAbb"}
+                        JSONParser jsonParser = new JSONParser();
+
+                        try {
+
+                            JSONObject jBars;
+                            JSONObject riga = null;
+
+                            jBars = (JSONObject) jsonParser.parse(myForm.objects.get(obj).CG.Value);
+                            JSONArray array = (JSONArray) jsonParser.parse(jBars.get("bars").toString());
+
+                            for (int r = 0; r < array.size(); r++) {
+
+                                riga = (JSONObject) array.get(r);
+                                JSONObject jLabel = (JSONObject) jsonParser.parse(riga.get("label").toString());
+                                String LabelField = "";
+                                String ValueField = "";
+                                String ValueLabel = "";
+                                String ValueLabelUM = "";
+                                String TextBefore = "";
+                                String TextAfter = "";
+                                // per adesso suppongo sia un caso "type":"field"
+                                try {
+                                    LabelField = jLabel.get("field").toString();// NOME DELLA TESSERA
+                                } catch (Exception e) {
+                                }
+                                JSONObject jValue = (JSONObject) jsonParser.parse(riga.get("value").toString());
+                                // per adesso suppongo sia un caso "type":"field"
+                                try {
+                                    ValueField = jValue.get("field").toString();// PERCENTUALE RIMANENTE
+                                } catch (Exception e) {
+                                }
+                                JSONObject jValueLabel = (JSONObject) jsonParser.parse(riga.get("valueText").toString());
+                                // per adesso suppongo sia un caso "type":"field"
+                                try {
+                                    ValueLabel = jValueLabel.get("field").toString();// VALORE RIMANENTE (IN GIORNI O ORE)
+                                } catch (Exception e) {
+                                }
+                                JSONObject jValueLabelUM = (JSONObject) jsonParser.parse(riga.get("valueTextUM").toString());
+                                // per adesso suppongo sia un caso "type":"field"
+                                try {
+                                    ValueLabelUM = jValueLabelUM.get("value").toString();//ETICHETTA IN CODA (es. giorni)
+                                } catch (Exception e) {
+                                }
+                                JSONObject jTextBefore = (JSONObject) jsonParser.parse(riga.get("textBefore").toString());
+                                // per adesso suppongo sia un caso "type":"field"
+                                try {
+                                    TextBefore = jTextBefore.get("value").toString();//ETICHETTA IN CODA (es. giorni)
+                                } catch (Exception e) {
+                                }
+                                JSONObject jTextAfter = (JSONObject) jsonParser.parse(riga.get("textAfter").toString());
+                                // per adesso suppongo sia un caso "type":"field"
+                                try {
+                                    TextAfter = jTextAfter.get("value").toString();//ETICHETTA IN CODA (es. giorni)
+                                } catch (Exception e) {
+                                }
+
+                                //   System.out.println("\n\nCUSTOMBOX: LabelField =" + LabelField);
+                                //  System.out.println("CUSTOMBOX: ValueField =" + ValueField);
+                                String myLabel = rs.getString(LabelField);
+                                int myPercentage = rs.getInt(ValueField);
+                                int myValue = rs.getInt(ValueLabel);
+                                String myTextValue = rs.getString(ValueLabel);
+                                // System.out.println(myLabel + "=" + myValue);
+                                if (myLabel != null && myLabel.length() > 0) {
+                                    progressCode += "<TR style=\"border-bottom: 1px solid lightGrey !important;\"><TD>";
+                                    progressCode += myLabel;
+                                    progressCode += "</TD>";
+                                    progressCode += "<TD ";
+                                    if (myPercentage < 30) {
+                                        progressCode += "style=\"color:red;\"";
+                                    } else {
+                                        progressCode += "style=\"color:green;\"";
+                                    }
+                                    progressCode += ">";
+                                    progressCode += TextBefore + myTextValue + " " + ValueLabelUM + TextAfter;
+                                    progressCode += "</TD></TR>";
+                                }
+                            }
+
+                            progressCode += "</TABLE>";
+
+                        } catch (ParseException ex) {
+                            System.out.println("error in line 3884");
+
+                        }
+                        htmlCode += progressCode;
+                    } else {
+//------------------------------------------------- 
+//                        System.out.println("OGGETTO:"+myForm.objects.get(obj).name);
+
+                        smartObjRight realObjRights = valutaRightsOggetto(myForm.objects.get(obj), rs);
+//                    System.out.println("realObjRights:"+realObjRights.totalRight);
+                        smartObjRight actualObjectRights = joinRights(realObjRights, actualRowRights);
+//                    System.out.println("actualObjectRights:"+actualObjectRights.totalRight);
+                        htmlCode += paintObject(KEYvalue, myForm.objects.get(obj), actualObjectRights);
+//------------------------------------------------- 
+                    }
+                    htmlCode += "</div>";
+                }
+            }
+        }
+//====END=ROW===================        
+        return htmlCode;
+    }
+
     public String encodeNormalRow() {
         String htmlCode = "";
 
@@ -666,7 +932,6 @@ public class smartRow {
                 + ""
                 + ">";
 
-//                System.out.println("-------->paintRowSelector() ");
         htmlCode += paintRowSelector(rowNumber, KEYvalue);
 
         // delete button-------------
@@ -738,9 +1003,9 @@ public class smartRow {
                 if (myForm.objects.get(obj).getActuallyVisible() < 1) { // se è visibile a livello FORM
                     htmlCode += " style=\"width:0px; display:none;\" ";
                 } else {
-                    if (myForm.objects.get(obj).C.getWidth() != null 
-                            && !myForm.objects.get(obj).C.getWidth().equalsIgnoreCase("null") 
-                            && myForm.objects.get(obj).C.getWidth().length()>0) {
+                    if (myForm.objects.get(obj).C.getWidth() != null
+                            && !myForm.objects.get(obj).C.getWidth().equalsIgnoreCase("null")
+                            && myForm.objects.get(obj).C.getWidth().length() > 0) {
                         String myWidth = myForm.objects.get(obj).C.getWidth();
                         htmlCode += " style=\"width:" + myWidth + ";"
                                 //                                   + "border:1px solid black; border-collapse: collapse;\n"
@@ -1328,7 +1593,6 @@ public class smartRow {
 
     private String paintRowSelector(int lineNumber, String KEYvalue) {
         String htmlCode = "";
-//        System.out.println("paintRowSelector:" + myForm.getShowCounter());
         if (myForm.getShowCounter() != null && myForm.getShowCounter().equalsIgnoreCase("FALSE")) {
             htmlCode += "<td></td>";
         } else {
@@ -1348,7 +1612,7 @@ public class smartRow {
                     + "onClick=\"javascript:smartRowSelected('" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL')\">"
                     + "<a id=\"" + myForm.getID() + "-" + myForm.getCopyTag() + "-" + KEYvalue + "-SEL\" "
                     + "style=\""
-//                    + " height: inherit;"
+                    //                    + " height: inherit;"
                     + " height: 100%;"
                     + " cursor: pointer;"
                     + " padding: 1em;"
@@ -1587,6 +1851,7 @@ public class smartRow {
     }
 
     private class valToWrite {
+
         String ValoreDaScrivere;
         String type;
 
@@ -2130,7 +2395,7 @@ public class smartRow {
                 objModifiable = false;
 
             } else {
-                System.out.println("PRESENTE IN ADDING ROW");
+//                System.out.println("PRESENTE IN ADDING ROW");
                 objVisibile = true;
                 objModifiable = true;
             }
@@ -2238,7 +2503,7 @@ public class smartRow {
                         }
                         ValoreDaScrivere = "€ " + ValoreDaScrivere;
                     }
-                    } else if (curObj.Content.getType() != null && curObj.Content.getType().equalsIgnoreCase("PERCENT")) {
+                } else if (curObj.Content.getType() != null && curObj.Content.getType().equalsIgnoreCase("PERCENT")) {
                     htmlCode += " contentNumber  ";
                     if (ValoreDaScrivere != null && ValoreDaScrivere.length() > 0) {
                         // tronco a 3 cifre dopo il punto
@@ -2255,7 +2520,7 @@ public class smartRow {
                         if (ValoreDaScrivere.startsWith("-")) {
                             ValoreDaScrivere = "<font color='red'>" + ValoreDaScrivere + "</font>";
                         }
-                        ValoreDaScrivere = "" + ValoreDaScrivere+"%";
+                        ValoreDaScrivere = "" + ValoreDaScrivere + "%";
                     }
                 } else if (curObj.Content.getType() != null && (curObj.Content.getType().equalsIgnoreCase("MINtoHOURS")
                         || curObj.Content.getType().equalsIgnoreCase("MINStoHOURS"))) {
@@ -4807,7 +5072,7 @@ public class smartRow {
                     }
                     ValoreDaScrivere = "€ " + ValoreDaScrivere;
                 }
-                
+
             } else if (curObj.Content.getType() != null && curObj.Content.getType().equalsIgnoreCase("PERCENT")) {
                 htmlCode += " contentNumber  ";
                 if (ValoreDaScrivere != null && ValoreDaScrivere.length() > 0) {

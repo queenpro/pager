@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 /**
  *
  * @author Franco Venezia @ www.ffs.it
+ * @ made for app cook
  */
 public class smartHTTPSservice {
 

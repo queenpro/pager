@@ -335,7 +335,7 @@ public class ClassQPmanageUpdate {
         private String askQueenpro(String connectors) {
             String response = null;
             String address = mySettings.getQP_centralManagerURL();
-            System.out.println("\n------------------\n askQueenpro ->address: " + address);
+//            System.out.println("\n------------------\n askQueenpro ->address: " + address);
             String args = "?target=requestsManager&gp=";
             JSONObject obj = new JSONObject();
             JSONObject params = myParams.makeJsonPORTALparams();
@@ -348,7 +348,7 @@ public class ClassQPmanageUpdate {
 
             args += encodeURIComponent(gp);
             address += args;
-            System.out.println("askQueenpro ->URL: " + address);
+//            System.out.println("askQueenpro ->URL: " + address);
 
             try {
 

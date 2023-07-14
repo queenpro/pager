@@ -3215,11 +3215,11 @@ public class jsFunctionServer {
                 //                + "        writeInfo();\n"
                 + "    };\n"
                 + "    ws.onclose = function (evt) {\n"
-                + "         console.log(\"WS: evento chiusura.\");"
-                + "        if (WSactive>0){"
+                + "         console.log(\"WS: evento chiusura.\");\n"
+                + "        if (WSactive>0){\n"
                 + "         mySpan = document.getElementById(\"statusLine\");\n"
                 + "         info = \"DISCONNECTED_ (\" + wsURI + \")\";\n"
-                + "         Semaphore(document.getElementById(\"ledLine\"),32,\"red\",info);"
+                + "         Semaphore(document.getElementById(\"ledLine\"),32,\"red\",info);\n"
                 + "         fatherServerConnected=0;\n"
                 + "         setTimeout(function(){openWS()}, 10000);\n"// dopo 10 seconfi tento la riconnessione
                 //                + "         writeInfo();\n"
@@ -3351,14 +3351,14 @@ public class jsFunctionServer {
                 + " var destDiv = myarg.DESTDIV;\n"
                 + " var phrase = \" \" + myarg.PHRASE;\n"
                 + "}\n"
-                + "console.log(\"Ricevuto WS message del tipo : \"+type+\" -> ACTION : \"+action);"
+                + "console.log(\"*Ricevuto WS message del tipo : \"+type+\" -> ACTION : \"+action);"
                 //                + "console.log(\"payload: \"+payload);"
                 // <editor-fold defaultstate="collapsed" desc="time">        
                 + "    if (type == \"time\") {\n"
                 + "        mySpan = document.getElementById(\"timeGoesHere\");\n"
                 + "        info =  msg;\n"
                 + "    }\n"
-                // </editor-fold> 
+                // </editor-fold>  
                 // <editor-fold defaultstate="collapsed" desc="infoReqest">
                 + "    else if (type == \"infoReqest\") {\n"
                 + "        mySpan = document.getElementById(\"timeGoesHere\");\n"
@@ -3385,10 +3385,17 @@ public class jsFunctionServer {
                 + "    }\n"
                 // </editor-fold> 
                 // <editor-fold defaultstate="collapsed" desc="heartBeat">
-                + "    else if (type == \"heartBeat\") {\n"
+                + "    else if (type == \"heartBeat\" ||type == \"heartbeat\"||type == \"HEARTBEAT\") {\n"
                 + "        info = \"RICEVO HEARTBEAT:\" + document.getElementById(\"WStoken\").value;\n"
                 + "console.log(\"#\"+info);"
-                + "        sendHandshake(document.getElementById(\"WStoken\").value);\n"
+                + "    var txtParams = document.getElementById(\"txtParams\").value;\n"
+                 + "   var WStoken = document.getElementById(\"WStoken\").value;\n"
+                + "    var message = '{"
+                + "\"token\":\"' + WStoken + '\","
+                + "\"type\":\"heartbeatOK\","
+                + "\"params\":\"' + encodeURIComponent(txtParams) + '\"}';\n"
+                + "    sendToServer(encodeURIComponent(message));\n"
+                // + "        sendHandshake(document.getElementById(\"WStoken\").value);\n"
                 + "    }\n"
                 // </editor-fold> 
                 // <editor-fold defaultstate="collapsed" desc="message">
@@ -3482,6 +3489,23 @@ public class jsFunctionServer {
                 + "        }\n"
                 + "    }\n" // </editor-fold> 
                 //*****************************************************
+                // <editor-fold defaultstate="collapsed" desc="SYNOPTICOBJ">
+                + "    else if (type == \"SYNOPTICOBJ\") {\n"
+                + "console.log(\"*Sono in gestione SynopticObj\" );"
+                + " var paramj = JSON.stringify(payload);\n"
+                + " myarg = JSON.parse(paramj);\n"
+                + " var newHtmlCode= myarg.htmlCode;\n"
+                + " var action= myarg.action;\n"
+                + " var target= myarg.target;\n"
+                + " htmlCode = decodeURIComponent(newHtmlCode);\n"
+                + "console.log(\"*action:\"+action );"
+                + "console.log(\"*target:\"+target );"
+                + "console.log(\"*htmlCode:\"+htmlCode );"
+                + "if (action == 'synopticObj'){"
+                + "   document.getElementById(target).innerHTML = htmlCode ;\n"
+                + "}"
+                + "    }\n" // </editor-fold> 
+                //*****************************************************
                 // <editor-fold defaultstate="collapsed" desc="wsResponse*********************">
                 + "else if (type == \"wsResponse\") {\n"
                 /*
@@ -3551,6 +3575,17 @@ tutte le funzioni di seguito sono richieste da una risposta in arrivo dal server
                 + "                 formRefresh(res[0], res[1], target, '',destination);\n" // questo usa AJAX  
                 //                + "                 console.log(\"reimposto visibile : \"+target + \"-\" + copyTag + \"-mainBodyTable\");\n"
                 //                + "    document.getElementById(target + \"-\" + copyTag + \"-mainBodyTable\").style.display = \"block\";\n"
+                //----------------------------------------------------------------------------------------
+                + "             } else if(myarg.action=='synopticObject'){\n"
+                + "                 console.log(\"sono in synopticObject. \" );\n"
+                // qui mi limito a inserire nella posizione target il contenuto già fornito
+                + "                 var targetPosition = myarg.target;"
+                + "                 console.log(\"targetPosition: \"+targetPosition );\n"
+                + "                 var htmlCode =   decodeURIComponent(myarg.htmlCode);\n"
+                + "                 console.log(\"htmlCode: \"+htmlCode );\n"
+                + "                 if (targetPosition && targetPosition.length>0){"
+                + "                     document.getElementById(targetPosition).innerHTML = htmlCode ;\n"
+                + "                 }"
                 //repaintValueByName
                 //----------------------------------------------------------------------------------------
                 + "             } else if(myarg.action=='repaintObjByName'){\n"
@@ -3683,7 +3718,7 @@ tutte le funzioni di seguito sono richieste da una risposta in arrivo dal server
                 + "                 var w = window.open(reportToLoad + \"?target=requestsManager&gp=\" + encodeURIComponent(gp), '_blank');\n"
                 + "                 w.document.title = 'documento in preparazione...';\n"
                 + " }"
-                 //----------------------------------------------------------------------------------------
+                //----------------------------------------------------------------------------------------
                 + "            else  if(myarg.action=='downloadDoc'){"
                 + "                 var token = myarg.token;"
                 + "                 console.log(\"downloadDoc: token = \"+token );\n"
@@ -3696,9 +3731,6 @@ tutte le funzioni di seguito sono richieste da una risposta in arrivo dal server
                 + "                 var w = window.open(reportToLoad + \"?target=requestsManager&gp=\" + encodeURIComponent(gp), '_blank');\n"
                 + "                 w.document.title = 'documento in preparazione...';\n"
                 + "             } \n"
-                
-                
-                
                 + "             } catch (err) {\n"
                 + "                 console.log(\"Errore in elaborazione del need : \"+err );\n"
                 + "             }\n"
@@ -6533,7 +6565,7 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "     connector.objName=rifObj; \n"
                 + "     connector.reportToLoad=myArg.reportToLoad; \n"
                 + "     connector.paramsToSend=myArg.paramsToSend; \n"
-                  + "}else if (action && action == \"DownloadDoc\"){"//l'action del button genera un EVENT di chiamata sullla Door 'CLickedObject'
+                + "}else if (action && action == \"DownloadDoc\"){"//l'action del button genera un EVENT di chiamata sullla Door 'CLickedObject'
                 + "     var event= \"DownloadDoc\";"
                 //                + "     console.log(\"CLICCATO DownloadDoc reportToLoad: \"+myArg.reportToLoad+\" - paramsToSend:\"+myArg.paramsToSend);" + "\n"
                 + "     connector = getPaginationArguments(connector,formID, copyTag,rifObj,null);\n"
@@ -6544,6 +6576,12 @@ loadAsync('http://www.miosito.com/test.js', 'js', function(){
                 + "}else if (action && action == \"askAudioPanel\"){"//l'action del button genera un EVENT di chiamata sullla Door 'CLickedObject'
                 + "     var event= \"askAudioPanel\";"
                 + "     connector = getPaginationArguments(connector,formID, copyTag,rifObj,null);\n"
+                + "     connector.objName=rifObj; \n"
+                + "     connector.reportToLoad=myArg.reportToLoad; \n"
+                + "     connector.paramsToSend=myArg.paramsToSend; \n"
+                + "}else if (action && action == \"WSktComm\"){"//l'action del button genera un EVENT di chiamata sullla Door 'CLickedObject'
+                + "     var event= \"WSktComm\";"
+                + "     connector = getPaginationArguments(connector,formID, copyTag,rifObj,keyValue);\n"
                 + "     connector.objName=rifObj; \n"
                 + "     connector.reportToLoad=myArg.reportToLoad; \n"
                 + "     connector.paramsToSend=myArg.paramsToSend; \n"

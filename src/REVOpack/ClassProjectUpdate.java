@@ -99,9 +99,7 @@ public class ClassProjectUpdate {
         this.mode = mode;
     }
 
-    public String autoUpdate() throws IOException {
-
-        //String url = "http://localhost:7080/gaiaEngineSetter/updaterGaia";
+    public String autoUpdate() throws IOException { 
         System.out.println("\n\n-----SONO IN autoUpdate() .!.\n----\n\n");
         el.log("ClassProjectUpdate", "SONO IN autoUpdate()");
 //        engineDB = "gaiaEngineSetter_ffs";

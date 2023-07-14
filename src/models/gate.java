@@ -249,7 +249,17 @@ public class gate {
         this.actions.add(action);
 
     }
+   public void insertAction_synopticObject(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XrifObj, String XkeyValue, String htmlCode) {
 
+        String destTarget = XformID + "-" + XCopyTag + "-" + XrifObj + "-" + XkeyValue + "-PLACE";
+        System.out.println("SYNOPTICOBJ destTarget: " + destTarget);
+        JSONObject action = new JSONObject();
+        action.put("action", "synopticObj");
+        action.put("target", destTarget);// spazio destDiv da refreshare
+        action.put("htmlCode", htmlCode);// codice html
+        this.actions.add(action);
+
+    }
     public void insertAction_synoptic(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XrifObj, String XkeyValue, String htmlCode) {
 
         String destTarget = XformID + "-" + XCopyTag + "-" + XrifObj + "-" + XkeyValue + "-SYNOPTIC";
@@ -513,7 +523,7 @@ public void insertAction_serveAudioPanel(EVOpagerParams myParams, Settings mySet
         String tableFormsName = "gFE_forms_" + myParams.getCKprojectName();
 // cerco l'ID del form da refreshare in base al nome
         String SQLphrase = "SELECT * FROM " + tableFormsName + " WHERE name='" + formToSearch + "'";
-        System.out.println("SQLphrase  ---------->" + SQLphrase);
+//        System.out.println("SQLphrase  ---------->" + SQLphrase);
         Connection conny = new EVOpagerDBconnection(myParams, mySettings).ConnLocalDataDB();
         PreparedStatement ps = null;
         ResultSet rs;
@@ -527,10 +537,33 @@ public void insertAction_serveAudioPanel(EVOpagerParams myParams, Settings mySet
         } catch (SQLException ex) {
             System.out.println("Errore :" + ex.toString());
         }
-        System.out.println("L'ID del FORM :" + formID);
+//        System.out.println("L'ID del FORM :" + formID);
         return formID;
     }
-
+  public String formIDfromName( Settings mySettings, String formName) {
+        String formID = formName; 
+        JSONObject connector = loadConnector();
+        String formToSearch = formName;
+        String tableFormsName = "gFE_forms_" + mySettings.getProjectName();
+// cerco l'ID del form da refreshare in base al nome
+        String SQLphrase = "SELECT * FROM " + tableFormsName + " WHERE name='" + formToSearch + "'";
+//        System.out.println("SQLphrase  ---------->" + SQLphrase);
+        Connection conny = new EVOpagerDBconnection(mySettings).ConnLocalDMZ();
+        PreparedStatement ps = null;
+        ResultSet rs;
+        try {
+            ps = conny.prepareStatement(SQLphrase);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                formID = rs.getString("ID");
+            }
+            conny.close();
+        } catch (SQLException ex) {
+            System.out.println("Errore :" + ex.toString());
+        }
+//        System.out.println("L'ID del FORM :" + formID);
+        return formID;
+    }
     public void insertAction_repaintFormDataOnlyByName(EVOpagerParams myParams, Settings mySettings, String XformID, String XCopyTag, String XkeyValue) {
         String XhtmlCode = "";
         System.out.println("\n\n\n OCCORRE REPAINTARE IL FORM :" + XformID);

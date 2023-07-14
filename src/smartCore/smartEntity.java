@@ -425,9 +425,9 @@ public class smartEntity {
                     valStringB = "";
                 }
                 // Adesso eseguo il test*************************************************************
-                System.out.println("confrontoNumerico:" + confrontoNumerico + "   ___  tipoConfronto:" + tipoConfronto);
+//                System.out.println("confrontoNumerico:" + confrontoNumerico + "   ___  tipoConfronto:" + tipoConfronto);
                 if (confrontoNumerico == true) {
-                    System.out.println("valIntA:" + valIntA + "   ___  valIntB:" + valIntB);
+//                    System.out.println("valIntA:" + valIntA + "   ___  valIntB:" + valIntB);
                     if (tipoConfronto.equalsIgnoreCase("==")) {
 //                        System.out.println("valIntA =" + valIntA + ",  valIntB =" + valIntB);
                         if (valIntA == valIntB) {
@@ -525,7 +525,7 @@ public class smartEntity {
                     }
 
                 } else {
-                    System.out.println("valStringA:" + valStringA + "   ___  valStringB:" + valStringB);
+//                    System.out.println("valStringA:" + valStringA + "   ___  valStringB:" + valStringB);
                     if (tipoConfronto.equalsIgnoreCase("==")) {
                         if (valStringB.equals(valStringA)) {
                             //VERIFICATA

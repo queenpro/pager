@@ -160,11 +160,8 @@ public class Settings {
 //                    QP_centralManagerURL = this.getGaiaHost().getQP_centralManagerURL() + "centralManager";
 //                }
 //            }
-        } 
-//        else {
-//            newUser = "NAS-SOFTWARE";
-//            newPW = "buckaroo!22014";
-//        }
+        }
+
 
         this.setData_DATABASE_USER(newUser);
         this.setData_DATABASE_PW(newPW);
@@ -1011,7 +1008,13 @@ public class Settings {
 
     public String getInstallationName(EVOpagerParams myParams) {
         String serverName = "";
-        Connection QPconny = new EVOpagerDBconnection(myParams, this).ConnLocalQueenpro();
+        Connection QPconny = null;
+        if (myParams == null) {
+            QPconny = new EVOpagerDBconnection(this).ConnLocalDMZqueenpro();
+        } else {
+            QPconny = new EVOpagerDBconnection(myParams, this).ConnLocalQueenpro();
+        }
+
         PreparedStatement ps;
         String SQLphrase = "SELECT * FROM definitions WHERE ID='*SERVERNAME*'";
         try {

@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  *
  * @author Franco Venezia @ www.ffs.it
  */
-public class smartHTTPservice {
+public class smartHTTPservice { //used for Agateway to call external services (API) on Auroral swagger
 
     public responseHTTP get(String rProtocol, String rMethod, String rIP, int rPort, String rPage, WShandlerInstance myHandler) {
         responseHTTP myResponse = new responseHTTP();

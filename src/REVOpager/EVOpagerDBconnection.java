@@ -20,6 +20,7 @@
  */
 package REVOpager;
 
+import REVOdbManager.EVOpagerDirectivesManager;
 import REVOdbManager.EVOpagerParams;
 import REVOdbManager.Settings;
 import REVOsetup.ErrorLogger;
@@ -37,7 +38,12 @@ public class EVOpagerDBconnection {
     EVOpagerParams myParams;
     Settings mySettings;
     private Connection conMaster;
-
+    
+    public EVOpagerDBconnection(Settings xSettings) {
+        this.myParams = new EVOpagerParams();
+        this.mySettings = xSettings;
+        
+    }
     public EVOpagerDBconnection(EVOpagerParams xParams, Settings xSettings) {
         this.myParams = xParams;
         this.mySettings = xSettings;
@@ -60,10 +66,7 @@ public class EVOpagerDBconnection {
 //        el.log("EVOpagerDBconnection", "creando connessione...");
     }
 
-    public EVOpagerDBconnection(Settings xSettings) {
-        this.mySettings = xSettings;
-    }
-
+    
     public EVOpagerDBconnection() {
     }
 
@@ -251,7 +254,41 @@ public class EVOpagerDBconnection {
                 PASSWORD
         );
     }
-
+    public Connection ConnLocalDMZ() {
+        String SQLdriver = mySettings.getFE_SQLdriver();
+        String URL = mySettings.getFE_defaultSQLserver();
+        String alternativeURL = mySettings.getFE_alternativeSQLserver();
+        String USERNAME = mySettings.getFE_DATABASE_USER();
+        String PASSWORD = mySettings.getFE_DATABASE_PW();
+        EVOpagerDirectivesManager myDirective = new EVOpagerDirectivesManager(myParams, mySettings);//QUesto compila automaticamente il context standard
+        String DBname = mySettings.getAccountDB() + "_" + myParams.getCKcontextID();
+//        System.out.println("DBname: " + DBname);
+        return makeConnection(
+                SQLdriver,
+                URL,
+                alternativeURL,
+                DBname,
+                USERNAME,
+                PASSWORD
+        );
+    }
+public Connection ConnLocalDMZqueenpro() {
+        String SQLdriver = mySettings.getFE_SQLdriver();
+        String URL = mySettings.getFE_defaultSQLserver();
+        String alternativeURL = mySettings.getFE_alternativeSQLserver();
+        String USERNAME = mySettings.getFE_DATABASE_USER();
+        String PASSWORD = mySettings.getFE_DATABASE_PW();
+        EVOpagerDirectivesManager myDirective = new EVOpagerDirectivesManager(myParams, mySettings);//QUesto compila automaticamente il context standard
+        String DBname = mySettings.getQueenproDB();
+        return makeConnection(
+                SQLdriver,
+                URL,
+                alternativeURL,
+                DBname,
+                USERNAME,
+                PASSWORD
+        );
+    }
     public Connection ConnLocalQueenpro() {
         String SQLdriver = mySettings.getFE_SQLdriver();
         String DBname = mySettings.getQueenproDB();

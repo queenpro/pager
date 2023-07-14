@@ -38,6 +38,7 @@ public class WSclient {
     String softwareGroup;
     String recorded;
     String tokenAssigned;
+    String uid;
     EVOpagerParams clientParams;
     int tempFound;
     boolean handshaked;
@@ -52,17 +53,62 @@ public class WSclient {
     String URI;
     String status;
     String clientIP;
+    String clientIPtype;
 
     String CLIENT_SERVERNAME;
     String CLIENT_PROJECTNAME;
     String CLIENT_CONTEXT;
-
+    String WSUUID ;
+    long lastMessageRecorded;
+    
+    public WSclient(String XclientID, String sessionID, String tokenAssigned, String uid) {
+        this.clientID = XclientID;
+        this.sessionID = sessionID;
+        this.clientParams = new EVOpagerParams();
+        this.tokenAssigned = tokenAssigned;
+        this.uid = uid;
+        handshaked = false;
+    }
     public WSclient(String XclientID, String sessionID, String tokenAssigned) {
         this.clientID = XclientID;
         this.sessionID = sessionID;
         this.clientParams = new EVOpagerParams();
         this.tokenAssigned = tokenAssigned;
         handshaked = false;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+    public long getLastMessageRecorded() {
+        return lastMessageRecorded;
+    }
+
+    public void setLastMessageRecorded(long lastMessageRecorded) {
+        this.lastMessageRecorded = lastMessageRecorded;
+    }
+
+   
+
+    public String getWSUUID() {
+        return WSUUID;
+    }
+
+    public void setWSUUID(String WSUUID) {
+        this.WSUUID = WSUUID;
+    }
+
+    public String getClientIPtype() {
+        return clientIPtype;
+    }
+
+    public void setClientIPtype(String clientIPtype) {
+        this.clientIPtype = clientIPtype;
     }
 
     public String getCLIENT_SERVERNAME() {
